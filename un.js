@@ -5177,31 +5177,49 @@ try {
     // 2. CRÉATION DE L'INTERFACE (TOOLBOX)
     // ==========================================
     // ---------- Couleurs des categories ----------
-    // Une couleur par categorie, UNE seule table : la bande / puce de la colonne de categories ET les blocs de la categorie
-    // la suivent. Demande de l'utilisateur : AUCUNE couleur identique entre deux categories. Les 17 couleurs sont choisies pour
-    // etre aussi differentes que possible (ecart minimal CIE Lab de 26 entre deux couleurs, mesure sur les blocs ET sur les
-    // puces vives), assez sombres pour le texte blanc des blocs (contraste >= 3,9), puis attribuees dans l'ordre de la colonne
-    // de facon que deux categories VOISINES soient tres differentes (ecart >= 97). Les sous-categories (Radio, Grove, Robots)
-    // heritent de leur parent. Pour changer une couleur : modifier la ligne ci-dessous.
+    // Une couleur par categorie, UNE seule table : la puce de la colonne de categories (bandeau.js la recopie depuis la
+    // couleur de la categorie) ET les blocs de la categorie. Demande de l'utilisateur : les blocs ont exactement la couleur
+    // de leur puce. Couleurs alignees sur la version Arduino R4 (EasyBloc) ; Capteurs, Actionneurs, Servos et Robots, sans
+    // equivalent Arduino, ont une couleur choisie la plus eloignee possible des autres. Aucune couleur identique entre deux
+    // categories. Les sous-categories (Radio, Grove, Robots) heritent de leur parent. Sur une couleur claire, le texte du
+    // bloc passe en fonce (voir texteSombreSurBlocsClairs). Pour changer une couleur : modifier la ligne ci-dessous.
     const PALETTE_CATEGORIES = {
-        'Boucles': '#1f5c52',
-        'Temps': '#d50bd5',
-        'Affichage': '#5c521f',
-        'Entrées/Sorties': '#0909b3',
-        'Capteurs': '#915808',
-        'Actionneurs (Audio)': '#2270bf',
-        'Servos': '#910808',
-        'Radio': '#1c8aa0',
-        'IA': '#d50b70',
-        'Grove': '#178255',
-        'Logique': '#a83896',
-        'Variables': '#678217',
-        'Maths': '#6738a8',
-        'Texte': '#d53e0b',
-        'Fonctions': '#123668',
-        'Listes': '#089108',
-        'Robots': '#74062b',
+        'Boucles': '#fd7e14',
+        'Temps': '#15aabf',
+        'Affichage': '#f03e3e',
+        'Entrées/Sorties': '#343a40',
+        'Capteurs': '#d2cc79',
+        'Actionneurs (Audio)': '#622d86',
+        'Servos': '#25f478',
+        'Radio': '#1864ab',
+        'IA': '#9c6644',
+        'Grove': '#2b8a3e',
+        'Logique': '#fcc419',
+        'Variables': '#e64980',
+        'Maths': '#82c91e',
+        'Texte': '#7048e8',
+        'Fonctions': '#cc5de8',
+        'Listes': '#a61e4d',
+        'Robots': '#25f4ca',
     };
+    // Texte des blocs : blanc par defaut ; fonce sur les couleurs claires, ou le blanc contraste a moins de 3:1 (seuil
+    // WCAG, luminance relative) : Boucles, Temps, Capteurs, Servos, Logique, Maths, Robots. Regle CSS par couleur : « un bloc dont le fond a cette
+    // couleur » -> ses propres libelles (enfants directs : les blocs emboites gardent leur propre regle). Sans effet en
+    // contraste eleve (blocs noirs ou blancs, voir index.html).
+    (function texteSombreSurBlocsClairs() {
+        const lum = hex => {
+            const c = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255).map(v => v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4));
+            return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+        };
+        const FONCE = '#1a1a1a', L_FONCE = lum(FONCE);
+        const claires = Object.values(PALETTE_CATEGORIES).filter(h => 1.05 / (lum(h) + 0.05) < 3);   // blanc sous 3:1 (seuil WCAG)
+        if (!claires.length) return;
+        const style = document.createElement('style');
+        style.textContent = claires.map(h => ':root:not([data-contrast="high"]) g:has(> path.blocklyPath[fill="' + h + '" i]) > g > text.blocklyText:not(.blocklyDropdownText)')
+            .join(',\n') + ' { fill: ' + FONCE + '; }';
+        document.head.appendChild(style);
+        window.blocsTexteFonce = claires;
+    })();
     // Blocs de categories dynamiques de Blockly (absents de la liste du tiroir).
     const BLOCS_PALETTE_SUPPLEMENTAIRES = {
         'Variables': ['variables_get', 'variables_set', 'math_change'],

@@ -173,49 +173,14 @@ window.bandeauTest = { demarrerCartes, chargerCartes, cartes: () => cartes };
 // ---------- Puces rondes de la colonne de categories ----------
 // Blockly colore chaque categorie par la bordure gauche de sa ligne (rectangle). On recopie cette couleur dans
 // --puce (variable CSS) pour dessiner une puce ronde a la place ; la bordure est supprimee par le CSS (index.html).
-// Version « pechue » : la puce n'a pas la couleur sombre des blocs (choisie pour le texte blanc) mais une variante plus
-// vive (teinte conservee, saturation et luminosite relevees) avec un reflet, pour ressortir sur le fond anthracite.
-function rgbVersHsl(r, g, b) {
-    r /= 255; g /= 255; b /= 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
-    if (max === min) return [0, 0, l];
-    const d = max - min, s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    const h = max === r ? ((g - b) / d + (g < b ? 6 : 0)) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
-    return [h * 60, s, l];
-}
-function hslVersCss(h, s, l) { return 'hsl(' + Math.round(h) + ' ' + Math.round(s * 100) + '% ' + Math.round(l * 100) + '%)'; }
-function variantePuce(couleurCss) {
-    const m = String(couleurCss).match(/rgba?\(\s*(\d+)[ ,]+(\d+)[ ,]+(\d+)/);
-    if (!m) return [couleurCss, couleurCss];
-    const [h, s, l] = rgbVersHsl(+m[1], +m[2], +m[3]);
-    const sv = Math.min(1, s + 0.25);                    // plus saturee
-    const lv = Math.min(0.7, 0.36 + l * 0.62);           // plus lumineuse, en CONSERVANT l'ecart de luminosite entre categories
-    return [hslVersCss(h, sv, lv), hslVersCss(h, Math.min(1, sv), Math.min(0.85, lv + 0.25))];   // [couleur, reflet]
-}
-// Couleur EXACTE des pastilles, alignee sur la version Arduino R4 (une sous-categorie prend toujours la couleur de sa categorie
-// principale). Les 4 categories sans equivalent Arduino (Capteurs, Actionneurs, Servos, Robots) ont une couleur proposee,
-// la plus eloignee possible des 14 autres. Ces couleurs ne touchent QUE les pastilles, pas les blocs.
-const PASTILLES = {
-    'Boucles': '#FD7E14', 'Temps': '#15AABF', 'Affichage': '#F03E3E', 'Entrées/Sorties': '#343A40',
-    'Capteurs': '#D2CC79', 'Actionneurs (Audio)': '#622D86', 'Servos': '#25F478', 'Radio': '#1864AB',
-    'IA': '#9C6644', 'Grove': '#2B8A3E', 'Logique': '#FCC419', 'Variables': '#E64980', 'Maths': '#82C91E',
-    'Texte': '#7048E8', 'Fonctions': '#CC5DE8', 'Listes': '#A61E4D', 'Robots': '#25F4CA'
-};
-function nomCategorieMere(ligne) {
-    const cat = ligne.closest('.blocklyToolboxCategory');
-    const mere = cat && cat.parentElement ? cat.parentElement.closest('.blocklyToolboxCategory') : null;
-    const etiquette = ((mere || cat) || document).querySelector('.blocklyTreeLabel');
-    return etiquette ? etiquette.textContent.trim() : '';
-}
+// La puce a EXACTEMENT la couleur des blocs de sa categorie (table PALETTE_CATEGORIES, un.js) ; une sous-categorie
+// prend la couleur de sa categorie principale.
 function colorerPuces() {
     document.querySelectorAll('.blocklyToolboxCategory .blocklyTreeRow').forEach(ligne => {
-        const nom = nomCategorieMere(ligne);
-        const exacte = PASTILLES[nom];
-        const base = exacte || getComputedStyle(ligne).borderLeftColor;     // repli : variante de la couleur du bloc (categorie inconnue)
-        const cle = nom + '|' + base;
-        if (!base || ligne.dataset.puceBase === cle) return;
-        ligne.dataset.puceBase = cle;
-        ligne.style.setProperty('--puce', exacte || variantePuce(base)[0]);
+        const base = getComputedStyle(ligne).borderLeftColor;
+        if (!base || ligne.dataset.puceBase === base) return;
+        ligne.dataset.puceBase = base;
+        ligne.style.setProperty('--puce', base);
     });
 }
 colorerPuces();
