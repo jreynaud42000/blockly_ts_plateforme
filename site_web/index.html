@@ -445,6 +445,13 @@
         border-top: 2px solid var(--fond-chrome); }
     :root[data-contrast="high"] #console-panneau { border-top-width: 2px; border-top-color: #ffffff; }
     #console-entete { display: flex; align-items: center; gap: 12px; }
+    /* Bord haut de la console : barre a glisser (souris ou doigt) pour regler la hauteur (un.js, « redimensionnement
+       de la console »). Double-clic : hauteur de depart. Elle deborde de 4 px au-dessus pour etre facile a attraper. */
+    #console-panneau { position: relative; }
+    #console-redimensionneur { position: absolute; left: 0; right: 0; top: -5px; height: 9px; cursor: row-resize; z-index: 6;
+        touch-action: none; }
+    #console-redimensionneur::after { content: ''; position: absolute; left: 0; right: 0; top: 3px; height: 3px; background: transparent; }
+    #console-redimensionneur:hover::after, #console-redimensionneur.actif::after { background: #cf4400; }
     #console-entete h3 { margin: 0; color: #ff7a33; font-size: 13px; text-transform: uppercase; flex: 0 0 auto; }
     #console-boutons { display: flex; gap: 6px; white-space: nowrap; flex: 0 0 auto; }
     #console-boutons button { font-size: 12px; padding: 4px 10px; margin: 0; background: #4a4a4a; }
@@ -2069,6 +2076,8 @@
   <!-- Console : barre en bas de l'application, masquee par defaut (bouton >_
        de la barre d'outils). print() du simulateur + sortie serie de la carte. -->
   <section id="console-panneau" class="replie" aria-label="Console">
+    <div id="console-redimensionneur" role="separator" aria-orientation="horizontal" aria-label="Hauteur de la console"
+         title="Glisser pour changer la hauteur de la console (double-clic : hauteur de départ)"></div>
     <div id="console-entete">
       <h3>Console</h3>
       <span id="console-onglets" role="tablist">

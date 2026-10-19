@@ -589,8 +589,9 @@ espace pour deux sources. Elle est MASQUEE au depart ; le bouton >_ de la
 barre d'outils l'affiche ou la masque (la croix de sa barre aussi), et la
 zone de blocs se redimensionne en consequence. Elle s'ouvre toute seule a la
 premiere sortie (print du simulateur ou de la carte), sauf si l'utilisateur
-l'a fermee lui-meme. La poignee en bas a droite de la zone de sortie permet
-de l'agrandir. Le bouton "?" de sa barre ouvre l'aide d'utilisation de la
+l'a fermee lui-meme. Sa hauteur se regle en glissant son bord haut (trait orange
+au survol ; souris ou doigt) ; elle est retenue dans le navigateur, et un double-clic sur ce
+bord rend la hauteur de depart. L'espace de blocs garde toujours au moins 150 px. Le bouton "?" de sa barre ouvre l'aide d'utilisation de la
 console (meme fenetre que l'aide d'un bloc ; texte dans TEXTE_AIDE_CONSOLE,
 un.js : a tenir a jour si la console change). Le bouton 📊 exporte toutes les
 lignes affichees dans un fichier Excel .xlsx (console-microbit-AAAAMMJJ-

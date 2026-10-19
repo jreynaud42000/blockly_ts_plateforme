@@ -7429,6 +7429,59 @@ try {
         }).observe(consolePanneau);
     }
 
+    // ---- Redimensionnement de la console par glisser (bord haut) ----
+    // Demande de l'utilisateur : regler la hauteur de la console en glissant son bord haut, comme le simulateur se regle
+    // par son bord gauche. Monter agrandit. La hauteur s'applique aux DEUX vues (texte et graphique, box-sizing:
+    // border-box) ; l'espace de blocs garde toujours au moins 150 px. Retenue dans ce navigateur pour la fois suivante ;
+    // double-clic : hauteur de depart (148 px). Pointer events : souris, stylet et doigt.
+    const redimConsole = document.getElementById('console-redimensionneur');
+    const CLE_HAUTEUR_CONSOLE = 'console_hauteur_v1', HAUTEUR_CONSOLE_DEPART = 148, MIN_CONSOLE = 50, MIN_BLOCS = 150;
+    function poserHauteurConsole(h) {
+        for (const zone of [consoleSortie, zoneGraphique]) {
+            if (!zone) continue;
+            zone.style.height = h + 'px';
+            zone.style.maxHeight = 'none';
+        }
+        planifierGraphique();
+    }
+    try {
+        const memo = Number(localStorage.getItem(CLE_HAUTEUR_CONSOLE));
+        if (memo >= MIN_CONSOLE) poserHauteurConsole(Math.min(memo, Math.round(window.innerHeight * 0.75)));
+    } catch (erreur) { /* stockage indisponible : hauteur de depart */ }
+    if (redimConsole && consoleSortie) {
+        let yDepart = 0, hDepart = 0, hMax = 0;
+        const vueVisible = () => (zoneGraphique && !zoneGraphique.classList.contains('replie')) ? zoneGraphique : consoleSortie;
+        redimConsole.addEventListener('pointerdown', ev => {
+            if (ev.button !== 0) return;
+            yDepart = ev.clientY;
+            hDepart = vueVisible().offsetHeight;
+            const blocs = document.getElementById('main-container');
+            hMax = hDepart + Math.max(0, (blocs ? blocs.getBoundingClientRect().height : 0) - MIN_BLOCS);
+            try { redimConsole.setPointerCapture(ev.pointerId); } catch (erreur) { /* tant pis */ }
+            redimConsole.classList.add('actif');
+            document.body.style.cursor = 'row-resize';
+            document.body.style.userSelect = 'none';
+            ev.preventDefault();
+        });
+        redimConsole.addEventListener('pointermove', ev => {
+            if (!redimConsole.classList.contains('actif')) return;
+            poserHauteurConsole(Math.round(Math.max(MIN_CONSOLE, Math.min(hMax, hDepart - (ev.clientY - yDepart)))));
+        });
+        const relacher = () => {
+            if (!redimConsole.classList.contains('actif')) return;
+            redimConsole.classList.remove('actif');
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+            try { localStorage.setItem(CLE_HAUTEUR_CONSOLE, String(vueVisible().offsetHeight)); } catch (erreur) { /* rien */ }
+        };
+        redimConsole.addEventListener('pointerup', relacher);
+        redimConsole.addEventListener('pointercancel', relacher);
+        redimConsole.addEventListener('dblclick', () => {
+            poserHauteurConsole(HAUTEUR_CONSOLE_DEPART);
+            try { localStorage.removeItem(CLE_HAUTEUR_CONSOLE); } catch (erreur) { /* rien */ }
+        });
+    }
+
     // ---- Vraie carte : port serie USB (DAPLink, 115200 bauds) ----
     let portSerie = null;
     let lecteurSerie = null;
@@ -8554,7 +8607,9 @@ try {
         "AFFICHER OU MASQUER\n" +
         "• Bouton « Console » de la barre d'outils, ou croix ✕ de la console.\n" +
         "• Elle s'ouvre toute seule à la première ligne reçue, sauf si vous l'avez fermée vous-même.\n" +
-        "• Tirez la poignée en bas à droite de la zone de texte pour l'agrandir.\n\n" +
+        "• Changez sa hauteur en glissant son bord haut (le trait orange qui apparaît au survol) : vers le haut " +
+        "pour l'agrandir, vers le bas pour la réduire. La hauteur est retenue pour la fois suivante ; un double-clic " +
+        "sur ce bord rend la hauteur de départ.\n\n" +
         "AVEC LE SIMULATEUR\n" +
         "• Cliquez « Lancer la simulation » : les lignes apparaissent dans l'ordre où le programme les écrit.\n" +
         "• « Lancer la simulation » et « Réinitialiser la simulation » effacent ces lignes. " +
