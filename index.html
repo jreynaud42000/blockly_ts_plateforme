@@ -454,7 +454,9 @@
         overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     /* resize: vertical = poignee en bas a droite pour agrandir la zone de sortie ;
        la barre grandit alors et l'espace de blocs se reduit (voir ResizeObserver, un.js). */
-    #console-sortie { height: 130px; min-height: 50px; max-height: 60vh; overflow: auto; resize: vertical;
+    /* border-box : la hauteur lue (offsetHeight) et la hauteur posee (style.height) mesurent la meme chose ;
+       sinon chaque bascule Texte / Graphique ajoutait bordures et marges (+20 px) et la console grandissait sans fin. */
+    #console-sortie { box-sizing: border-box; height: 148px; min-height: 50px; max-height: 60vh; overflow: auto; resize: vertical;
         margin: 6px 0; padding: 8px;
         background: var(--fond-saisie); color: var(--texte-saisie); border: 1px solid var(--bordure-chrome);
         border-radius: 4px; font: 12px/1.45 Consolas, "DejaVu Sans Mono", monospace; white-space: pre-wrap;
@@ -464,7 +466,7 @@
     #console-onglets button:hover { background: #5e5e5e; }
     #console-onglets button.actif { background: #cf4400; }
     /* Vue graphique : meme gabarit et meme poignee de redimensionnement que la sortie texte. */
-    #console-graphique { height: 130px; min-height: 50px; max-height: 60vh; resize: vertical; overflow: hidden;
+    #console-graphique { box-sizing: border-box; height: 148px; min-height: 50px; max-height: 60vh; resize: vertical; overflow: hidden;
         margin: 6px 0; position: relative; background: var(--fond-saisie);
         border: 1px solid var(--bordure-chrome); border-radius: 4px; }
     #console-canevas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
