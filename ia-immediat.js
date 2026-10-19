@@ -18,7 +18,9 @@
 //    classe (k plus proches voisins). Aucun entrainement : un exemple ajoute compte
 //    aussitot. Camera : les votes des LISSAGE dernieres images sont moyennes. Son : un
 //    son reconnu le reste DUREE_SON ms, puis plus rien n'est reconnu.
-//    Exemples : camera ou micro (bouton « Maintenir »), ou fichiers .png / .jpg.
+//    Exemples (fenetre IA, une carte par classe) : « Une photo », « Plusieurs photos » jusqu'a « Arreter »,
+//    « Ajouter des images » (.png / .jpg) ; sons : « Enregistrer » jusqu'a « Arreter ». La camera s'allume
+//    toute seule quand la fenetre s'ouvre sur l'apprentissage immediat, et s'eteint quand elle se ferme.
 //    Chaque exemple a sa VIGNETTE (cliquer dessus le supprime) : petite photo pour les
 //    objets et images (en memoire seulement, jamais enregistree), squelette dessine pour
 //    les gestes et positions, dessin du timbre pour les sons.
@@ -240,6 +242,12 @@ function vignetteDe(e) {
     return e.vignette;
 }
 
+// Compteur d'une carte de classe : le nombre (lu par la visite guidee) puis « exemple(s) ».
+function majCompte(compteur, n) {
+    compteur.textContent = String(n);
+    if (compteur.nextElementSibling) compteur.nextElementSibling.textContent = n > 1 ? ' exemples' : ' exemple';
+}
+
 function elementVignette(c, e, compteur) {
     const b = document.createElement('button');
     b.className = 'ia-imm-vignette';
@@ -251,7 +259,7 @@ function elementVignette(c, e, compteur) {
         const i = c.ex.indexOf(e);
         if (i >= 0) c.ex.splice(i, 1);
         b.remove();
-        if (compteur) compteur.textContent = String(c.ex.length);
+        if (compteur) majCompte(compteur, c.ex.length);
         etat.historique = [];
         majDemarrer();
         direCreer('Exemple supprimé de « ' + c.nom + ' » (' + c.ex.length + ' restant' + (c.ex.length > 1 ? 's' : '') + ').');
@@ -267,7 +275,9 @@ const niveau = $('.ia-imm-niveau', col);
 function brancherApercu(element, allumer) {
     const flux = noyau().camera.flux;
     element.srcObject = allumer ? flux : null;
-    element.closest('.ia-imm-cadre').classList.toggle('replie', !allumer);
+    // Le cadre de l'apprentissage immediat reste affiche (noir, « Caméra éteinte ») ; celui des QR codes se replie.
+    const cadre = element.closest('.ia-imm-cadre');
+    cadre.classList.toggle(cadre.dataset.toujours ? 'eteint' : 'replie', !allumer);
     if (allumer) element.play().catch(() => {});
 }
 
@@ -285,7 +295,7 @@ function afficherNiveau(db, fond, enSon) {
     niveau.classList.toggle('son', enSon);
 }
 
-// Les rappels du micro vont a la capture (bouton « Maintenir » enfonce) ou a la reconnaissance.
+// Les rappels du micro vont a la capture (« Enregistrer » en cours) ou a la reconnaissance.
 let captureSon = null;
 function surSon(v) {
     if (captureSon) { captureSon(v); return; }
@@ -350,30 +360,58 @@ function renommerDansLesBlocs(ancien, nouveau) {
     }
 }
 
-// Textes qui changent selon que l'on apprend des images (camera) ou des sons (micro).
+// Textes qui changent selon ce que l'on apprend : images (camera) ou sons (micro).
+const AIDES = {
+    images: 'Pour chaque classe, prenez des photos avec la webcam : « 📸 Une photo » à chaque clic, ou « 🎞 Plusieurs photos » ' +
+        'en montrant l\'objet sous plusieurs angles, puis « ■ Arrêter ». Vous pouvez aussi ajouter des images (.png, .jpg). Une ' +
+        'vingtaine d\'exemples par classe suffit souvent. Ensuite, testez : les barres montrent ce que l\'IA reconnaît. ' +
+        'Cliquer sur une vignette supprime cet exemple.',
+    mains: 'Pour chaque classe, montrez le geste à la webcam (une seule main, bien éclairée) : « 📸 Une photo » à chaque clic, ou ' +
+        '« 🎞 Plusieurs photos » en bougeant un peu la main, puis « ■ Arrêter ». Une vingtaine d\'exemples par classe suffit souvent. ' +
+        'Ensuite, testez : les barres montrent ce que l\'IA reconnaît. Cliquer sur une vignette supprime cet exemple.',
+    bras: 'Reculez pour que le haut du corps soit dans l\'image, puis prenez la position de chaque classe : « 📸 Une photo » à chaque ' +
+        'clic, ou « 🎞 Plusieurs photos » en bougeant un peu, puis « ■ Arrêter ». Ensuite, testez : les barres montrent ce que l\'IA ' +
+        'reconnaît. Cliquer sur une vignette supprime cet exemple.',
+    sons: 'Pour chaque classe, cliquez « 🎤 Enregistrer », faites le son (ou dites le mot) plusieurs fois avec un court silence entre ' +
+        'deux, puis « ■ Arrêter » : chaque son détecté devient un exemple. Pas besoin de classe « bruit de fond » : le silence ne ' +
+        'déclenche rien. Ensuite, testez. Cliquer sur une vignette supprime cet exemple.',
+};
+const PRIVE = {
+    images: '🔒 Les images restent dans l\'ordinateur. Seul un résumé chiffré de chaque exemple est gardé, et il est enregistré avec votre programme (.py).',
+    mains: '🔒 Les images restent dans l\'ordinateur. Seul le squelette de la main (des nombres) est gardé, et il est enregistré avec votre programme (.py).',
+    bras: '🔒 Les images restent dans l\'ordinateur. Seul le squelette du haut du corps (des nombres) est gardé, et il est enregistré avec votre programme (.py).',
+    sons: '🔒 Le son reste dans l\'ordinateur. Seul un dessin du timbre (des nombres) est gardé, et il est enregistré avec votre programme (.py).',
+};
 function majTextesType() {
     const bouton = $('.ia-imm-camera', col);
     const allume = capteurAllume('imm-capture');
-    bouton.textContent = estSon() ? (allume ? '🎤 Éteindre' : '🎤 Micro') : (allume ? '📷 Éteindre' : '📷 Caméra');
-    bouton.title = estSon() ? 'Allumer le micro pour ajouter des exemples' : 'Allumer la caméra pour ajouter des exemples';
+    bouton.textContent = estSon() ? (allume ? '🎤 Éteindre le micro' : '🎤 Allumer le micro') : (allume ? '📷 Éteindre la caméra' : '📷 Allumer la caméra');
+    bouton.title = estSon() ? 'Allumer ou éteindre le micro' : 'Allumer ou éteindre la caméra';
     bouton.classList.toggle('en-marche', allume);
+    col.classList.toggle('type-sons', estSon());
     $('.ia-sous-titre', col).textContent = estSon() ? 'micro' : 'caméra';
-    $('.ia-creer-aide', col).textContent = estSon()
-        ? 'Allumez le micro, puis maintenez le bouton d\'une classe et faites le son (ou dites le mot) plusieurs fois : ' +
-          'chaque son détecté devient un exemple. Rien n\'est enregistré, seul le dessin du timbre est gardé. ' +
-          'Cliquer sur une vignette supprime cet exemple.'
-        : 'Maintenir le bouton d\'une classe pour ajouter des exemples pris par la caméra, ou 🖼 pour des images. ' +
-          'Gestes et positions : seul le squelette est gardé, jamais la photo. Cliquer sur une vignette supprime cet exemple.';
+    $('.ia-creer-aide', col).textContent = AIDES[etat.type];
+    $('.ia-imm-prive', col).textContent = PRIVE[etat.type];
 }
 
+// Une carte par classe : nom modifiable, nombre d'exemples, vider, supprimer ; boutons de capture ; vignettes.
 function majLignes() {
+    arreterRafale();
     const conteneur = $('.ia-creer-classes', col);
     conteneur.textContent = '';
+    const bouton = (classe, texte, titre) => {
+        const b = document.createElement('button');
+        b.className = 'btn-vue ' + classe; b.textContent = texte; b.title = titre;
+        return b;
+    };
     etat.classes.forEach((c, i) => {
         const l = document.createElement('div');
         l.className = 'ia-ex ia-imm-ex' + (estSon() ? ' sans-images' : '');
+        const haut = document.createElement('div');
+        haut.className = 'ia-ex-haut';
         const nom = document.createElement('input');
         nom.className = 'ia-ex-nom'; nom.value = c.nom; nom.spellcheck = false; nom.maxLength = 30;
+        nom.title = 'Nom de la classe (cliquer pour le changer)'; nom.setAttribute('aria-label', 'Nom de la classe');
         let avant = c.nom;
         nom.addEventListener('input', () => { c.nom = nom.value; });
         nom.addEventListener('change', () => {
@@ -388,26 +426,43 @@ function majLignes() {
             avant = propre;
             majBarres();
         });
-        const n = document.createElement('span'); n.className = 'ia-ex-n'; n.textContent = String(c.ex.length);
+        const compte = document.createElement('span'); compte.className = 'ia-ex-compte';
+        const n = document.createElement('span'); n.className = 'ia-ex-n';
+        compte.append(n, document.createElement('span'));
+        majCompte(n, c.ex.length);
+        const vider = bouton('ia-ex-icone ia-ex-vider', '🧹', 'Effacer les exemples de cette classe (la classe reste)');
+        vider.addEventListener('click', () => {
+            if (c.ex.length && !confirm('Effacer les ' + c.ex.length + ' exemple(s) de « ' + c.nom + ' » ?')) return;
+            c.ex = []; apresModification();
+            direCreer('Exemples de « ' + c.nom + ' » effacés.');
+        });
+        const sup = bouton('ia-ex-icone ia-ex-sup', '✕', 'Supprimer cette classe et ses exemples');
+        sup.addEventListener('click', () => {
+            if (c.ex.length && !confirm('Supprimer la classe « ' + c.nom + ' » et ses ' + c.ex.length + ' exemple(s) ?')) return;
+            etat.classes.splice(i, 1); apresModification();
+        });
+        haut.append(nom, compte, vider, sup);
         const vignettes = document.createElement('div');
         vignettes.className = 'ia-imm-vignettes';
         c.ex.forEach(e => vignettes.appendChild(elementVignette(c, e, n)));
-        const capt = document.createElement('button');
-        capt.className = 'btn-vue ia-ex-capt'; capt.textContent = 'Maintenir';
-        capt.title = estSon() ? 'Maintenir enfoncé, puis faire le son : chaque son détecté devient un exemple'
-            : 'Maintenir enfoncé pour ajouter des exemples pris par la caméra';
-        brancherCapture(capt, c, n, vignettes);
-        const sup = document.createElement('button');
-        sup.className = 'btn-vue ia-ex-sup'; sup.textContent = '🗑'; sup.title = 'Supprimer cette classe et ses exemples';
-        sup.addEventListener('click', () => { etat.classes.splice(i, 1); apresModification(); });
-        l.append(nom, n, capt);
-        if (!estSon()) {
-            const fichiers = document.createElement('button');
-            fichiers.className = 'btn-vue ia-imm-images'; fichiers.textContent = '🖼'; fichiers.title = 'Ajouter des exemples depuis des images (.png, .jpg)';
+        const actions = document.createElement('div');
+        actions.className = 'ia-ex-actions';
+        if (estSon()) {
+            const enr = bouton('ia-ex-capt', '🎤 Enregistrer', 'Écouter le micro : chaque son détecté devient un exemple, jusqu\'à « Arrêter »');
+            enr.dataset.texte = enr.textContent;
+            enr.addEventListener('click', () => basculerRafale(enr, c, n, vignettes));
+            actions.append(enr);
+        } else {
+            const une = bouton('ia-ex-photo', '📸 Une photo', 'Ajouter un exemple : l\'image actuelle de la caméra');
+            une.addEventListener('click', () => unePhoto(c, n, vignettes));
+            const plusieurs = bouton('ia-ex-capt', '🎞 Plusieurs photos', 'Ajouter des exemples en rafale, jusqu\'à « Arrêter »');
+            plusieurs.dataset.texte = plusieurs.textContent;
+            plusieurs.addEventListener('click', () => basculerRafale(plusieurs, c, n, vignettes));
+            const fichiers = bouton('ia-imm-images', '📁 Ajouter des images', 'Ajouter des exemples depuis des images (.png, .jpg)');
             fichiers.addEventListener('click', () => { entreeImages.dataset.classe = String(i); entreeImages.click(); });
-            l.append(fichiers);
+            actions.append(une, plusieurs, fichiers);
         }
-        l.append(sup, vignettes);
+        l.append(haut, actions, vignettes);
         conteneur.appendChild(l);
     });
     $('.ia-ajouter-classe', col).disabled = etat.classes.length >= MAX_CLASSES;
@@ -459,57 +514,96 @@ const MESSAGE_RIEN = {
     sons: '',
 };
 
-function brancherCapture(bouton, c, compteur, vignettes) {
-    let appuye = false;
-    const arret = () => {
-        appuye = false; captureSon = null;
-        bouton.classList.remove('enregistre'); majDemarrer();
-    };
-    bouton.addEventListener('pointerdown', async evenement => {
-        evenement.preventDefault();
-        if (appuye) return;
-        if (estSon() ? !son().allume() : (!noyau().camera.flux || video.readyState < 2)) {
-            direCreer(estSon() ? 'Allumez d\'abord le micro (bouton 🎤 Micro).' : 'Allumez d\'abord la caméra (bouton 📷 Caméra).');
-            return;
-        }
-        appuye = true;
-        bouton.classList.add('enregistre');
-        try { bouton.setPointerCapture(evenement.pointerId); } catch (erreur) { /* pas grave */ }
-        if (estSon()) {
-            // Le micro ecoute deja : chaque son detecte pendant l'appui devient un exemple.
-            direCreer('Faites le son « ' + c.nom + ' » (plusieurs fois, avec un court silence entre deux).');
-            captureSon = v => {
-                if (!ajouterExemple(c, v, son().vignette(v, VIGNETTE_L, VIGNETTE_H), vignettes, compteur)) {
-                    direCreer('Maximum atteint : ' + MAX_EXEMPLES + ' exemples par classe.'); return;
-                }
-                compteur.textContent = String(c.ex.length);
-                direCreer('Son ajouté à « ' + c.nom + ' » (' + c.ex.length + ').');
-            };
-            return;
-        }
+// Capteur pret pour une capture : allume a la demande (camera : attendre la premiere image).
+async function capteurPret() {
+    const pret = () => (estSon() ? son().allume() : (!!noyau().camera.flux && video.readyState >= 2));
+    if (pret()) return true;
+    try {
+        await allumerCapteur('imm-capture');
+        majTextesType();
+        for (let t = 0; !pret() && t < 40; t++) await attente(100);
+        return pret();
+    } catch (erreur) {
+        direCreer(messageCapteur(erreur));
+        majTextesType();
+        return false;
+    }
+}
+function messageCapteur(erreur) {
+    const refus = erreur && (erreur.name === 'NotAllowedError' || erreur.name === 'SecurityError');
+    if (estSon()) return refus ? 'Micro refusé : autorisez-le dans le navigateur.' : 'Micro indisponible : ' + messageErreur(erreur);
+    return (refus ? 'Caméra refusée par le navigateur' : 'Caméra indisponible') + ' : vous pouvez quand même ajouter des images.';
+}
+
+// Une image de la camera -> un exemple. Renvoie false quand le maximum est atteint.
+async function capturerUne(c, compteur, vignettes) {
+    const l = video.videoWidth, h = video.videoHeight;
+    const r = await empreinte(video, l, h);
+    dessinerSquelette(r);
+    const vignette = r && (etat.type === 'images' ? vignettePhoto(video, l, h, true) : vignetteSquelette(r.v, etat.type));
+    if (!r) { direCreer(MESSAGE_RIEN[etat.type] || 'Image inutilisable.'); return true; }
+    if (!ajouterExemple(c, r.v, vignette, vignettes, compteur)) { direCreer('Maximum atteint : ' + MAX_EXEMPLES + ' exemples par classe.'); return false; }
+    majCompte(compteur, c.ex.length);
+    direCreer('Exemple ajouté à « ' + c.nom + ' » (' + c.ex.length + ').');
+    majDemarrer();
+    return true;
+}
+
+async function unePhoto(c, compteur, vignettes) {
+    if (rafale) return;
+    if (!(await capteurPret())) return;
+    try {
         direCreer('Chargement du modèle « ' + TYPES[etat.type].nom + ' »…');
-        try {
-            await modele(etat.type);
-            direCreer('Capture en cours…');
-            while (appuye) {
-                const l = video.videoWidth, h = video.videoHeight;
-                const r = await empreinte(video, l, h);
-                dessinerSquelette(r);
-                const vignette = r && (etat.type === 'images' ? vignettePhoto(video, l, h, true) : vignetteSquelette(r.v, etat.type));
-                if (!r) direCreer(MESSAGE_RIEN[etat.type] || 'Image inutilisable.');
-                else if (!ajouterExemple(c, r.v, vignette, vignettes, compteur)) { direCreer('Maximum atteint : ' + MAX_EXEMPLES + ' exemples par classe.'); break; }
-                else direCreer('Exemple ajouté à « ' + c.nom + ' » (' + c.ex.length + ').');
-                compteur.textContent = String(c.ex.length);
-                await attente(INTERVALLE_CAPTURE_MS);
+        await modele(etat.type);
+        await capturerUne(c, compteur, vignettes);
+    } catch (erreur) {
+        direCreer('Capture impossible : ' + messageErreur(erreur));
+    }
+}
+
+// « Plusieurs photos » (camera) ou « Enregistrer » (micro) : capture continue jusqu'a un second clic.
+let rafale = null;                  // { bouton } pendant une capture continue
+function arreterRafale() {
+    if (!rafale) return;
+    const b = rafale.bouton;
+    rafale = null; captureSon = null;
+    b.classList.remove('enregistre');
+    b.textContent = b.dataset.texte;
+    majDemarrer();
+}
+async function basculerRafale(bouton, c, compteur, vignettes) {
+    if (rafale && rafale.bouton === bouton) { arreterRafale(); direCreer('Capture arrêtée : ' + c.ex.length + ' exemple(s) dans « ' + c.nom + ' ».'); return; }
+    arreterRafale();
+    if (!(await capteurPret())) return;
+    const moi = { bouton };
+    rafale = moi;
+    bouton.classList.add('enregistre');
+    bouton.textContent = '■ Arrêter';
+    if (estSon()) {
+        // Le micro ecoute deja : chaque son detecte pendant l'enregistrement devient un exemple.
+        direCreer('Faites le son « ' + c.nom + ' » (plusieurs fois, avec un court silence entre deux).');
+        captureSon = v => {
+            if (!ajouterExemple(c, v, son().vignette(v, VIGNETTE_L, VIGNETTE_H), vignettes, compteur)) {
+                direCreer('Maximum atteint : ' + MAX_EXEMPLES + ' exemples par classe.'); arreterRafale(); return;
             }
-        } catch (erreur) {
-            direCreer('Capture impossible : ' + messageErreur(erreur));
+            majCompte(compteur, c.ex.length);
+            direCreer('Son ajouté à « ' + c.nom + ' » (' + c.ex.length + ').');
+            majDemarrer();
+        };
+        return;
+    }
+    try {
+        direCreer('Chargement du modèle « ' + TYPES[etat.type].nom + ' »…');
+        await modele(etat.type);
+        if (rafale === moi) direCreer('Capture en cours : montrez « ' + c.nom + ' » sous plusieurs angles.');
+        while (rafale === moi) {
+            if (!(await capturerUne(c, compteur, vignettes))) break;
+            await attente(INTERVALLE_CAPTURE_MS);
         }
-        arret();
-    });
-    bouton.addEventListener('pointerup', arret);
-    bouton.addEventListener('pointercancel', arret);
-    bouton.addEventListener('lostpointercapture', arret);
+    } catch (erreur) {
+        direCreer('Capture impossible : ' + messageErreur(erreur));
+    }
+    if (rafale === moi) arreterRafale();
 }
 
 const entreeImages = $('.ia-imm-fichiers', col);
@@ -741,20 +835,20 @@ $('.ia-imm-type', col).addEventListener('change', evenement => {
         evenement.target.value = etat.type; return;
     }
     arreter();
+    arreterRafale();
     eteindreCapteur('imm-capture');
     etat.type = nouveau;
     etat.classes.forEach(c => { c.ex = []; });
     apresModification();
     direCreer('Type : ' + TYPES[nouveau].nom + '. Ajoutez des exemples à chaque classe.');
+    synchroCapteurAuto();
 });
 $('.ia-imm-camera', col).addEventListener('click', async () => {
     try {
-        if (capteurAllume('imm-capture')) eteindreCapteur('imm-capture');
-        else { await allumerCapteur('imm-capture'); modele(etat.type).catch(() => {}); }
+        if (capteurAllume('imm-capture')) { arreterRafale(); eteindreCapteur('imm-capture'); }
+        else { await allumerCapteur('imm-capture'); modele(etat.type).catch(() => {}); direCreer(''); }
     } catch (erreur) {
-        const quoi = estSon() ? 'le micro' : 'la caméra';
-        direCreer(erreur && erreur.name === 'NotAllowedError' ? 'Accès refusé : autorisez ' + quoi + ' dans le navigateur.'
-            : (estSon() ? 'Micro' : 'Caméra') + ' impossible : ' + messageErreur(erreur));
+        direCreer(messageCapteur(erreur));
     }
     majTextesType();
 });
@@ -777,6 +871,24 @@ $('.ia-demarrer', col).addEventListener('click', () => (etat.enMarche ? arreter(
 $('.ia-imm-exporter', col).addEventListener('click', exporter);
 $('.ia-imm-importer', col).addEventListener('click', () => entreeImport.click());
 apresModification();
+
+// Fenetre IA ouverte sur l'apprentissage immediat (images) : la camera s'allume toute seule, comme dans la version
+// Arduino ; fenetre fermee ou autre onglet : la camera de capture s'eteint (une reconnaissance en cours continue, elle).
+// Le micro, lui, ne s'allume qu'a « Enregistrer » ou « Allumer le micro ».
+const panneauIA = document.getElementById('ia-panneau');
+function synchroCapteurAuto() {
+    const visible = !!panneauIA && !panneauIA.classList.contains('replie') && panneauIA.dataset.onglet === 'immediat';
+    if (visible && !estSon()) {
+        if (capteurAllume('imm-capture')) return;
+        allumerCapteur('imm-capture').then(() => { majTextesType(); modele(etat.type).catch(() => {}); })
+            .catch(erreur => { direCreer(messageCapteur(erreur)); majTextesType(); });
+    } else if (capteurAllume('imm-capture')) {
+        arreterRafale();
+        eteindreCapteur('imm-capture');
+        majTextesType();
+    }
+}
+if (panneauIA) new MutationObserver(synchroCapteurAuto).observe(panneauIA, { attributes: true, attributeFilter: ['class', 'data-onglet'] });
 
 // =====================================================================
 // QR codes et codes-barres (ZXing, lib/zxing)

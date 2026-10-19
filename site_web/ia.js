@@ -399,55 +399,118 @@ window.iaClassesConnues = function (genre) {
     return noms.map(n => String(n).trim()).filter(n => n && !vus.has(slug(n)) && vus.add(slug(n)));
 };
 
-// ---------- Habillage « cartes » du panneau (modele A, oct. 2026) ----------
-// Badge d'etat de chaque carte, deduit de son bouton Demarrer (en marche / pret / rien a lancer) ; carte en marche encadree.
-// Choix du type de l'apprentissage immediat en pastilles : elles pilotent le menu deroulant d'origine (masque), dont le
-// « change » fait tout le travail ; elles se recalent sur lui apres une annulation ou une importation.
-(function habillerCartes() {
-    const VIDE = { immediat: 'à préparer', vision: 'aucun modèle', son: 'aucun modèle', qr: 'arrêté' };
+// ---------- Fenetre IA : onglets, pastilles, pied, fermeture (oct. 2026) ----------
+// Le bouton IA ouvre une fenetre centree (index.html). Un onglet par mode ; le titre suit l'onglet et, pour
+// l'apprentissage immediat, ce que l'IA doit reconnaitre. Un point colore dans chaque onglet (bleu : pret, vert : en
+// marche), deduit du bouton Demarrer ; le bouton IA de la barre est souligne en vert tant qu'une reconnaissance tourne,
+// meme fenetre fermee. Pastilles du type : elles pilotent le menu deroulant d'origine (masque), dont le « change » fait
+// tout le travail. Pied : « Tout effacer » (apprentissage immediat), « Termine » (= fermer). Echap ou un clic sur le
+// voile ferment aussi la fenetre.
+(function habillerFenetre() {
+    const panneau = $('#ia-panneau');
+    if (!panneau) return;
+    const titre = $('#ia-titre-texte');
+    const choix = $('.ia-imm-type');
+    const onglets = Array.from(document.querySelectorAll('#ia-onglets .ia-onglet'));
+    const TITRES = {
+        images: 'Entraîner l\'IA à reconnaître des objets ou des images', mains: 'Entraîner l\'IA à reconnaître des gestes de la main',
+        bras: 'Entraîner l\'IA à reconnaître des positions des bras', sons: 'Entraîner l\'IA à reconnaître des sons ou des mots',
+    };
+    const AUTRES = { vision: 'Utiliser un modèle Teachable Machine (caméra)', son: 'Utiliser un modèle Teachable Machine (micro)',
+                     qr: 'Lire des QR codes et des codes-barres' };
+    const majTitre = () => {
+        const o = panneau.dataset.onglet;
+        if (titre) titre.textContent = o === 'immediat' ? TITRES[choix ? choix.value : 'images'] || TITRES.images : AUTRES[o] || '';
+    };
+    function choisirOnglet(o) {
+        if (!onglets.some(b => b.dataset.onglet === o)) return;
+        if (panneau.dataset.onglet !== o) panneau.dataset.onglet = o;
+        onglets.forEach(b => {
+            const actif = b.dataset.onglet === o;
+            b.classList.toggle('actif', actif);
+            b.setAttribute('aria-selected', String(actif));
+            b.tabIndex = actif ? 0 : -1;
+        });
+        majTitre();
+    }
+    onglets.forEach((b, i) => {
+        b.addEventListener('click', () => choisirOnglet(b.dataset.onglet));
+        b.addEventListener('keydown', ev => {
+            const pas = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0;
+            if (!pas) return;
+            const suivant = onglets[(i + pas + onglets.length) % onglets.length];
+            choisirOnglet(suivant.dataset.onglet); suivant.focus(); ev.preventDefault();
+        });
+    });
+    window.iaOnglet = choisirOnglet;
+    choisirOnglet(panneau.dataset.onglet || 'immediat');
+
+    // Points d'etat des onglets et soulignement du bouton IA de la barre
+    const boutonBarre = $('#btn-vue-ia');
+    const majBarre = () => {
+        if (boutonBarre) boutonBarre.classList.toggle('ia-en-marche', !!document.querySelector('.ia-colonne .ia-demarrer.en-marche'));
+    };
     for (const col of document.querySelectorAll('.ia-colonne')) {
-        const genre = col.dataset.genre, bouton = $('.ia-demarrer', col), badge = $('.ia-badge', col);
-        if (!bouton || !badge) continue;
+        const genre = col.dataset.genre, bouton = $('.ia-demarrer', col);
+        const point = $('#ia-onglets .ia-onglet[data-onglet="' + genre + '"] .ia-onglet-point');
+        if (!bouton || !point) continue;
         const maj = () => {
-            const etat = bouton.classList.contains('en-marche') ? 'marche' : (!bouton.disabled && genre !== 'qr') ? 'pret' : 'vide';
-            if (badge.dataset.etat === etat) return;
-            badge.dataset.etat = etat;
-            badge.textContent = etat === 'marche' ? 'en marche' : etat === 'pret' ? 'prêt' : VIDE[genre];
-            col.classList.toggle('ia-active', etat === 'marche');
+            const etat = bouton.classList.contains('en-marche') ? 'marche' : (!bouton.disabled && genre !== 'qr') ? 'pret' : '';
+            point.dataset.etat = etat;
+            point.title = etat === 'marche' ? 'en marche' : etat === 'pret' ? 'prêt' : '';
+            majBarre();
         };
         new MutationObserver(maj).observe(bouton, { attributes: true, attributeFilter: ['class', 'disabled'] });
         maj();
     }
-    const col = $('.ia-colonne[data-genre="immediat"]'), choix = col && $('.ia-imm-type', col), ligne = choix && choix.closest('.ia-modele');
-    if (!ligne) return;
-    const COURTS = { images: 'Objets', mains: 'Mains', bras: 'Bras', sons: 'Sons' };
-    const groupe = document.createElement('div');
-    groupe.className = 'ia-imm-pastilles';
-    groupe.setAttribute('role', 'group');
-    groupe.setAttribute('aria-label', 'Ce que l\'IA apprend à reconnaître');
-    const synchro = () => groupe.querySelectorAll('.ia-pastille').forEach(p => {
-        p.setAttribute('aria-pressed', String(p.dataset.valeur === choix.value));
-        p.disabled = choix.disabled;
-    });
-    for (const o of choix.options) {
-        const p = document.createElement('button');
-        p.type = 'button';
-        p.className = 'btn-vue ia-pastille';
-        p.dataset.valeur = o.value;
-        p.textContent = COURTS[o.value] || o.textContent;
-        p.title = 'Reconnaître : ' + o.textContent;
-        p.addEventListener('click', () => {
-            if (choix.value === o.value) return;
-            choix.value = o.value;
-            choix.dispatchEvent(new Event('change', { bubbles: true }));
-            synchro();
-        });
-        groupe.appendChild(p);
+
+    // Pastilles « L'IA doit reconnaitre »
+    const col = $('.ia-colonne[data-genre="immediat"]'), ligne = choix && choix.closest('.ia-modele');
+    if (col && ligne) {
+        const LONGS = { images: '🖼 Des objets ou des images', mains: '✋ Des gestes de la main', bras: '💪 Des positions des bras', sons: '🎤 Des sons ou des mots' };
+        const groupe = document.createElement('div');
+        groupe.className = 'ia-imm-pastilles';
+        groupe.setAttribute('role', 'group');
+        groupe.setAttribute('aria-label', 'Ce que l\'IA doit reconnaître');
+        const synchro = () => {
+            groupe.querySelectorAll('.ia-pastille').forEach(p => {
+                p.setAttribute('aria-pressed', String(p.dataset.valeur === choix.value));
+                p.disabled = choix.disabled;
+            });
+            majTitre();
+        };
+        for (const o of choix.options) {
+            const p = document.createElement('button');
+            p.type = 'button';
+            p.className = 'btn-vue ia-pastille';
+            p.dataset.valeur = o.value;
+            p.textContent = LONGS[o.value] || o.textContent;
+            p.addEventListener('click', () => {
+                if (choix.value === o.value) return;
+                choix.value = o.value;
+                choix.dispatchEvent(new Event('change', { bubbles: true }));
+                synchro();
+            });
+            groupe.appendChild(p);
+        }
+        ligne.appendChild(groupe);
+        choix.addEventListener('change', () => setTimeout(synchro, 0));
+        new MutationObserver(synchro).observe($('.ia-creer-classes', col) || col, { childList: true });   // importation, changement de type
+        synchro();
     }
-    ligne.insertBefore(groupe, ligne.firstChild);
-    choix.addEventListener('change', () => setTimeout(synchro, 0));
-    new MutationObserver(synchro).observe(col, { childList: true, subtree: true });    // importation, changement de type
-    synchro();
+
+    // Pied et fermeture
+    const fermer = () => { const b = $('#btn-ia-fermer'); if (b && !panneau.classList.contains('replie')) b.click(); };
+    const effacer = $('.ia-pied-effacer'), termine = $('.ia-pied-termine');
+    if (effacer) effacer.addEventListener('click', () => { const b = $('.ia-tout-effacer'); if (b) b.click(); });
+    if (termine) termine.addEventListener('click', fermer);
+    panneau.addEventListener('mousedown', ev => { if (ev.target === panneau) fermer(); });
+    document.addEventListener('keydown', ev => {
+        if (ev.key !== 'Escape' || panneau.classList.contains('replie')) return;
+        const aide = $('#voile-aide');                     // la fenetre d'aide (?) se ferme d'abord
+        if ((aide && getComputedStyle(aide).display !== 'none') || $('#ex-voile')) return;
+        fermer();
+    });
 })();
 
 window.iaNoyau = { traiterResultat, liberer, envoyer, ouvrirCamera, fermerCamera, camera, dernierEnvoi, moteurs, arreter, seuil };

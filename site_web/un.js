@@ -7645,6 +7645,9 @@ try {
     window.ouvrirPanneauIA = function () {
         if (iaPanneau && btnVueIA && iaPanneau.classList.contains('replie')) basculerPanneau(btnVueIA, iaPanneau);
     };
+    window.fermerPanneauIA = function () {
+        if (iaPanneau && btnVueIA && !iaPanneau.classList.contains('replie')) basculerPanneau(btnVueIA, iaPanneau);
+    };
 
     // ------------------------------------------
     // AIDE SUR UN BLOC (clic droit)
@@ -8662,17 +8665,20 @@ try {
 
     // ---- Aide sur l'IA (bouton « ? » du panneau IA) ----
     const TEXTE_AIDE_IA =
-        "Le panneau IA reconnaît des images (caméra), des gestes, des positions, des sons (micro) et des QR codes. " +
+        "La fenêtre IA (bouton « IA » de la barre d'outils) reconnaît des images (caméra), des gestes, des positions, des " +
+        "sons (micro) et des QR codes. « Terminé » la ferme : une reconnaissance en cours continue (bouton IA souligné en vert). " +
         "Le résultat pilote le programme par les blocs de la catégorie « IA », au choix dans le simulateur ou sur la " +
         "vraie carte. L'image et le son restent dans le navigateur : seul le nom de la classe est transmis.\n\n" +
-        "1. APPRENDRE SES CLASSES : « ⚡ Apprentissage immédiat » (sans entraînement, sans Internet)\n" +
-        "• Choisissez ce que l'IA reconnaît : objets et images, gestes de la main, positions des bras (caméra), ou sons et " +
-        "mots (micro).\n" +
-        "• Allumez « 📷 Caméra » (ou « 🎤 Micro »), puis maintenez « Maintenir » en face d'une classe : des exemples sont " +
-        "ajoutés en rafale. Pour les sons, faites le son (ou dites le mot) plusieurs fois avec un court silence entre deux : " +
-        "chaque son détecté devient un exemple. 🖼 ajoute des exemples depuis des images.\n" +
-        "• Chaque exemple a sa vignette sous sa classe (photo pour les objets, squelette pour les gestes et positions, " +
-        "dessin du timbre pour les sons). Cliquer sur une vignette supprime cet exemple seulement ; 🗑 supprime la classe.\n" +
+        "1. APPRENDRE SES CLASSES : onglet « ⚡ Apprentissage immédiat » (sans entraînement, sans Internet)\n" +
+        "• Choisissez ce que l'IA doit reconnaître : des objets ou des images, des gestes de la main, des positions des bras " +
+        "(caméra), ou des sons ou des mots (micro).\n" +
+        "• La caméra s'allume à l'ouverture de la fenêtre. Sur la carte d'une classe : « 📸 Une photo » ajoute un exemple à " +
+        "chaque clic, « 🎞 Plusieurs photos » en ajoute en rafale jusqu'à « ■ Arrêter », « 📁 Ajouter des images » prend des " +
+        "fichiers .png ou .jpg. Pour les sons : « 🎤 Enregistrer », faites le son (ou dites le mot) plusieurs fois avec un court " +
+        "silence entre deux, puis « ■ Arrêter » : chaque son détecté devient un exemple.\n" +
+        "• Chaque exemple a sa vignette sur la carte de sa classe (photo pour les objets, squelette pour les gestes et positions, " +
+        "dessin du timbre pour les sons). Cliquer sur une vignette supprime cet exemple seulement ; 🧹 efface tous les " +
+        "exemples de la classe ; ✕ supprime la classe ; « Tout effacer » (en bas) repart de deux classes vides.\n" +
         "• Chaque exemple compte aussitôt : « ▶ Démarrer » dès que 2 classes ont des exemples. Renommer une classe met à " +
         "jour les blocs qui l'utilisent.\n" +
         "• Images, gestes et positions pilotent les blocs « vision » ; les sons pilotent les blocs « son ». Un son reconnu " +
@@ -8680,11 +8686,11 @@ try {
         "• L'apprentissage (des nombres, jamais d'images ni de sons) est rangé dans le .py téléchargé et relu à son " +
         "ouverture ; « 💾 Exporter » le met dans un fichier .json à part. Il n'est pas dans le .hex. Les photos des " +
         "vignettes ne sont pas enregistrées (▣ après réouverture) ; squelettes et timbres se redessinent.\n\n" +
-        "2. OU CHARGER UN MODÈLE TEACHABLE MACHINE (colonnes « Vision » et « Son »)\n" +
+        "2. OU CHARGER UN MODÈLE TEACHABLE MACHINE (onglets « Modèle Teachable Machine », caméra et micro)\n" +
         "• Sur teachablemachine.withgoogle.com : « Exporter le modèle », onglet Tensorflow.js. Collez l'adresse puis " +
         "« Charger » (nécessite Internet), ou « Fichiers… » et sélectionnez les 3 fichiers à la fois (model.json, " +
         "metadata.json, weights.bin : fonctionne sans Internet).\n" +
-        "• « Démarrer » : le navigateur demande l'autorisation d'utiliser la caméra ou le micro. Démarrer une colonne " +
+        "• « Démarrer » : le navigateur demande l'autorisation d'utiliser la caméra ou le micro. Démarrer un modèle " +
         "arrête l'apprentissage immédiat du même genre, et inversement.\n\n" +
         "3. PROGRAMMER\n" +
         "• « lorsque l'IA reconnaît <classe> » : exécute les blocs quand cette classe est reconnue. Choisissez la classe dans " +
@@ -8700,7 +8706,7 @@ try {
         "• Le résultat est renvoyé deux fois par seconde ; la carte oublie un résultat de plus de 1,5 s " +
         "(navigateur fermé, câble débranché).\n\n" +
         "5. QR CODES ET CODES-BARRES\n" +
-        "• Colonne « 🔳 QR codes » : « ▶ Lire les codes », puis les blocs « lorsqu'un code QR est lu », " +
+        "• Onglet « 🔳 QR codes et codes-barres » : « ▶ Lire les codes », puis les blocs « lorsqu'un code QR est lu », " +
         "« un code QR est visible », « texte du dernier code QR lu ». « Créer un QR code » en fabrique un à imprimer.\n\n" +
         "LIMITES\n" +
         "• Chrome ou Edge conseillé. La caméra et le micro demandent une page en localhost ou en HTTPS.\n" +

@@ -1090,10 +1090,15 @@ Panneau IA (bouton 🧠 de la barre d'outils, barre en bas) :
 2. "Demarrer" : le navigateur demande la camera ou le micro. Les classes
    s'affichent avec une barre de probabilite ; la classe retenue passe en orange.
 3. "Seuil de confiance" (30 a 99 %, 80 par defaut) : en dessous, aucune classe.
-Presentation (oct. 2026, modele A « cartes ») : une carte par mode (Apprentissage immediat, Vision, Son, QR codes)
-avec son icone et un badge d'etat (a preparer / aucun modele / pret / en marche / arrete) ; la carte en marche est
-encadree en orange. Le type de l'apprentissage immediat se choisit par pastilles (Objets, Mains, Bras, Sons) ;
-« Envoyer a la carte » est un interrupteur.
+Fenetre IA (oct. 2026, sur le modele de la version Arduino R4) : le bouton IA ouvre une fenetre centree. Bandeau titre
+(« Entrainer l'IA a reconnaitre des objets ou des images »...), onglets Apprentissage immediat / Modele Teachable Machine
+(camera) / Modele Teachable Machine (micro) / QR codes et codes-barres (point bleu : pret, vert : en marche), pied :
+Tout effacer, seuil de confiance, interrupteur « Envoyer a la carte », Termine. Apprentissage immediat : pastilles
+« L'IA doit reconnaitre » ; une carte par classe a gauche (nom modifiable, nombre d'exemples, 🧹 vider, ✕ supprimer,
+« Une photo », « Plusieurs photos » jusqu'a « Arreter », « Ajouter des images » ; sons : « Enregistrer »), « + Ajouter une
+classe » ; a droite la camera (allumee a l'ouverture, eteinte a la fermeture), le test (Demarrer et barres), l'aide et la
+note de confidentialite. Termine, Echap ou un clic sur le voile ferment la fenetre ; une reconnaissance en cours continue
+(bouton IA souligne en vert).
 4. Simulateur : lancer la simulation (sans elle, rien n'est transmis).
    Vraie carte : la connecter par le bouton Connecter de la console, envoyer le
    programme, cocher "Envoyer a la carte".

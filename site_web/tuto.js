@@ -116,10 +116,10 @@ const ETAPES_GENERAL = [
     },
     {
         titre: '10. L\'intelligence artificielle',
-        texte: 'Le panneau IA reconnaît des images (caméra) ou des sons (micro). Vous pouvez y créer votre propre modèle ' +
-            '(section « Créer un modèle » : capturer des exemples, puis « Entraîner »), ou charger un modèle ' +
-            'Teachable Machine. Les classes reconnues déclenchent vos blocs.',
-        cible: '#ia-panneau',
+        texte: 'La fenêtre IA reconnaît des images (caméra) ou des sons (micro). Vous pouvez y apprendre vos propres classes ' +
+            '(onglet « Apprentissage immédiat » : quelques photos ou quelques sons par classe, sans entraînement), ou charger un ' +
+            'modèle Teachable Machine. Les classes reconnues déclenchent vos blocs.',
+        cible: '#ia-fenetre',
         avant: () => { if (window.ouvrirPanneauIA) window.ouvrirPanneauIA(); },
     },
     {
@@ -160,37 +160,39 @@ const ETAPES_IA = [
     },
     {
         titre: '1. Ouvrir le panneau IA',
-        texte: 'Le bouton « IA » de la barre d\'outils affiche ou masque le panneau IA, en bas de l\'écran.',
+        texte: 'Le bouton « IA » de la barre d\'outils ouvre la fenêtre IA ; « Terminé » la ferme (une reconnaissance en cours continue).',
         cible: '#btn-vue-ia',
         consigne: 'Cliquez sur « IA » pour ouvrir le panneau.',
         attendre: () => panneauOuvert('btn-vue-ia'),
     },
     {
-        titre: '2. Quatre colonnes',
+        titre: '2. Quatre onglets',
         texte: '« ⚡ Apprentissage immédiat » crée vos propres classes avec la caméra (objets, gestes de la main, positions des bras) ' +
             'ou le micro (sons et mots). « Vision » et « Son » chargent un modèle déjà fait sur Teachable Machine. ' +
             '« QR codes » lit les QR codes et codes-barres. Toutes envoient leur résultat aux blocs de la catégorie « IA ».',
-        cible: '#ia-colonnes',
+        cible: '#ia-onglets',
         avant: panneauIA,
     },
     {
         titre: '3. Créer ses classes : caméra ou micro',
         texte: 'L\'apprentissage immédiat n\'a pas besoin d\'entraînement : chaque exemple compte aussitôt. Choisissez d\'abord ' +
             'ce que l\'IA doit reconnaître (« objets et images », « gestes de la main », « positions des bras » avec la caméra, ' +
-            'ou « sons et mots » avec le micro), puis allumez la caméra ou le micro : le navigateur demande l\'autorisation.',
+            'ou « sons et mots » avec le micro). La caméra s\'allume toute seule à l\'ouverture de la fenêtre ; le micro, au premier ' +
+            '« Enregistrer ». Le navigateur demande l\'autorisation.',
         cible: colImm + ' .ia-imm-camera',
         avant: () => { panneauIA(); ouvrirCreation('immediat'); },
-        consigne: 'Cliquez sur « 📷 Caméra » (ou « 🎤 Micro ») et autorisez-la.',
-        attendre: () => [colImm + ' .ia-imm-cadre', colImm + ' .ia-imm-niveau'].some(sel => { const c = $(sel); return !!c && !c.classList.contains('replie'); }),
+        consigne: 'Autorisez la caméra (ou cliquez « 🎤 Allumer le micro »).',
+        attendre: () => [colImm + ' .ia-imm-cadre', colImm + ' .ia-imm-niveau'].some(sel => { const c = $(sel); return !!c && !c.classList.contains('replie') && !c.classList.contains('eteint') && c.getBoundingClientRect().width > 0; }),
     },
     {
         titre: '4. Ajouter des exemples',
-        texte: 'Chaque ligne est une classe. Renommez-la (par exemple « main », puis « fond ») : les blocs qui l\'utilisent suivent. ' +
-            'Placez ce que la caméra doit reconnaître devant elle et MAINTENEZ le bouton « Maintenir » de la classe : des exemples ' +
-            'sont ajoutés en rafale. Variez l\'angle, la distance, la lumière. 🖼 ajoute des exemples depuis des images. Pour les ' +
-            'sons : maintenez le bouton et faites le son plusieurs fois, avec un court silence entre deux. Chaque exemple apparaît ' +
-            'en vignette sous sa classe : cliquer sur une vignette supprime cet exemple seulement. « + Classe » en ajoute une ' +
-            '(8 au plus). Pour les gestes et les positions, seul le squelette est gardé, jamais la photo.',
+        texte: 'Chaque carte est une classe. Cliquez sur son nom pour le changer (par exemple « main », puis « fond ») : les blocs ' +
+            'qui l\'utilisent suivent. Placez ce que la caméra doit reconnaître devant elle : « 📸 Une photo » ajoute un exemple à ' +
+            'chaque clic, « 🎞 Plusieurs photos » en ajoute en rafale jusqu\'à « ■ Arrêter ». Variez l\'angle, la distance, la lumière. ' +
+            '« 📁 Ajouter des images » prend des fichiers. Pour les sons : « 🎤 Enregistrer », faites le son plusieurs fois avec un court ' +
+            'silence entre deux, puis « ■ Arrêter ». Chaque exemple apparaît en vignette : cliquer dessus le supprime ; 🧹 efface tous ' +
+            'les exemples de la classe. « + Ajouter une classe » en ajoute une (8 au plus). Pour les gestes et les positions, seul le ' +
+            'squelette est gardé, jamais la photo.',
         cible: colImm + ' .ia-creer-classes',
         avant: () => { panneauIA(); ouvrirCreation('immediat'); },
         consigne: 'Ajoutez au moins 5 exemples à chacune des deux classes.',
@@ -199,7 +201,7 @@ const ETAPES_IA = [
     {
         titre: '5. Tester',
         texte: '« Démarrer » lance la reconnaissance en continu : une barre par classe montre la confiance en direct, et la classe ' +
-            'retenue passe en vert. Montrez vos objets ou vos gestes à la caméra (ou faites vos sons) pour vérifier. Si deux classes se confondent, ' +
+            'retenue passe en orange. Montrez vos objets ou vos gestes à la caméra (ou faites vos sons) pour vérifier. Si deux classes se confondent, ' +
             'ajoutez-leur des exemples : c\'est pris en compte immédiatement, sans rien relancer.',
         cible: colImm + ' .ia-demarrer',
         avant: panneauIA,
@@ -224,10 +226,10 @@ const ETAPES_IA = [
     },
     {
         titre: '8. Ou charger un modèle Teachable Machine',
-        texte: 'Les colonnes « Vision » (caméra) et « Son » (micro) utilisent un modèle fait sur Teachable Machine ' +
+        texte: 'Les onglets « Modèle Teachable Machine » (caméra et micro) utilisent un modèle fait sur Teachable Machine ' +
             '(teachablemachine.withgoogle.com). Collez son adresse puis « Charger » (nécessite Internet), ou cliquez « Fichiers… » ' +
             'et sélectionnez ses trois fichiers (model.json, metadata.json, weights.bin) à la fois : cela fonctionne sans Internet. ' +
-            'Démarrer une colonne arrête l\'apprentissage immédiat du même genre, et inversement.',
+            'Démarrer un modèle arrête l\'apprentissage immédiat du même genre, et inversement.',
         cible: colVision + ' .ia-modele',
         avant: panneauIA,
     },
@@ -535,8 +537,12 @@ function creer() {
 function cibleDe(etape) {
     if (!etape.cible) return null;
     try {
-        const c = typeof etape.cible === 'function' ? etape.cible() : $(etape.cible);
+        let c = typeof etape.cible === 'function' ? etape.cible() : $(etape.cible);
         if (!c) return null;
+        // Fenetre IA : une cible dans un onglet affiche cet onglet ; une cible hors de la fenetre la ferme (elle la cacherait).
+        const onglet = c.closest && c.closest('#ia-panneau .ia-colonne');
+        if (onglet && window.iaOnglet) window.iaOnglet(onglet.dataset.genre);
+        else if (!(c.closest && c.closest('#ia-panneau')) && etape.cible !== '#btn-vue-ia' && window.fermerPanneauIA) window.fermerPanneauIA();
         const r = c.getBoundingClientRect();
         return r.width > 0 && r.height > 0 ? c : null;
     } catch (erreur) {
