@@ -5819,6 +5819,18 @@ try {
       })
     });
 
+    // Boutons ronds (recentrer, +, -) alignes sur la corbeille et regulierement espaces.
+    // Par defaut, Blockly colle + et - (2 px au lieu de 11) et aligne les boutons (32 px de
+    // large) par la droite avec la corbeille (47 px) : leurs centres etaient decales de 7,5 px.
+    // Reglages lus par ZoomControls.position() a chaque redimensionnement.
+    if (window.workspace.zoomControls_) {
+      const zc = window.workspace.zoomControls_;
+      const LARGEUR_CORBEILLE = 47;
+      zc.SMALL_SPACING = zc.LARGE_SPACING;
+      zc.MARGIN_HORIZONTAL += (LARGEUR_CORBEILLE - zc.WIDTH) / 2;
+      Blockly.svgResize(window.workspace);
+    }
+
     // Espace de depart : le demarrage puis la boucle, comme dans MakeCode.
     // Les blocs de premier niveau sont generes dans l'ordre de leur position,
     // le demarrage est donc pose au-dessus pour s'executer en premier.
