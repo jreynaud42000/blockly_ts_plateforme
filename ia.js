@@ -399,6 +399,57 @@ window.iaClassesConnues = function (genre) {
     return noms.map(n => String(n).trim()).filter(n => n && !vus.has(slug(n)) && vus.add(slug(n)));
 };
 
+// ---------- Habillage « cartes » du panneau (modele A, oct. 2026) ----------
+// Badge d'etat de chaque carte, deduit de son bouton Demarrer (en marche / pret / rien a lancer) ; carte en marche encadree.
+// Choix du type de l'apprentissage immediat en pastilles : elles pilotent le menu deroulant d'origine (masque), dont le
+// « change » fait tout le travail ; elles se recalent sur lui apres une annulation ou une importation.
+(function habillerCartes() {
+    const VIDE = { immediat: 'à préparer', vision: 'aucun modèle', son: 'aucun modèle', qr: 'arrêté' };
+    for (const col of document.querySelectorAll('.ia-colonne')) {
+        const genre = col.dataset.genre, bouton = $('.ia-demarrer', col), badge = $('.ia-badge', col);
+        if (!bouton || !badge) continue;
+        const maj = () => {
+            const etat = bouton.classList.contains('en-marche') ? 'marche' : (!bouton.disabled && genre !== 'qr') ? 'pret' : 'vide';
+            if (badge.dataset.etat === etat) return;
+            badge.dataset.etat = etat;
+            badge.textContent = etat === 'marche' ? 'en marche' : etat === 'pret' ? 'prêt' : VIDE[genre];
+            col.classList.toggle('ia-active', etat === 'marche');
+        };
+        new MutationObserver(maj).observe(bouton, { attributes: true, attributeFilter: ['class', 'disabled'] });
+        maj();
+    }
+    const col = $('.ia-colonne[data-genre="immediat"]'), choix = col && $('.ia-imm-type', col), ligne = choix && choix.closest('.ia-modele');
+    if (!ligne) return;
+    const COURTS = { images: 'Objets', mains: 'Mains', bras: 'Bras', sons: 'Sons' };
+    const groupe = document.createElement('div');
+    groupe.className = 'ia-imm-pastilles';
+    groupe.setAttribute('role', 'group');
+    groupe.setAttribute('aria-label', 'Ce que l\'IA apprend à reconnaître');
+    const synchro = () => groupe.querySelectorAll('.ia-pastille').forEach(p => {
+        p.setAttribute('aria-pressed', String(p.dataset.valeur === choix.value));
+        p.disabled = choix.disabled;
+    });
+    for (const o of choix.options) {
+        const p = document.createElement('button');
+        p.type = 'button';
+        p.className = 'btn-vue ia-pastille';
+        p.dataset.valeur = o.value;
+        p.textContent = COURTS[o.value] || o.textContent;
+        p.title = 'Reconnaître : ' + o.textContent;
+        p.addEventListener('click', () => {
+            if (choix.value === o.value) return;
+            choix.value = o.value;
+            choix.dispatchEvent(new Event('change', { bubbles: true }));
+            synchro();
+        });
+        groupe.appendChild(p);
+    }
+    ligne.insertBefore(groupe, ligne.firstChild);
+    choix.addEventListener('change', () => setTimeout(synchro, 0));
+    new MutationObserver(synchro).observe(col, { childList: true, subtree: true });    // importation, changement de type
+    synchro();
+})();
+
 window.iaNoyau = { traiterResultat, liberer, envoyer, ouvrirCamera, fermerCamera, camera, dernierEnvoi, moteurs, arreter, seuil };
 
 window.iaTest = { liberer, camera, ouvrirCamera, fermerCamera, chargerBibliotheque, traiterResultat, chargerModele, basculer, arreter, moteurs, envoyer, trierFichiers, racineModele, dernierEnvoi };

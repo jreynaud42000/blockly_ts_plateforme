@@ -237,7 +237,7 @@ const ETAPES_IA = [
             'le micro, puis maintenez le bouton d\'une classe et faites le son plusieurs fois. Pas besoin de classe « bruit de fond » : ' +
             'le silence ne déclenche rien. Un son reconnu le reste 1 seconde ; il pilote les blocs « son ». Rien n\'est enregistré, ' +
             'seul un dessin du timbre est gardé.',
-        cible: colImm + ' .ia-imm-type',
+        cible: colImm + ' .ia-imm-pastilles',
         avant: () => { panneauIA(); ouvrirCreation('immediat'); },
     },
     {

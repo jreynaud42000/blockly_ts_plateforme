@@ -357,7 +357,7 @@ function majTextesType() {
     bouton.textContent = estSon() ? (allume ? '🎤 Éteindre' : '🎤 Micro') : (allume ? '📷 Éteindre' : '📷 Caméra');
     bouton.title = estSon() ? 'Allumer le micro pour ajouter des exemples' : 'Allumer la caméra pour ajouter des exemples';
     bouton.classList.toggle('en-marche', allume);
-    $('h4', col).textContent = estSon() ? '⚡ Apprentissage immédiat (micro)' : '⚡ Apprentissage immédiat (caméra)';
+    $('.ia-sous-titre', col).textContent = estSon() ? 'micro' : 'caméra';
     $('.ia-creer-aide', col).textContent = estSon()
         ? 'Allumez le micro, puis maintenez le bouton d\'une classe et faites le son (ou dites le mot) plusieurs fois : ' +
           'chaque son détecté devient un exemple. Rien n\'est enregistré, seul le dessin du timbre est gardé. ' +

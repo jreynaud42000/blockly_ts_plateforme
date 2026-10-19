@@ -1295,6 +1295,68 @@
     :root[data-contrast="high"]:not([data-theme="light"]) .blocklyIconShape { fill: #000 !important; stroke: #fff; stroke-width: 1.5px; }
     :root[data-contrast="high"]:not([data-theme="light"]) .blocklyIconSymbol { fill: #fff !important; }
     :root[data-contrast="high"]:not([data-theme="light"]) .blocklyBlock image { filter: grayscale(1) brightness(1.6); }
+    /* ═══ Panneau IA, modele A « cartes » (oct. 2026) : une carte par mode (icone, titre, badge d'etat), choix du type en
+       pastilles, interrupteur « Envoyer a la carte », boutons arrondis, barres de confiance pleines. Les couleurs suivent
+       --texte-code (clair / sombre) par color-mix ; contraste eleve : cartes et boutons a bord plein. Badges, carte active
+       et pastilles : habillage en fin d'ia.js (le fonctionnement des colonnes ne change pas). */
+    #ia-panneau { --ia-or: #f76707; --ia-doux: color-mix(in srgb, var(--texte-code) 62%, transparent);
+        --ia-trait: color-mix(in srgb, var(--texte-code) 16%, transparent); --ia-fond-carte: color-mix(in srgb, var(--texte-code) 4%, transparent); }
+    #ia-entete { gap: 18px; padding: 2px 0 10px; }
+    #ia-entete h3 { display: flex; align-items: center; gap: 6px; text-transform: none; font-size: 14px; letter-spacing: 0; }
+    #ia-seuil-groupe { font-size: 13px; gap: 10px; }
+    #ia-seuil { accent-color: var(--ia-or); width: 140px; }
+    .ia-pilule { display: inline-block; min-width: 3.4em; text-align: center; padding: 1px 9px; border-radius: 999px; font-size: 12px;
+        background: color-mix(in srgb, var(--ia-or) 20%, transparent); color: var(--texte-code); }
+    #ia-carte-label { font-size: 13px; gap: 8px; }
+    #ia-vers-carte { appearance: none; -webkit-appearance: none; position: relative; width: 34px; height: 20px; margin: 0; flex: 0 0 auto;
+        border-radius: 999px; background: color-mix(in srgb, var(--texte-code) 28%, transparent); cursor: pointer; transition: background .15s; }
+    #ia-vers-carte::before { content: ''; position: absolute; left: 2px; top: 2px; width: 16px; height: 16px; border-radius: 50%;
+        background: #fff; transition: left .15s; }
+    #ia-vers-carte:checked { background: var(--ia-or); }
+    #ia-vers-carte:checked::before { left: 16px; }
+    #ia-vers-carte:focus-visible { outline: 2px solid var(--ia-or); outline-offset: 2px; }
+    #ia-colonnes { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 4px; }
+    .ia-colonne { min-width: 0; background: var(--ia-fond-carte); border: 1px solid var(--ia-trait); border-radius: 12px; padding: 12px 14px; }
+    .ia-colonne.ia-active { border: 2px solid var(--ia-or); padding: 11px 13px; }
+    .ia-colonne h4 { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 14px; color: var(--texte-code); }
+    .ia-icone { flex: 0 0 auto; width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+        color: var(--ia-teinte); background: color-mix(in srgb, var(--ia-teinte) 18%, transparent); }
+    .ia-colonne[data-genre="immediat"] { --ia-teinte: #f76707; }
+    .ia-colonne[data-genre="vision"] { --ia-teinte: #339af0; }
+    .ia-colonne[data-genre="son"] { --ia-teinte: #20c997; }
+    .ia-colonne[data-genre="qr"] { --ia-teinte: #9775fa; }
+    .ia-titre { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+    .ia-sous-titre { font-size: 11px; font-weight: normal; color: var(--ia-doux); }
+    .ia-badge { margin-left: auto; flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px;
+        font-size: 11px; font-weight: normal; color: var(--texte-code); border: 1px solid var(--ia-trait); }
+    .ia-badge:empty { display: none; }
+    .ia-badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--ia-point, #868e96); }
+    .ia-badge[data-etat="pret"] { --ia-point: #339af0; }
+    .ia-badge[data-etat="marche"] { --ia-point: #40c057; background: color-mix(in srgb, #40c057 16%, transparent); border-color: transparent; }
+    .ia-colonne button { border-radius: 8px; padding: 5px 12px; font-size: 12px; font-weight: 500; background: transparent;
+        color: var(--texte-code); border: 1px solid color-mix(in srgb, var(--texte-code) 30%, transparent); }
+    .ia-colonne button:hover:not(:disabled) { background: color-mix(in srgb, var(--texte-code) 9%, transparent); }
+    .ia-colonne button:disabled { opacity: 0.45; }
+    .ia-colonne button.ia-demarrer { background: var(--ia-or); border-color: var(--ia-or); color: #fff; }
+    .ia-colonne button.ia-demarrer:hover:not(:disabled) { background: #e8590c; }
+    .ia-colonne button.en-marche, .ia-colonne button.ia-demarrer.en-marche, .ia-colonne button.ia-imm-camera.en-marche {
+        background: #e03131; border-color: #e03131; color: #fff; }
+    .ia-url, .ia-ex-nom, .ia-imm-type { border-radius: 8px !important; }
+    .ia-statut, .ia-creer-aide, .ia-creer-statut, .ia-ex-n, .ia-classe-pct, .ia-creer > summary { color: var(--ia-doux); }
+    .ia-classe-barre { height: 8px; border: none; border-radius: 999px; background: color-mix(in srgb, var(--texte-code) 13%, transparent); }
+    .ia-classe-barre > i { border-radius: 999px; background: color-mix(in srgb, var(--texte-code) 38%, transparent); }
+    .ia-classe.retenue .ia-classe-barre > i { background: var(--ia-or); }
+    .ia-classe.retenue .ia-classe-nom { color: var(--ia-or); }
+    .ia-imm-cadre, .ia-apercu, .ia-imm-vignette { border-radius: 8px; }
+    /* Choix du type : pastilles (le menu deroulant reste dans la page pour le code, mais masque). */
+    .ia-imm-type-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .ia-imm-pastilles { display: flex; flex-wrap: wrap; gap: 6px; flex: 1 1 auto; }
+    .ia-colonne button.ia-pastille { border-radius: 999px; padding: 4px 12px; font-weight: normal; }
+    .ia-colonne button.ia-pastille[aria-pressed="true"] { background: color-mix(in srgb, var(--ia-or) 22%, transparent); border-color: var(--ia-or); }
+    :root[data-contrast="high"] .ia-colonne { background: transparent; border: 2px solid var(--ec-code-bord); padding: 11px 13px; }
+    :root[data-contrast="high"] .ia-colonne.ia-active { border-width: 3px; border-color: var(--ia-or); padding: 10px 12px; }
+    :root[data-contrast="high"] .ia-colonne button { border: 2px solid var(--texte-code); }
+    :root[data-contrast="high"] .ia-badge, :root[data-contrast="high"] .ia-statut, :root[data-contrast="high"] .ia-sous-titre { color: var(--texte-code); }
   </style>
 </head>
 
@@ -2108,10 +2170,11 @@
        blocs « IA » (simulateur et vraie carte, via le port serie de la console). -->
   <section id="ia-panneau" class="replie" aria-label="Intelligence artificielle">
     <div id="ia-entete">
-      <h3>IA</h3>
+      <h3><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm0 -12a2 2 0 0 1 2 2a2 2 0 0 1 2 -2a2 2 0 0 1 -2 -2a2 2 0 0 1 -2 2zm-7 12a6 6 0 0 1 6 -6a6 6 0 0 1 -6 -6a6 6 0 0 1 -6 6a6 6 0 0 1 6 6z"/></svg> Intelligence artificielle</h3>
       <span id="ia-seuil-groupe">
-        <label for="ia-seuil">Seuil de confiance : <b id="ia-seuil-val">80</b> %</label>
+        <label for="ia-seuil">Seuil de confiance</label>
         <input type="range" id="ia-seuil" min="30" max="99" value="80">
+        <span class="ia-pilule"><b id="ia-seuil-val">80</b> %</span>
       </span>
       <label id="ia-carte-label" title="Envoyer aussi les résultats à la vraie carte (connectée par le bouton 🔌 de la console)">
         <input type="checkbox" id="ia-vers-carte"> Envoyer à la carte
@@ -2126,7 +2189,7 @@
       <!-- Apprentissage immediat (sans entrainement) et QR codes : moteur dans ia-immediat.js.
            Resultats envoyes comme ceux de la colonne Vision (genre "vision") et en "qr". -->
       <div class="ia-colonne" data-genre="immediat">
-        <h4>⚡ Apprentissage immédiat (caméra)</h4>
+        <h4><span class="ia-icone"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></span><span class="ia-titre">Apprentissage immédiat<small class="ia-sous-titre">caméra</small></span><span class="ia-badge" aria-live="polite"></span></h4>
         <div class="ia-modele">
           <label class="ia-imm-type-label">Reconnaître :
             <select class="ia-imm-type" title="Ce que l'IA apprend à reconnaître">
@@ -2161,7 +2224,7 @@
         </details>
       </div>
       <div class="ia-colonne" data-genre="vision">
-        <h4>📷 Vision : modèle Teachable Machine (caméra)</h4>
+        <h4><span class="ia-icone"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/></svg></span><span class="ia-titre">Vision<small class="ia-sous-titre">modèle Teachable Machine · caméra</small></span><span class="ia-badge" aria-live="polite"></span></h4>
         <div class="ia-modele">
           <input type="text" class="ia-url" placeholder="https://teachablemachine.withgoogle.com/models/…/" spellcheck="false">
           <button class="btn-vue ia-charger-url" title="Charger le modèle depuis son adresse (nécessite Internet : le modèle est téléchargé depuis les serveurs de Google ; aucune image ni aucun son n'y est envoyé). Sans Internet, utilisez « Fichiers… ».">Charger</button>
@@ -2177,7 +2240,7 @@
         <p class="ia-creer-aide">Pour créer vos propres classes d'images, utilisez « ⚡ Apprentissage immédiat ».</p>
       </div>
       <div class="ia-colonne" data-genre="son">
-        <h4>🎤 Son : modèle Teachable Machine (micro)</h4>
+        <h4><span class="ia-icone"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5a3 3 0 0 1 6 0v5a3 3 0 0 1 -6 0z"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M8 21l8 0"/><path d="M12 17l0 4"/></svg></span><span class="ia-titre">Son<small class="ia-sous-titre">modèle Teachable Machine · micro</small></span><span class="ia-badge" aria-live="polite"></span></h4>
         <div class="ia-modele">
           <input type="text" class="ia-url" placeholder="https://teachablemachine.withgoogle.com/models/…/" spellcheck="false">
           <button class="btn-vue ia-charger-url" title="Charger le modèle depuis son adresse (nécessite Internet : le modèle est téléchargé depuis les serveurs de Google ; aucune image ni aucun son n'y est envoyé). Sans Internet, utilisez « Fichiers… ».">Charger</button>
@@ -2192,7 +2255,7 @@
         <p class="ia-creer-aide">Pour créer vos propres classes de sons, utilisez « ⚡ Apprentissage immédiat » (sons et mots).</p>
       </div>
       <div class="ia-colonne" data-genre="qr">
-        <h4>🔳 QR codes et codes-barres (caméra)</h4>
+        <h4><span class="ia-icone"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6h-6z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6h-6z"/><path d="M14 14h2v2h-2z"/><path d="M18 18h2v2h-2z"/><path d="M14 18h2"/><path d="M18 14h2"/></svg></span><span class="ia-titre">QR codes<small class="ia-sous-titre">et codes-barres · caméra</small></span><span class="ia-badge" aria-live="polite"></span></h4>
         <div class="ia-actions">
           <button class="btn-vue ia-demarrer">▶ Lire les codes</button>
           <span class="ia-statut">Arrêté.</span>

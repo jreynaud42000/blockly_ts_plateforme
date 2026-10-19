@@ -1088,8 +1088,12 @@ Panneau IA (bouton 🧠 de la barre d'outils, barre en bas) :
    necessite Internet) OU "Fichiers..." et selectionner d'un coup model.json,
    metadata.json et weights.bin du modele exporte (fonctionne hors connexion).
 2. "Demarrer" : le navigateur demande la camera ou le micro. Les classes
-   s'affichent avec une barre de probabilite ; la classe retenue passe en vert.
+   s'affichent avec une barre de probabilite ; la classe retenue passe en orange.
 3. "Seuil de confiance" (30 a 99 %, 80 par defaut) : en dessous, aucune classe.
+Presentation (oct. 2026, modele A « cartes ») : une carte par mode (Apprentissage immediat, Vision, Son, QR codes)
+avec son icone et un badge d'etat (a preparer / aucun modele / pret / en marche / arrete) ; la carte en marche est
+encadree en orange. Le type de l'apprentissage immediat se choisit par pastilles (Objets, Mains, Bras, Sons) ;
+« Envoyer a la carte » est un interrupteur.
 4. Simulateur : lancer la simulation (sans elle, rien n'est transmis).
    Vraie carte : la connecter par le bouton Connecter de la console, envoyer le
    programme, cocher "Envoyer a la carte".
