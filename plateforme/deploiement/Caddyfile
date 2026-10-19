@@ -1,0 +1,14 @@
+# Relais HTTPS devant la plateforme (Caddy 2 : certificat Let's Encrypt obtenu et renouvele tout seul).
+# Remplacer microbit.mon-college.fr par le nom de domaine reel, dont l'enregistrement DNS pointe vers ce serveur.
+microbit.mon-college.fr {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	request_body {
+		max_size 4MB
+	}
+	# Pas de journal d'acces par defaut (adresses IP des eleves) : voir RGPD.md avant d'en activer un.
+	reverse_proxy 127.0.0.1:8080
+}

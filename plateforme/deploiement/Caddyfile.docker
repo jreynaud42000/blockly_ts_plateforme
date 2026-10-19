@@ -1,0 +1,12 @@
+# Variante du Caddyfile pour docker-compose.yml : la plateforme est le service « plateforme » du reseau Docker.
+microbit.mon-college.fr {
+	encode gzip
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+	request_body {
+		max_size 4MB
+	}
+	reverse_proxy plateforme:8080
+}

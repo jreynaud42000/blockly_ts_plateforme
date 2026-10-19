@@ -69,7 +69,7 @@ function voile(contenu, classe = '') {
 // sur ce poste (essai par l'enseignant lui-meme).
 const SUR_CE_PC = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname) && !new URLSearchParams(location.search).has('eleve');
 const ENVOI_AUTO_MS = 20000;
-let classeActive = null;        // { code } quand la seance vient du mode classe
+let classeActive = null;        // { code } (mode classe) ou { plateforme: true, seance } (plateforme en ligne)
 let minuteurEnvoi = null;
 async function appelClasse(chemin, corps) {
     const r = await fetch(chemin, { method: corps === undefined ? 'GET' : 'POST', cache: 'no-store',
@@ -130,8 +130,9 @@ function choisirEleves(def, classe = null) {
     });
 }
 
-function demarrerSeance(def, eleves, groupe, classe = null) {
+function demarrerSeance(def, eleves, groupe, classe = null, reprise = null) {
     if (!moteur().activer(def, eleves, groupe)) return;
+    if (reprise) moteur().reprendre(reprise);       // plateforme : le travail enregistre en ligne (autre poste, maison)
     try { localStorage.setItem(CLE_ACTIVE, JSON.stringify({ def, eleves, groupe, classe })); } catch (e) { /* stockage indisponible */ }
     lancerEnvoiAuto(classe);
     majMenu();
@@ -141,7 +142,7 @@ function demarrerSeance(def, eleves, groupe, classe = null) {
 
 // ---------------------------------------------------------------- ELEVE : mode classe (rejoindre, envoi automatique)
 function lancerEnvoiAuto(classe) {
-    classeActive = classe && classe.code ? classe : null;
+    classeActive = classe && (classe.code || classe.plateforme) ? classe : null;
     clearInterval(minuteurEnvoi); minuteurEnvoi = null;
     if (!classeActive) return;
     minuteurEnvoi = setInterval(() => envoyerAuProf(false).catch(() => { /* nouvel essai au prochain tour */ }), ENVOI_AUTO_MS);
@@ -152,6 +153,7 @@ async function envoyerAuProf(final) {
     const t = window.exercicesTest && window.exercicesTest.etat();
     const session = t && t.session;
     const exercice = session ? (session.mode === 'tp' ? session.id : session.liste && session.liste[session.idx]) : '';
+    if (classeActive.plateforme) return window.plateforme.envoyer(moteur().rendu(), final);
     return appelClasse('/_classe/envoyer', { code: classeActive.code, rendu: moteur().rendu(), final, exercice: exercice || '' });
 }
 
@@ -195,7 +197,8 @@ window.seanceRendre = async function () {
         try {
             const reponse = await envoyerAuProf(true);
             voile('<div class="ex-haut"><h2>📤 Travail envoyé</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +
-                '<p class="ex-ok">✔ Ton travail est arrivé sur le poste de ton professeur (' + esc(reponse.heure) + ').</p>' +
+                '<p class="ex-ok">✔ Ton travail est ' + (classeActive.plateforme ? 'enregistré sur la plateforme : ton professeur le voit' : 'arrivé sur le poste de ton professeur') +
+                ' (' + esc(reponse.heure) + ').</p>' +
                 '<p class="ex-note">Tu peux continuer : ton travail est encore envoyé automatiquement, et « Rendre » à nouveau remplace l\'envoi précédent.</p>' +
                 '<div class="ex-boutons"><button class="ex-primaire" data-f="fermer">OK</button></div>')
                 .addEventListener('click', ev => { if (ev.target.closest('[data-f="fermer"]')) fermer(); });
@@ -735,6 +738,13 @@ function brancher() {
     verifierClasse();
 }
 brancher();
+
+// Pour plateforme.js (solution 3) : les memes fenetres, la meme seance en preparation, le meme tableau de resultats.
+window.seancesApi = { voile, fermer, esc, morceau, cellule, espaceVierge, construireSeance, demarrerSeance, lancerEnvoiAuto, majMenu, fenetreEnseignant,
+                      quitterSansDemander: () => { moteur().quitter(); lancerEnvoiAuto(null); try { localStorage.removeItem(CLE_ACTIVE); } catch (e) { /* rien */ } majMenu(); },
+                      seanceActive: () => { try { return JSON.parse(localStorage.getItem(CLE_ACTIVE) || 'null'); } catch (e) { return null; } },
+                      appliquerSeance: d => { brouillon = Object.assign(brouillonVide(), d); garderBrouillon(); },
+                      csvDepuis: liste => { const garde = rendus; rendus = liste; const t = csvRendus(); rendus = garde; return t; } };
 
 window.seancesTest = { construireSeance, envoyerAuProf, rejoindreClasse, infoClasse, SUR_CE_PC, lireGroupes, regleDepuisEspace, demarrerSeance, ajouterRendus, csvRendus, nomRendu, fenetreEnseignant,
                        rendus: () => rendus, brouillon: () => brouillon, htmlRamasser };

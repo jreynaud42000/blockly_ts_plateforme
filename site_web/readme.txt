@@ -1589,3 +1589,36 @@ SECURITE ET RESEAU
 - Une trentaine de postes chargent chacun environ 5 Mo au demarrage (Blockly, Brython) : quelques secondes sur le reseau
   de la salle. MediaPipe (27 Mo) ne se charge que si l'eleve utilise l'apprentissage immediat.
 A verifier en classe : le pare-feu et le reseau de l'etablissement, et la charge avec 30 postes reels.
+
+44. PLATEFORME EN LIGNE AVEC COMPTES (solution 3, oct. 2026)
+Dossier : blockly_ts_plateforme (copie Git de blockly_ts_mode_classe : les solutions 1 et 2 restent disponibles).
+Les eleves se connectent avec un compte, depuis la classe ou la maison ; le travail est enregistre en ligne.
+Fichiers : plateforme/serveur.py (serveur, Python standard + SQLite), plateforme.js (fenetres), plateforme/LISEZMOI.md
+(essai, utilisation, installation), plateforme/RGPD.md (modeles : registre, information des familles, liste de controle),
+plateforme/deploiement/ (Caddy, systemd, Docker, sauvegarde).
+RIEN N'EST EN LIGNE tant que la plateforme n'est pas installee sur un serveur heberge dans l'UE ; la validation RGPD
+(chef d'etablissement, DPD) est a faire avant toute utilisation avec des eleves.
+
+ESSAI LOCAL
+  python plateforme/serveur.py --creer-enseignant prof@exemple.fr "M. Essai"
+  python plateforme/serveur.py            -> http://localhost:8080   (base dans plateforme/donnees/, hors Git)
+
+ENSEIGNANT — Fichier > Plateforme : mes classes
+- Classes ; comptes eleves crees en lot a partir des prenoms (identifiant 4eb-lea-01, mot de passe pomme-47-robot) ; fiche
+  des identifiants a imprimer ou exporter tout de suite (les mots de passe ne sont plus affiches) ; nouveau mot de passe.
+- Seances : la seance preparee dans l'Espace enseignant est publiee dans une classe (republier = mettre a jour) ; ouvrir,
+  fermer, supprimer ; suivi en direct (toutes les 5 s), programme d'un eleve dans l'editeur, export CSV.
+- Fin d'annee : export complet de la classe (JSON) puis suppression (comptes, seances, travaux).
+
+ELEVE — connexion proposee a l'ouverture
+- Fichier > Mes seances en ligne : Commencer / Reprendre ; envoi automatique toutes les 20 s ; « Rendre mon travail ».
+- Sur un autre poste ou a la maison, « Reprendre » rapporte les programmes (exercicesSeance.reprendre).
+- Se deconnecter efface la seance et le travail du navigateur (poste partage) ; cookie de session efface a la fermeture
+  du navigateur ; session eleve de 4 h au plus.
+
+SECURITE : mots de passe haches (scrypt), 10 essais en 10 min, cookie HttpOnly / SameSite / Secure, en-tete X-Plateforme
+exige pour toute modification, cloisonnement par enseignant et par classe, identite du travail imposee par le compte,
+3 Mo maximum, seuls les fichiers de l'application sont servis. En ligne : derriere Caddy (HTTPS), PLATEFORME_COOKIE_SECURE=1
+et PLATEFORME_PROXY=1. Sur la plateforme, le signe de vie de l'exe (/_vie) et le mode classe (/_classe/) recoivent 410 :
+la page arrete aussitot ses signes de vie.
+A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.

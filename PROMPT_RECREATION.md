@@ -3450,4 +3450,30 @@ une salle qui charge la page en même temps déborde et Windows coupe des connex
 fichiers en CRLF ; avec `core.autocrlf false` ensuite, Git les voit tous modifiés. Régler `core.autocrlf false` puis
 `git rm -r --cached . && git reset --hard`.
 
-Fournis le code complet des fichiers du §1 (et les modules des §22 à §30), prêt à être posé dans un dossier.
+## 31. Plateforme en ligne (`plateforme/serveur.py`, `plateforme.js`, dossier `blockly_ts_plateforme`)
+
+Serveur indépendant d'`app.py`, Python standard (`http.server` + `ThreadingMixIn`, `sqlite3`, `hashlib.scrypt`, `secrets`),
+derrière un relais HTTPS. Tables `enseignants`, `classes`, `eleves` (identifiant généré `<classe>-<prénom>-NN`, prénom,
+hash), `seances` (id de la séance, définition `seance-microbit`, ouverte), `travaux` (UNIQUE seance+élève, rendu
+`rendu-microbit`, final, maj, rendu_le), `sessions` (jeton → rôle, uid, expiration). API JSON sous `/api/` : `info`, `moi`,
+`connexion` (« @ » → enseignant, sinon élève), `deconnexion`, `inscription` (code d'établissement), `mot-de-passe` ; élève :
+`mes-seances`, `mon-travail`, `envoyer` (séance ouverte de sa classe, `eleves` remplacé par le prénom du compte, `final` ne
+redescend jamais) ; enseignant : `classes`, `eleves/creer|reinitialiser|supprimer`, `seances/publier|etat|supprimer`,
+`suivi`, `travail`, `export`, `classes/supprimer`. Tout POST exige `X-Plateforme: 1`. Fichiers servis par liste blanche.
+Navigateur : `plateforme.js` ne fait rien si `/api/info` ne répond pas `{plateforme: true}` ; il réutilise `window.seancesApi`
+(fenêtres, `construireSeance`, `demarrerSeance(def, eleves, groupe, classe, reprise)`, `cellule`, `csvDepuis`) ;
+`classeActive = { plateforme: true, seance, eleve }` fait passer l'envoi automatique par `window.plateforme.envoyer`.
+
+**PIÈGE nº 82 — `X-Forwarded-For`** : le client peut envoyer son propre en-tête, que le relais complète **à la fin**. Lire
+la **dernière** adresse (celle vue par le relais), jamais la première : sinon la limite des essais de mot de passe se
+contourne en changeant d'adresse inventée à chaque essai.
+
+**PIÈGE nº 83 — signe de vie de l'exe en ligne** : `index.html` appelle `/_vie` toutes les 5 s (arrêt automatique de
+l'exe). Sur un serveur partagé par des centaines d'élèves, c'est une requête inutile toutes les 5 s par page : la
+plateforme répond 410 et la page arrête ses signes de vie.
+
+**PIÈGE nº 84 — poste partagé** : un cookie avec `Max-Age` survit à la fermeture du navigateur : l'élève suivant serait
+connecté sous le nom du précédent. Cookie de session (sans `Max-Age`), expiration serveur de 4 h pour les élèves, et
+déconnexion qui efface la séance et les programmes de ce poste (`oublierSeancesDuPoste`).
+
+Fournis le code complet des fichiers du §1 (et les modules des §22 à §31), prêt à être posé dans un dossier.

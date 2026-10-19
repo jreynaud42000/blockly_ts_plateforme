@@ -1,0 +1,28 @@
+# Service systemd (Debian / Ubuntu) : la plateforme demarre avec le serveur et redemarre en cas d'arret.
+# Installation : voir plateforme/LISEZMOI.md, « Installation sur un serveur ».
+[Unit]
+Description=Plateforme micro:bit (Blockly)
+After=network.target
+
+[Service]
+User=microbit
+WorkingDirectory=/opt/microbit
+Environment=PLATEFORME_HOTE=127.0.0.1
+Environment=PLATEFORME_PORT=8080
+Environment=PLATEFORME_DONNEES=/var/lib/microbit
+Environment=PLATEFORME_COOKIE_SECURE=1
+Environment=PLATEFORME_PROXY=1
+# Code a communiquer aux enseignants pour qu'ils creent leur compte (laisser vide pour fermer l'inscription en ligne).
+Environment=PLATEFORME_CODE_INSCRIPTION=
+Environment="PLATEFORME_NOM=Programmation micro:bit"
+ExecStart=/usr/bin/python3 /opt/microbit/plateforme/serveur.py
+Restart=on-failure
+# Durcissement : le service ne peut ecrire que dans son dossier de donnees.
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/microbit
+
+[Install]
+WantedBy=multi-user.target

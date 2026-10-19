@@ -731,6 +731,24 @@ window.exercicesSeance = {
         seance = null; defs = null; donnees = lire();
         return true;
     },
+    /** Plateforme : reprend un travail enregistre en ligne (autre poste, maison). Ce qui est plus recent sur ce poste est garde. */
+    reprendre(r) {
+        if (!seance || !r || !Array.isArray(r.exercices)) return 0;
+        const p = profil();
+        p.programmes = p.programmes || {};
+        let n = 0;
+        for (const e of r.exercices) {
+            const local = p.programmes[e.id];
+            if (e.blocs && (!local || (local.date || '') < (r.date || ''))) { p.programmes[e.id] = { blocs: e.blocs, python: e.python || '', date: r.date }; n++; }
+            if (!p.faits[e.id] && seance.def.mode !== 'eval' && ['réussi', 'à corriger', 'passé'].includes(e.statut)) {
+                p.faits[e.id] = { etoiles: e.etoiles || 0, indices: e.indices || 0, solution: !!e.solutionVue, secondes: e.secondes || 0,
+                                  date: r.date, manuel: e.statut === 'à corriger', passe: e.statut === 'passé' };
+                n++;
+            }
+        }
+        sauver();
+        return n;
+    },
     active: () => seance,
     enEvaluation: () => !!(session && session.mode === 'eval'),
     async ouvrir() { await chargerExercices(); ouvrirFenetre('exercices'); },

@@ -1331,6 +1331,10 @@
         <button id="download-py-btn">Télécharger .py</button>
         <!-- Seances pour groupes d'eleves (seances.js) : distribuer, rendre et ramasser des exercices par fichiers -->
         <div class="menu-titre">Séance</div>
+        <!-- Plateforme en ligne (plateforme.js) : visibles seulement quand l'application est servie par plateforme/serveur.py -->
+        <button id="pf-compte-btn" hidden title="Se connecter à la plateforme de l'établissement">🔑 Se connecter</button>
+        <button id="pf-seances-btn" hidden title="Les séances publiées par ton professeur">📚 Mes séances en ligne</button>
+        <button id="pf-prof-btn" hidden title="Classes, comptes élèves, publication des séances, suivi">🌐 Plateforme : mes classes</button>
         <button id="seance-rejoindre-btn" hidden title="Rejoindre la séance diffusée par le poste du professeur (mode classe)">🏫 Rejoindre la séance de la classe</button>
         <button id="seance-ouvrir-btn" title="Ouvrir le fichier de séance donné par le professeur">📂 Ouvrir une séance…</button>
         <button id="seance-rendre-btn" disabled title="Télécharger son travail pour le déposer sur l'ENT">📤 Rendre mon travail</button>
@@ -2203,10 +2207,12 @@
   <script>
     (function () {
       const id = Math.random().toString(36).slice(2);
-      const signe = () => { fetch('/_vie?id=' + id, { cache: 'no-store' }).catch(() => {}); };
+      // 410 : serveur en ligne (plateforme) qui n'en a pas besoin -> plus aucun envoi.
+      let minuteur = null;
+      const signe = () => { fetch('/_vie?id=' + id, { cache: 'no-store' }).then(r => { if (r.status === 410) { clearInterval(minuteur); minuteur = 0; } }).catch(() => {}); };
       signe();
-      setInterval(signe, 5000);
-      addEventListener('pageshow', signe);
+      minuteur = setInterval(signe, 5000);
+      addEventListener('pageshow', () => { if (minuteur !== 0) signe(); });
       addEventListener('pagehide', () => { try { navigator.sendBeacon('/_ferme?id=' + id); } catch (e) { /* tant pis */ } });
     })();
   </script>
@@ -2221,6 +2227,7 @@
   <script type="module" src="bandeau.js"></script>
   <script type="module" src="exercices.js"></script>
   <script type="module" src="seances.js"></script>
+  <script type="module" src="plateforme.js"></script>
   
   <!-- LOGIQUE DU SIMULATEUR EN PUR PYTHON (BRYTHON) -->
   <script type="text/python">
