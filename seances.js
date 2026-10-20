@@ -27,6 +27,9 @@
 //     code, groupe, prenom(s) ; son travail est envoye au PC de l'enseignant toutes les 20 secondes, et
 //     « Rendre mon travail » l'envoie comme rendu definitif (fichier telecharge si le reseau ne repond pas).
 // Le mode classe n'existe qu'avec app.py ou l'exe : sur le site statique, il est absent et rien ne change.
+//
+// PLATEFORME EN LIGNE (solution 3, plateforme.js) : un eleve connecte n'a pas d'Espace enseignant (bouton masque,
+// fenetre refusee) ; en evaluation, le serveur ne lui envoie ni solutions ni indices, ni la banque exercices.json.
 
 const CLE_ACTIVE = 'seance_active_v1';
 const CLE_BROUILLON = 'seance_brouillon_v1';
@@ -264,7 +267,12 @@ function regleDepuisEspace() {
     return regles.length ? { tous: regles } : null;
 }
 
+// Plateforme en ligne (plateforme.js) : un eleve connecte n'a pas d'Espace enseignant (bouton masque par plateforme.js).
+// Le professeur connecte et un visiteur non connecte le gardent (preparation de seance).
+const eleveConnecte = () => !!(window.plateforme && window.plateforme.moi() && window.plateforme.moi().role === 'eleve');
+
 async function fenetreEnseignant(onglet = 'creer') {
+    if (eleveConnecte()) { alert('L\'Espace enseignant est réservé aux professeurs.'); return; }
     if (moteur().active()) { alert('Une séance d\'élève est ouverte sur ce poste : quittez-la d\'abord (Fichier > Quitter la séance).'); return; }
     const avecClasse = SUR_CE_PC && (await infoClasse()) !== null;
     const v = voile('<div class="ex-haut"><h2>👩‍🏫 Espace enseignant</h2><button class="ex-x" data-f="fermer" title="Fermer">✕</button></div>' +

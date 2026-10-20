@@ -58,6 +58,9 @@ function majBoutons() {
     }
     if (seances) seances.hidden = moi.role !== 'eleve';
     if (prof) prof.hidden = moi.role !== 'prof';
+    // Eleve connecte : pas d'Espace enseignant (seances.js refuse aussi la fenetre). Professeur et visiteur le gardent.
+    const enseignant = $('#seance-enseignant-btn');
+    if (enseignant) enseignant.hidden = moi.role === 'eleve';
     // Sur la plateforme, les fichiers de seance et le mode classe restent possibles, mais au second plan pour l'eleve.
     const rejoindre = $('#seance-rejoindre-btn');
     if (rejoindre && moi.role === 'eleve') rejoindre.hidden = true;

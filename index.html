@@ -202,8 +202,9 @@
       display: block; width: 100%; text-align: left; padding: 8px 14px; margin: 0; border: none; background: none;
       cursor: pointer; font-size: 13px; font-weight: normal; font-family: var(--font); color: #333; border-radius: 0; white-space: nowrap;
     }
+    .tb-dropdown-menu button[hidden] { display: none; }   /* sinon « display: block » ci-dessus affiche les boutons masques */
     .tb-dropdown-menu button:hover { background: #f0f0f0; }
-    .tb-dropdown-menu button:disabled, .tb-dropdown-menu button:disabled:hover { color: #999; background: none; cursor: not-allowed; }
+    .tb-dropdown-menu button:disabled,.tb-dropdown-menu button:disabled:hover { color: #999; background: none; cursor: not-allowed; }
     .menu-titre { padding: 8px 14px 3px; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; }
     .tb-dropdown-menu button.choisi { font-weight: 700; color: var(--accent-fonce); }
     .tb-dropdown-menu button.choisi::after { content: '  ✓'; }

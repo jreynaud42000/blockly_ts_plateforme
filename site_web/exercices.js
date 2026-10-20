@@ -55,6 +55,10 @@ async function chargerExercices() {
     }
     try {
         const reponse = await fetch('exercices.json', { cache: 'no-store' });
+        if (reponse.status === 403) {        // plateforme en ligne : banque refusee aux eleves pendant une evaluation
+            alert('Les exercices d\'entraînement ne sont pas disponibles pendant une évaluation de ta classe.');
+            return null;
+        }
         if (!reponse.ok) throw new Error('HTTP ' + reponse.status);
         defs = await reponse.json();
         plat = [];

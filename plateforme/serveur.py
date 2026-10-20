@@ -24,6 +24,8 @@ Modele de donnees : enseignants (courriel, nom, mot de passe hache) ; classes d'
 format « seance-microbit » que les solutions 1 et 2) ; travaux (un « rendu-microbit » par eleve et par seance, remplace a
 chaque envoi). Mots de passe : scrypt avec sel. Sessions : jeton aleatoire en base, cookie HttpOnly SameSite=Lax.
 Requetes de modification : en-tete X-Plateforme exige (un autre site ne peut pas l'envoyer sans autorisation CORS).
+Evaluation : la seance envoyee a l'eleve n'a ni solutions ni indices (seance_pour_eleve), et la banque /exercices.json
+(avec ses solutions) n'est plus servie aux eleves d'une classe qui a une evaluation ouverte. L'enseignant garde tout.
 """
 
 import datetime
@@ -189,6 +191,27 @@ def eleve_du_prof(c, eleve_id, prof_id):
     return e
 
 
+def seance_pour_eleve(d):
+    """La seance telle que la recoit un eleve. En evaluation : ni solution ni indices. Le moteur d'exercices n'en a pas
+    besoin (validation par la regle de l'exercice, ou correction par l'enseignant), et un eleve pourrait les lire avec les
+    outils du navigateur. L'enseignant garde la seance complete (/api/export, base)."""
+    if d.get("mode") != "eval":
+        return d
+    copie = dict(d)
+    copie["exercices"] = [{k: v for k, v in e.items() if k not in ("solution", "indices")} for e in d.get("exercices", [])]
+    return copie
+
+
+def evaluation_ouverte(session):
+    """Vrai si la session est celle d'un eleve dont la classe a une evaluation ouverte."""
+    if not session or session["role"] != "eleve":
+        return False
+    with base() as c:
+        lignes = c.execute("SELECT s.def FROM seances s JOIN eleves e ON e.classe_id = s.classe_id WHERE e.id = ? AND s.ouverte = 1",
+                           (session["uid"],)).fetchall()
+    return any(json.loads(l["def"]).get("mode") == "eval" for l in lignes)
+
+
 def resume_travail(t):
     r = json.loads(t["rendu"])
     return {"maj": t["maj"], "final": bool(t["final"]), "rendu_le": t["rendu_le"],
@@ -272,7 +295,7 @@ def api(methode, chemin, requete, session, corps):
             if methode == "GET" and chemin == "/api/mes-seances":
                 lignes = c.execute("SELECT s.id, s.def, t.final, t.maj FROM seances s LEFT JOIN travaux t ON t.seance_id = s.id AND t.eleve_id = ? "
                                    "WHERE s.classe_id = ? AND s.ouverte = 1 ORDER BY s.cree DESC", (uid, moi["classe_id"])).fetchall()
-                return 200, {"seances": [{"id": l["id"], "def": json.loads(l["def"]), "final": bool(l["final"]), "maj": l["maj"]} for l in lignes]}, None
+                return 200, {"seances": [{"id": l["id"], "def": seance_pour_eleve(json.loads(l["def"])), "final": bool(l["final"]), "maj": l["maj"]} for l in lignes]}, None
             if methode == "GET" and chemin == "/api/mon-travail":
                 sid = requete["query"].get("seance", [""])[0]
                 t = c.execute("SELECT rendu FROM travaux WHERE seance_id = ? AND eleve_id = ?", (sid, uid)).fetchone()
@@ -425,6 +448,9 @@ def api(methode, chemin, requete, session, corps):
 
 
 # ------------------------------------------------------------------ serveur HTTP
+# Banque d'exercices AVEC solutions : refusee aux eleves tant qu'une evaluation de leur classe est ouverte (elle leur
+# sert sinon pour s'entrainer, panneau « Exercices »). Visiteur non connecte : servie (preparation, site public).
+FICHIERS_AVEC_SOLUTIONS = {"/exercices.json"}
 FICHIERS_RACINE = re.compile(r"^/[A-Za-z0-9_.-]+\.(?:js|png|hex|txt)$")
 TYPES = {".mjs": "text/javascript", ".wasm": "application/wasm", ".js": "text/javascript", ".json": "application/json"}
 
@@ -524,12 +550,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self._vide(410)        # adresses de app.py (exe, mode classe) : sans objet en ligne
         if not fichier_autorise(chemin):
             return self.send_error(404)
+        if self._refuse_pendant_evaluation(chemin):
+            return self._repondre(403, {"erreur": "indisponible pendant une évaluation"})
         return super().do_GET()
 
     def do_HEAD(self):
-        if not fichier_autorise(urllib.parse.urlparse(self.path).path):
+        chemin = urllib.parse.urlparse(self.path).path
+        if not fichier_autorise(chemin):
             return self.send_error(404)
+        if self._refuse_pendant_evaluation(chemin):
+            return self._vide(403)
         return super().do_HEAD()
+
+    def _refuse_pendant_evaluation(self, chemin):
+        if chemin not in FICHIERS_AVEC_SOLUTIONS:
+            return False
+        try:
+            return evaluation_ouverte(lire_session(self._jeton()))
+        except sqlite3.Error as e:
+            self.log_error("base : %s", e)
+            return True
 
     def do_POST(self):
         chemin = urllib.parse.urlparse(self.path).path

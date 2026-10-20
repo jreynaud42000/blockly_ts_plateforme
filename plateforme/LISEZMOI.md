@@ -51,6 +51,8 @@ supprimer efface tout.
 - Sur un ordinateur partagé : *Fichier > (compte) > Se déconnecter* ferme la séance et efface le travail **du navigateur**
   (il reste en ligne). Le cookie de connexion disparaît aussi quand le navigateur est fermé, et la session d'un élève expire
   au bout de 4 heures.
+- Un élève connecté n'a pas d'*Espace enseignant* (bouton masqué, fenêtre refusée). Le professeur connecté et un visiteur
+  non connecté le gardent (préparation de séance).
 
 ## 3. Installation sur un serveur
 
@@ -102,6 +104,9 @@ Fait dans le code :
   contre les requêtes envoyées par un autre site) ;
 - chaque enseignant ne voit que ses classes ; un élève ne voit que les séances ouvertes de sa classe et son propre travail ;
   l'identité d'un travail vient du compte, pas du navigateur ;
+- **évaluation** : la séance envoyée à l'élève n'a ni solutions ni indices (le moteur valide avec la règle de chaque
+  exercice, ou le professeur corrige) ; la banque d'entraînement `exercices.json`, qui contient les solutions, est refusée
+  (403) aux élèves d'une classe tant qu'une évaluation y est ouverte. Le professeur garde la séance complète (export) ;
 - envois limités à 3 Mo ; seuls les fichiers de l'application sont servis (ni la base, ni les sources Python, ni `.git`) ;
 - journal du serveur réduit aux appels de l'API et aux erreurs (adresse IP, date, adresse appelée ; jamais de mot de
   passe : ils ne passent que dans le corps des requêtes). Durée de conservation à fixer (voir RGPD.md).

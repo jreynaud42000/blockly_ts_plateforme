@@ -1625,10 +1625,14 @@ ELEVE — connexion proposee a l'ouverture
 - Sur un autre poste ou a la maison, « Reprendre » rapporte les programmes (exercicesSeance.reprendre).
 - Se deconnecter efface la seance et le travail du navigateur (poste partage) ; cookie de session efface a la fermeture
   du navigateur ; session eleve de 4 h au plus.
+- Eleve connecte : pas d'Espace enseignant (bouton masque, fenetre refusee) ; professeur et visiteur le gardent.
 
 SECURITE : mots de passe haches (scrypt), 10 essais en 10 min, cookie HttpOnly / SameSite / Secure, en-tete X-Plateforme
 exige pour toute modification, cloisonnement par enseignant et par classe, identite du travail imposee par le compte,
-3 Mo maximum, seuls les fichiers de l'application sont servis. En ligne : derriere Caddy (HTTPS), PLATEFORME_COOKIE_SECURE=1
+3 Mo maximum, seuls les fichiers de l'application sont servis.
+EVALUATION : la seance envoyee a l'eleve (/api/mes-seances) n'a ni solutions ni indices (serveur.seance_pour_eleve) ;
+exercices.json (la banque, avec ses solutions) est refuse (403) aux eleves d'une classe qui a une evaluation ouverte ;
+le professeur garde la seance complete (export). En ligne : derriere Caddy (HTTPS), PLATEFORME_COOKIE_SECURE=1
 et PLATEFORME_PROXY=1. Sur la plateforme, le signe de vie de l'exe (/_vie) et le mode classe (/_classe/) recoivent 410 :
 la page arrete aussitot ses signes de vie.
 A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.
