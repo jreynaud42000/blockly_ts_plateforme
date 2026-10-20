@@ -15,6 +15,13 @@
       if (localStorage.getItem('contrasteApp') === 'high') {
         document.documentElement.dataset.contrast = 'high';
       }
+      // Theme de saison (bandeau.js) : « auto » = Halloween du 15 octobre au 2 novembre, Noel en decembre.
+      var saison = localStorage.getItem('saisonApp');
+      if (saison === 'auto') {
+        var d = new Date(), m = d.getMonth() + 1, j = d.getDate();
+        saison = (m === 10 && j >= 15) || (m === 11 && j <= 2) ? 'halloween' : (m === 12 ? 'noel' : '');
+      }
+      if (saison === 'halloween' || saison === 'noel') document.documentElement.dataset.saison = saison;
     } catch (erreur) { /* localStorage indisponible (navigation privee...) : tant pis, etat par defaut */ }
   </script>
 
@@ -1234,6 +1241,57 @@
     }
     body { background: var(--ec-page); }
 
+    /* ═══ THEMES DE SAISON (Halloween, Noel) : menu Affichage > Saison, bandeau.js ═══
+       Variantes du theme sombre en contraste normal seulement (le clair et le contraste eleve passent avant).
+       Les couleurs des blocs et des puces ne changent pas : elles servent de repere aux eleves.
+       Decorations dans #deco-saison (cree par bandeau.js) : jamais cliquables, animations coupees si
+       le systeme demande de reduire les animations. */
+    :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) {
+      --bandeau-sombre: #d65200; --accent-fonce: #3a1f4d;
+      --fond-saisie: #0b0a0d; --texte-saisie: #f0e6d8; --fond-code: #121014; --bordure-chrome: #4a2e5e;
+      --ec-page: #0f0f0f; --ec-cat-hover: #2a1f33; --ec-cat-sel: #3a2547; --ec-cat-lisere: #ff7a1a;
+      --ec-grille: #2e2620; --ec-flyout: #1f1a24;
+      --ec-sim: #141414; --ec-bord: #3a2547; --ec-code: #121014; --ec-code-bord: #3a2547;
+      --ec-pan: #1f1a24; --ec-pan-bord: #3a2547; --ec-sep: #3a2547;
+    }
+    :root[data-saison="noel"]:not([data-theme="light"]):not([data-contrast="high"]) {
+      --bandeau-sombre: #b3122e; --accent-fonce: #d4a017;
+      --fond-saisie: #08131f; --texte-saisie: #e3eefa; --fond-code: #0b1826; --bordure-chrome: #2a4a6b;
+      --ec-page: #0a1622; --ec-cat-hover: #1b3350; --ec-cat-sel: #22405f; --ec-cat-lisere: #d4a017;
+      --ec-grille: #1c2e44; --ec-flyout: #13263a;
+      --ec-sim: #0d1b2a; --ec-bord: #22405f; --ec-code: #0b1826; --ec-code-bord: #22405f;
+      --ec-pan: #13263a; --ec-pan-bord: #22405f; --ec-sep: #22405f;
+    }
+    #tb-saison, #deco-saison { display: none; }
+    :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #tb-saison { display: block; font-size: 20px; line-height: 1; margin: 0 2px; user-select: none; }
+    :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #deco-saison {
+      display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 60; }
+    #deco-saison span { position: absolute; line-height: 1; }
+    /* Halloween : toile dans le coin, araignee au bout de son fil, fantome qui flotte, citrouille pres de la corbeille. */
+    .deco-toile { top: -6px; right: -6px; font-size: 72px; opacity: 0.35; }
+    .deco-fil { top: 0; right: 120px; width: 0; height: 70px; border-left: 1px solid rgba(220,220,220,0.45);
+      animation: deco-fil 5s ease-in-out infinite alternate; }
+    .deco-araignee { right: 109px; top: 66px; font-size: 22px; opacity: 0.8; animation: deco-araignee 5s ease-in-out infinite alternate; }
+    .deco-fantome { right: 50px; top: 34%; font-size: 40px; opacity: 0.28; animation: deco-flotte 4s ease-in-out infinite alternate; }
+    .deco-citrouille { right: 96px; bottom: 28px; font-size: 32px; opacity: 0.9; }
+    @keyframes deco-fil { to { height: 120px; } }
+    @keyframes deco-araignee { to { transform: translateY(50px); } }
+    @keyframes deco-flotte { to { transform: translateY(-18px); } }
+    /* Noel : deux couches de flocons qui tombent a des vitesses differentes, sapin pres de la corbeille. */
+    .deco-neige { inset: 0; opacity: 0.7;
+      background-image: radial-gradient(circle, #fff 2.4px, transparent 3.2px), radial-gradient(circle, #cfe8ff 1.5px, transparent 2.2px);
+      background-size: 110px 110px, 70px 70px; background-position: 0 0, 35px 20px;
+      animation: deco-neige 14s linear infinite; }
+    .deco-neige-2 { opacity: 0.45; background-size: 160px 160px, 95px 95px; background-position: 50px 30px, 10px 60px; animation-duration: 22s; }
+    @keyframes deco-neige { to { background-position: 30px 110px, 50px 90px; } }
+    .deco-neige-2 { animation-name: deco-neige-2; }
+    @keyframes deco-neige-2 { to { background-position: 30px 190px, 0 155px; } }
+    .deco-sapin { right: 96px; bottom: 26px; font-size: 34px; }
+    .deco-etoile { top: 10px; right: 16px; font-size: 26px; opacity: 0.8; }
+    #deco-saison .deco-halloween, #deco-saison .deco-noel { display: none; }
+    :root[data-saison="halloween"] #deco-saison .deco-halloween, :root[data-saison="noel"] #deco-saison .deco-noel { display: block; }
+    @media (prefers-reduced-motion: reduce) { #deco-saison span { animation: none !important; } }
+
     /* Colonne des categories : fond et bord droit (le fond lui-meme vient du theme Blockly, voir un.js). */
     .blocklyToolboxDiv { border-right: var(--ec-cat-bord-droit); box-sizing: border-box; }
     .blocklyToolboxCategory > .blocklyTreeRow .blocklyTreeLabel {
@@ -1425,7 +1483,7 @@
     <div id="tb-logo"><img src="logo_ts.png" alt="Technologie Services" title="Technologie Services"></div>
     <!-- 2. Affichage : theme clair / sombre, contraste normal / eleve (bandeau.js ; les boutons d'origine #btn-theme et #btn-contraste, caches, restent le moteur) -->
     <div id="menu-affichage-conteneur" class="tb-dropdown menu-deroulant">
-      <button id="menu-affichage-btn" class="tb-btn menu-btn" title="Affichage : thème clair ou sombre, contraste normal ou élevé" aria-label="Affichage">
+      <button id="menu-affichage-btn" class="tb-btn menu-btn" title="Affichage : thème clair ou sombre, contraste normal ou élevé, saison" aria-label="Affichage">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor"/></svg>
       </button>
       <div id="menu-affichage-panneau" class="tb-dropdown-menu menu-panneau">
@@ -1435,6 +1493,11 @@
         <div class="menu-titre">Contraste</div>
         <button id="aff-contraste-normal">◑ Normal</button>
         <button id="aff-contraste-eleve">● Élevé</button>
+        <div class="menu-titre">Saison</div>
+        <button id="aff-saison-aucune">Aucune</button>
+        <button id="aff-saison-halloween">🎃 Halloween</button>
+        <button id="aff-saison-noel">🎄 Noël</button>
+        <button id="aff-saison-auto" title="Halloween du 15 octobre au 2 novembre, Noël en décembre">📅 Selon la date</button>
         <button id="btn-theme" class="btn-vue" style="display:none" title="Passer au thème clair">Thème</button>
         <button id="btn-contraste" class="btn-vue" style="display:none" title="Passer en contraste élevé">Contraste élevé</button>
       </div>

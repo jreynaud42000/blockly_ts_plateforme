@@ -18,18 +18,74 @@ const contrasteEleve = () => racine.dataset.contrast === 'high';
 function choisirTheme(clair) { if (themeClair() !== clair && $('btn-theme')) $('btn-theme').click(); }
 function choisirContraste(eleve) { if (contrasteEleve() !== eleve && $('btn-contraste')) $('btn-contraste').click(); }
 
+// ---------- Affichage : theme de saison (Halloween, Noel) ----------
+// Choix memorise dans saisonApp : aucune, halloween, noel ou auto (selon la date). L'attribut data-saison
+// est pose des le chargement par le petit script en tete de index.html ; un.js y accorde le theme Blockly.
+// Un theme de saison est une variante du sombre en contraste normal : le choisir y ramene, et choisir
+// le theme clair ou le contraste eleve revient a « Aucune ».
+const SAISONS = ['aucune', 'halloween', 'noel', 'auto'];
+function saisonDuJour(d = new Date()) {
+    const m = d.getMonth() + 1, j = d.getDate();
+    if ((m === 10 && j >= 15) || (m === 11 && j <= 2)) return 'halloween';
+    return m === 12 ? 'noel' : '';
+}
+function choixSaison() {
+    let choix = 'aucune';
+    try { choix = localStorage.getItem('saisonApp') || 'aucune'; } catch (erreur) { /* navigation privee */ }
+    return SAISONS.includes(choix) ? choix : 'aucune';
+}
+function appliquerSaison(choix) {
+    try { localStorage.setItem('saisonApp', choix); } catch (erreur) { /* le choix ne survivra pas au rechargement */ }
+    const saison = choix === 'auto' ? saisonDuJour() : (choix === 'aucune' ? '' : choix);
+    if (saison) { racine.dataset.saison = saison; choisirTheme(false); choisirContraste(false); }
+    else delete racine.dataset.saison;
+    majCoches();
+}
+SAISONS.forEach(choix => {
+    const b = $('aff-saison-' + choix);
+    if (b) b.addEventListener('click', () => appliquerSaison(choix));
+});
+const quitterSaison = () => { if (choixSaison() !== 'aucune') appliquerSaison('aucune'); };
+
+// Decorations : un repere dans le bandeau, juste apres le logo, et un calque sur la zone de programmation.
+if ($('tb-logo') && !$('tb-saison')) {
+    const repere = document.createElement('span');
+    repere.id = 'tb-saison';
+    repere.setAttribute('aria-hidden', 'true');
+    $('tb-logo').after(repere);
+}
+if ($('blockly-wrapper') && !$('deco-saison')) {
+    const deco = document.createElement('div');
+    deco.id = 'deco-saison';
+    deco.setAttribute('aria-hidden', 'true');
+    deco.innerHTML =
+        '<span class="deco-halloween deco-toile">🕸️</span><span class="deco-halloween deco-fil"></span>' +
+        '<span class="deco-halloween deco-araignee">🕷️</span><span class="deco-halloween deco-fantome">👻</span>' +
+        '<span class="deco-halloween deco-citrouille">🎃</span>' +
+        '<span class="deco-noel deco-neige"></span><span class="deco-noel deco-neige deco-neige-2"></span>' +
+        '<span class="deco-noel deco-etoile">⭐</span><span class="deco-noel deco-sapin">🎄</span>';
+    $('blockly-wrapper').appendChild(deco);
+}
+function majRepereSaison() {
+    const repere = $('tb-saison');
+    if (repere) repere.textContent = { halloween: '🎃', noel: '🎄' }[racine.dataset.saison] || '';
+}
+
 function majCoches() {
     const bascule = (id, vrai) => { const b = $(id); if (b) b.classList.toggle('choisi', !!vrai); };
     bascule('aff-theme-clair', themeClair());
     bascule('aff-theme-sombre', !themeClair());
     bascule('aff-contraste-normal', !contrasteEleve());
     bascule('aff-contraste-eleve', contrasteEleve());
+    const saison = choixSaison();
+    SAISONS.forEach(choix => bascule('aff-saison-' + choix, saison === choix));
+    majRepereSaison();
 }
-if ($('aff-theme-clair')) $('aff-theme-clair').addEventListener('click', () => choisirTheme(true));
+if ($('aff-theme-clair')) $('aff-theme-clair').addEventListener('click', () => { quitterSaison(); choisirTheme(true); });
 if ($('aff-theme-sombre')) $('aff-theme-sombre').addEventListener('click', () => choisirTheme(false));
 if ($('aff-contraste-normal')) $('aff-contraste-normal').addEventListener('click', () => choisirContraste(false));
-if ($('aff-contraste-eleve')) $('aff-contraste-eleve').addEventListener('click', () => choisirContraste(true));
-new MutationObserver(majCoches).observe(racine, { attributes: true, attributeFilter: ['data-theme', 'data-contrast'] });
+if ($('aff-contraste-eleve')) $('aff-contraste-eleve').addEventListener('click', () => { quitterSaison(); choisirContraste(true); });
+new MutationObserver(majCoches).observe(racine, { attributes: true, attributeFilter: ['data-theme', 'data-contrast', 'data-saison'] });
 majCoches();
 
 // ---------- Libelles Afficher / Masquer (l'etat « ferme » = classe .inactif, posee par le code existant) ----------

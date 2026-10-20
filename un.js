@@ -6760,6 +6760,28 @@ try {
         }
     });
 
+    // Themes de saison (menu Affichage > Saison, bandeau.js) : variantes du sombre en contraste normal.
+    const THEME_HALLOWEEN = Blockly.Theme.defineTheme('halloweenMicrobitV2', {
+        base: THEME_SOMBRE_NORMAL,
+        fontStyle: POLICE_BLOCS,
+        componentStyles: {
+            workspaceBackgroundColour: '#141414',
+            toolboxBackgroundColour: '#0f0d12',
+            flyoutBackgroundColour: '#1f1a24',
+            scrollbarColour: '#6b4a80'
+        }
+    });
+    const THEME_NOEL = Blockly.Theme.defineTheme('noelMicrobitV2', {
+        base: THEME_SOMBRE_NORMAL,
+        fontStyle: POLICE_BLOCS,
+        componentStyles: {
+            workspaceBackgroundColour: '#0d1b2a',
+            toolboxBackgroundColour: '#08131f',
+            flyoutBackgroundColour: '#13263a',
+            scrollbarColour: '#4a6a8a'
+        }
+    });
+
     function themeClairActif() {
         return document.documentElement.dataset.theme === 'light';
     }
@@ -6768,11 +6790,13 @@ try {
     }
     function appliquerThemeBlockly() {
         const clair = themeClairActif(), eleve = contrasteEleveActif();
+        const saison = { halloween: THEME_HALLOWEEN, noel: THEME_NOEL }[document.documentElement.dataset.saison];
         const theme = clair
             ? (eleve ? THEME_CLAIR_ELEVE : THEME_CLAIR_NORMAL)
-            : (eleve ? THEME_SOMBRE_ELEVE : THEME_SOMBRE_NORMAL);
-        window.workspace.setTheme(theme);
+            : (eleve ? THEME_SOMBRE_ELEVE : (saison || THEME_SOMBRE_NORMAL));
+        if (window.workspace.getTheme() !== theme) window.workspace.setTheme(theme);
     }
+    new MutationObserver(appliquerThemeBlockly).observe(document.documentElement, { attributes: true, attributeFilter: ['data-saison'] });
 
     const btnTheme = document.getElementById('btn-theme');
     function appliquerTheme(clair) {
