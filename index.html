@@ -150,7 +150,7 @@
 
     #toolbar {
       min-height: var(--top-h); box-sizing: border-box; position: relative;
-      background: var(--bandeau); color: #fff; border-bottom: 3px solid var(--accent-fonce);
+      background: var(--bandeau); color: #fff; border-bottom: 3px solid var(--couleur-bandeau);   /* filet de la couleur du bandeau : plus de liseré orange fonce */
       display: flex; align-items: center; flex-wrap: wrap; gap: 4px 2px;
       padding: 3px 6px; flex-shrink: 0;
       box-shadow: 0 2px 4px rgba(0,0,0,0.25); z-index: 100; font-family: var(--font);
@@ -1263,6 +1263,7 @@
       --ec-sim: #0d1b2a; --ec-bord: #22405f; --ec-code: #0b1826; --ec-code-bord: #22405f;
       --ec-pan: #13263a; --ec-pan-bord: #22405f; --ec-sep: #22405f;
     }
+    :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }   /* filet violet (Halloween) ou or (Noel) */
     #tb-saison, #deco-saison { display: none; }
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #tb-saison { display: block; font-size: 20px; line-height: 1; margin: 0 2px; user-select: none; }
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #deco-saison {
