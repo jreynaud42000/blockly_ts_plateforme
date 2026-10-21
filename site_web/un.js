@@ -5709,15 +5709,28 @@ try {
               ]
             },
             {
-            "kind": "category", "name": "Température & humidité", "colour": String(COULEUR_GROVE),
+            // Capteurs d'environnement reunis (temperature et humidite, DHT11, DHT22, CO2, pression, qualite de l'air) :
+            // un titre par module, un trait fin entre deux modules (comme « Affichage »).
+            "kind": "category", "name": "Environnement", "colour": String(COULEUR_GROVE),
             "contents": [
+              { "kind": "label", "text": "Température & humidité (capteur I²C)" },
               { "kind": "block", "type": "grove_th_init" },
               { "kind": "block", "type": "grove_th_mesure" },
+              { "kind": "label", "text": "DHT11", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "grove_dht11_definir" },
               { "kind": "block", "type": "grove_dht11_mesure" },
+              { "kind": "label", "text": "DHT22", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "grove_dht22_definir" },
               { "kind": "block", "type": "grove_dht22_mesure" },
-
+              { "kind": "label", "text": "CO₂ (SCD30 / SCD41)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_scd30_init" },
+              { "kind": "block", "type": "grove_scd30_lire" },
+              { "kind": "block", "type": "grove_scd41_init" },
+              { "kind": "block", "type": "grove_scd41_lire" },
+              { "kind": "label", "text": "Pression (BMP280)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_bmp280" },
+              { "kind": "label", "text": "Qualité de l'air (SGP30)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_sgp30" }
               ]
             },
             {
@@ -5743,27 +5756,6 @@ try {
               { "kind": "block", "type": "grove_pca_init" },
               { "kind": "block", "type": "grove_pca_angle", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "ANGLE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } },
               { "kind": "block", "type": "grove_pca_continu", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "50" } } } } }
-              ]
-            },
-            {
-            "kind": "category", "name": "CO₂ (SCD30 / SCD41)", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_scd30_init" },
-              { "kind": "block", "type": "grove_scd30_lire" },
-              { "kind": "block", "type": "grove_scd41_init" },
-              { "kind": "block", "type": "grove_scd41_lire" }
-            ]
-            },
-            {
-            "kind": "category", "name": "Pression (BMP280)", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_bmp280" }
-              ]
-            },
-            {
-            "kind": "category", "name": "Qualité de l'air (SGP30)", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_sgp30" }
               ]
             },
             {
@@ -5885,7 +5877,7 @@ try {
 
     // Sous-menus masques la premiere fois que l'admin les rencontre (avant
     // toute config sauvegardee pour ce parent). Rien aujourd'hui — le DHT11 et
-    // le DHT22 vivent dans « Température & humidité », visibles comme le
+    // le DHT22 vivent dans « Environnement » (Grove), visibles comme le
     // reste : seuls le tooltip et le refus au runtime sur V2 (voir
     // piloteDht()) les distinguent desormais. Mecanisme garde pour un usage
     // futur.
