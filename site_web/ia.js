@@ -422,6 +422,19 @@ window.iaClassesConnues = function (genre) {
         const o = panneau.dataset.onglet;
         if (titre) titre.textContent = o === 'immediat' ? TITRES[choix ? choix.value : 'images'] || TITRES.images : AUTRES[o] || '';
     };
+    // Onglets Teachable Machine (camera, micro) : caches par defaut, affiches par la case « Modèles Teachable Machine »
+    // de l'onglet Apprentissage immediat (choix garde dans le navigateur). Un onglet cache reste visible tant qu'il est
+    // choisi (visite guidee) ou qu'une reconnaissance y tourne, pour ne jamais perdre de vue une IA en marche.
+    const TM = ['vision', 'son'];
+    const CLE_TM = 'ia_onglets_teachable_v1';
+    let avecTM = false;
+    try { avecTM = localStorage.getItem(CLE_TM) === '1'; } catch (erreur) { /* navigation privee : cases decochees */ }
+    const enMarche = genre => !!document.querySelector('.ia-colonne[data-genre="' + genre + '"] .ia-demarrer.en-marche');
+    function majOngletsTM() {
+        onglets.forEach(b => {
+            if (TM.includes(b.dataset.onglet)) b.hidden = !(avecTM || b.dataset.onglet === panneau.dataset.onglet || enMarche(b.dataset.onglet));
+        });
+    }
     function choisirOnglet(o) {
         if (!onglets.some(b => b.dataset.onglet === o)) return;
         if (panneau.dataset.onglet !== o) panneau.dataset.onglet = o;
@@ -431,19 +444,41 @@ window.iaClassesConnues = function (genre) {
             b.setAttribute('aria-selected', String(actif));
             b.tabIndex = actif ? 0 : -1;
         });
+        majOngletsTM();
         majTitre();
     }
-    onglets.forEach((b, i) => {
+    onglets.forEach(b => {
         b.addEventListener('click', () => choisirOnglet(b.dataset.onglet));
         b.addEventListener('keydown', ev => {
             const pas = ev.key === 'ArrowRight' ? 1 : ev.key === 'ArrowLeft' ? -1 : 0;
             if (!pas) return;
-            const suivant = onglets[(i + pas + onglets.length) % onglets.length];
+            const visibles = onglets.filter(x => !x.hidden), i = visibles.indexOf(b);
+            const suivant = visibles[(i + pas + visibles.length) % visibles.length];
             choisirOnglet(suivant.dataset.onglet); suivant.focus(); ev.preventDefault();
         });
     });
     window.iaOnglet = choisirOnglet;
     choisirOnglet(panneau.dataset.onglet || 'immediat');
+
+    const gauche = $('.ia-colonne[data-genre="immediat"] .ia-imm-gauche');
+    if (gauche) {
+        const option = document.createElement('label');
+        option.className = 'ia-imm-option';
+        option.title = 'Pour utiliser un modèle déjà entraîné sur Teachable Machine (teachablemachine.withgoogle.com)';
+        option.innerHTML = '<input type="checkbox"> Afficher les onglets « Modèle Teachable Machine »';
+        const caseTM = option.querySelector('input');
+        caseTM.checked = avecTM;
+        caseTM.addEventListener('change', () => {
+            avecTM = caseTM.checked;
+            try { localStorage.setItem(CLE_TM, avecTM ? '1' : '0'); } catch (erreur) { /* le choix ne survivra pas au rechargement */ }
+            majOngletsTM();
+        });
+        gauche.appendChild(option);
+    }
+    for (const genre of TM) {
+        const bouton = $('.ia-colonne[data-genre="' + genre + '"] .ia-demarrer');
+        if (bouton) new MutationObserver(majOngletsTM).observe(bouton, { attributes: true, attributeFilter: ['class'] });
+    }
 
     // Points d'etat des onglets et soulignement du bouton IA de la barre
     const boutonBarre = $('#btn-vue-ia');

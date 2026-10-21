@@ -1383,6 +1383,9 @@
         background: transparent; color: var(--ia-doux); border: none; border-bottom: 3px solid transparent; border-radius: 0; }
     #ia-onglets .ia-onglet:hover { background: var(--ia-fond-carte); color: var(--texte-code); }
     #ia-onglets .ia-onglet.actif { color: var(--texte-code); border-bottom-color: var(--ia-or-vif); }
+    #ia-onglets .ia-onglet[hidden] { display: none; }   /* onglets Teachable Machine caches tant que la case n'est pas cochee (ia.js) */
+    .ia-imm-option { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 12px; color: var(--ia-doux); cursor: pointer; }
+    .ia-imm-option input { margin: 0; cursor: pointer; }
     .ia-onglet-point { width: 8px; height: 8px; border-radius: 50%; }
     .ia-onglet-point[data-etat="pret"] { background: #339af0; }
     .ia-onglet-point[data-etat="marche"] { background: #40c057; }
