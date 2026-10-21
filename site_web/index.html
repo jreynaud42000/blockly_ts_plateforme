@@ -1255,51 +1255,70 @@
        Decorations dans #deco-saison (cree par bandeau.js) : jamais cliquables, animations coupees si
        le systeme demande de reduire les animations. */
     :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) {
-      --bandeau-sombre: #d65200; --accent-fonce: #3a1f4d;
-      --fond-saisie: #0b0a0d; --texte-saisie: #f0e6d8; --fond-code: #121014; --bordure-chrome: #4a2e5e;
-      --ec-page: #0f0f0f; --ec-cat-hover: #2a1f33; --ec-cat-sel: #3a2547; --ec-cat-lisere: #ff7a1a;
-      --ec-grille: #2e2620; --ec-flyout: #1f1a24;
-      --ec-sim: #141414; --ec-bord: #3a2547; --ec-code: #121014; --ec-code-bord: #3a2547;
-      --ec-pan: #1f1a24; --ec-pan-bord: #3a2547; --ec-sep: #3a2547;
+      --bandeau-sombre: #2b1740; --accent-fonce: #ff7a1a;
+      --fond-saisie: #0c0814; --texte-saisie: #f3e8ff; --fond-code: #120c1c; --bordure-chrome: #4a2e5e;
+      --ec-page: #0c0814; --ec-cat-hover: #2a1f3a; --ec-cat-sel: #3a2552; --ec-cat-lisere: #ff7a1a;
+      --ec-grille: #2a2036; --ec-flyout: #1d1530;
+      --ec-sim: #120c1c; --ec-bord: #3a2552; --ec-code: #120c1c; --ec-code-bord: #3a2552;
+      --ec-pan: #1d1530; --ec-pan-bord: #3a2552; --ec-sep: #3a2552;
     }
     :root[data-saison="noel"]:not([data-theme="light"]):not([data-contrast="high"]) {
-      --bandeau-sombre: #b3122e; --accent-fonce: #d4a017;
+      --bandeau-sombre: #b3122e; --accent-fonce: #f1f3f5;
       --fond-saisie: #08131f; --texte-saisie: #e3eefa; --fond-code: #0b1826; --bordure-chrome: #2a4a6b;
-      --ec-page: #0a1622; --ec-cat-hover: #1b3350; --ec-cat-sel: #22405f; --ec-cat-lisere: #d4a017;
+      --ec-page: #0a1622; --ec-cat-hover: #1b3350; --ec-cat-sel: #22405f; --ec-cat-lisere: #ffd43b;
       --ec-grille: #1c2e44; --ec-flyout: #13263a;
       --ec-sim: #0d1b2a; --ec-bord: #22405f; --ec-code: #0b1826; --ec-code-bord: #22405f;
       --ec-pan: #13263a; --ec-pan-bord: #22405f; --ec-sep: #22405f;
     }
-    :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }   /* filet violet (Halloween) ou or (Noel) */
-    #tb-saison, #deco-saison { display: none; }
+    /* Filet du bandeau : neige (Noel) ; rayures « bonbon » orange, jaune, blanc (Halloween). */
+    :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }
+    :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
+      border-bottom: 4px solid #ff7a1a;
+      border-image: repeating-linear-gradient(90deg, #ff7a1a 0 18px, #ffd43b 18px 36px, #fff4e6 36px 54px) 1; }
+    #tb-saison, #deco-saison, #guirlande-saison { display: none; }
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #tb-saison { display: block; font-size: 20px; line-height: 1; margin: 0 2px; user-select: none; }
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #deco-saison {
       display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 60; }
-    #deco-saison span { position: absolute; line-height: 1; }
-    /* Halloween : toile dans le coin, araignee au bout de son fil, fantome qui flotte, citrouille pres de la corbeille. */
-    .deco-toile { top: -6px; right: -6px; font-size: 72px; opacity: 0.35; }
-    .deco-fil { top: 0; right: 120px; width: 0; height: 70px; border-left: 1px solid rgba(220,220,220,0.45);
-      animation: deco-fil 5s ease-in-out infinite alternate; }
-    .deco-araignee { right: 109px; top: 66px; font-size: 22px; opacity: 0.8; animation: deco-araignee 5s ease-in-out infinite alternate; }
-    .deco-fantome { right: 50px; top: 34%; font-size: 40px; opacity: 0.28; animation: deco-flotte 4s ease-in-out infinite alternate; }
-    .deco-citrouille { right: 96px; bottom: 28px; font-size: 32px; opacity: 0.9; }
-    @keyframes deco-fil { to { height: 120px; } }
-    @keyframes deco-araignee { to { transform: translateY(50px); } }
-    @keyframes deco-flotte { to { transform: translateY(-18px); } }
-    /* Noel : deux couches de flocons qui tombent a des vitesses differentes, sapin pres de la corbeille. */
-    .deco-neige { inset: 0; opacity: 0.7;
+    #deco-saison > * { position: absolute; display: none; }
+    :root[data-saison="halloween"] #deco-saison > .deco-halloween, :root[data-saison="noel"] #deco-saison > .deco-noel { display: block; }
+    #deco-saison svg { overflow: visible; }
+
+    /* Halloween « Nuit hantee » : lune, manoir aux fenetres allumees, chauves-souris, toile, citrouilles, brume. */
+    .deco-lune { top: 16px; right: 64px; width: 70px; height: 70px; filter: drop-shadow(0 0 18px rgba(255, 232, 163, 0.45)); }
+    .deco-toile { top: 0; right: 0; width: 110px; height: 110px; opacity: 0.55; }
+    .deco-manoir { right: 100px; bottom: 0; width: 190px; height: 130px; }
+    .deco-citrouilles { right: 300px; bottom: 6px; width: 96px; height: 46px; }
+    .deco-chauves { top: 24px; right: 160px; width: 280px; height: 110px; }
+    .deco-chauves .chauve { animation: deco-vole 6s ease-in-out infinite; transform-box: fill-box; }
+    .deco-chauves .chauve:nth-child(2) { animation-duration: 7.5s; animation-delay: -2s; }
+    .deco-chauves .chauve:nth-child(3) { animation-duration: 5s; animation-delay: -4s; }
+    @keyframes deco-vole { 0%, 100% { transform: translate(0, 0) scaleY(1); } 25% { transform: translate(-40px, -10px) scaleY(0.6); }
+      50% { transform: translate(-70px, 6px) scaleY(1); } 75% { transform: translate(-30px, 12px) scaleY(0.6); } }
+    .deco-brume { left: 0; right: 0; bottom: 0; height: 80px;
+      background: linear-gradient(to top, rgba(200, 190, 230, 0.2), rgba(200, 190, 230, 0)); animation: deco-brume 7s ease-in-out infinite alternate; }
+    @keyframes deco-brume { to { opacity: 0.45; } }
+    .deco-lueur { animation: deco-lueur 2.4s ease-in-out infinite; }
+    .deco-lueur-2 { animation: deco-lueur 2.4s ease-in-out -1.2s infinite; }
+    @keyframes deco-lueur { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    /* Noel « Village enneige » : guirlande sous le bandeau, flocons de trois tailles, collines, sapins, etoile. */
+    :root[data-saison="noel"]:not([data-theme="light"]):not([data-contrast="high"]) #guirlande-saison {
+      display: block; position: absolute; left: 0; top: calc(100% + 1px); width: 100%; height: 26px; pointer-events: none; overflow: hidden; }
+    .deco-neige { inset: 0; opacity: 0.75;
       background-image: radial-gradient(circle, #fff 2.4px, transparent 3.2px), radial-gradient(circle, #cfe8ff 1.5px, transparent 2.2px);
       background-size: 110px 110px, 70px 70px; background-position: 0 0, 35px 20px;
       animation: deco-neige 14s linear infinite; }
-    .deco-neige-2 { opacity: 0.45; background-size: 160px 160px, 95px 95px; background-position: 50px 30px, 10px 60px; animation-duration: 22s; }
+    .deco-neige-2 { opacity: 0.5; background-size: 160px 160px, 95px 95px; background-position: 50px 30px, 10px 60px; animation-name: deco-neige-2; animation-duration: 22s; }
+    .deco-neige-3 { opacity: 0.85; background-image: radial-gradient(circle, #fff 3.6px, transparent 4.6px); background-size: 230px 230px; background-position: 90px 0;
+      animation-name: deco-neige-3; animation-duration: 11s; }
     @keyframes deco-neige { to { background-position: 30px 110px, 50px 90px; } }
-    .deco-neige-2 { animation-name: deco-neige-2; }
     @keyframes deco-neige-2 { to { background-position: 30px 190px, 0 155px; } }
-    .deco-sapin { right: 96px; bottom: 26px; font-size: 34px; }
-    .deco-etoile { top: 10px; right: 16px; font-size: 26px; opacity: 0.8; }
-    #deco-saison .deco-halloween, #deco-saison .deco-noel { display: none; }
-    :root[data-saison="halloween"] #deco-saison .deco-halloween, :root[data-saison="noel"] #deco-saison .deco-noel { display: block; }
-    @media (prefers-reduced-motion: reduce) { #deco-saison span { animation: none !important; } }
+    @keyframes deco-neige-3 { to { background-position: 130px 230px; } }
+    .deco-collines { left: 0; right: 0; bottom: 0; width: 100%; height: 70px; opacity: 0.9; }
+    .deco-sapins { right: 110px; bottom: 14px; width: 150px; height: 70px; }
+    .deco-etoile { top: 14px; right: 30px; width: 34px; height: 34px; filter: drop-shadow(0 0 8px rgba(255, 212, 59, 0.6)); }
+    @media (prefers-reduced-motion: reduce) {
+      #deco-saison *, #guirlande-saison * { animation: none !important; } }
 
     /* Colonne des categories : fond et bord droit (le fond lui-meme vient du theme Blockly, voir un.js). */
     .blocklyToolboxDiv { border-right: var(--ec-cat-bord-droit); box-sizing: border-box; }
