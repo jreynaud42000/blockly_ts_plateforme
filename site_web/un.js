@@ -5264,6 +5264,11 @@ try {
         const rang = c => { const i = ORDRE_CATEGORIES.indexOf(c.name); return i === -1 ? ORDRE_CATEGORIES.length : i; };
         const indexInitial = new Map(cats.map((c, i) => [c, i]));
         cats.sort((a, b) => rang(a) - rang(b) || indexInitial.get(a) - indexInitial.get(b));   // tri stable
+        // Sous-categories de Grove par ordre alphabetique (accents et majuscules ignores, ordre francais).
+        const grove = cats.find(c => c.kind === 'category' && c.name === 'Grove');
+        if (grove && Array.isArray(grove.contents)) {
+            grove.contents.sort((a, b) => String(a.name || '').localeCompare(String(b.name || ''), 'fr', { sensitivity: 'base' }));
+        }
         // Les quatre robots deviennent des sous-menus d'une categorie « Robots », placee en dernier.
         const robots = cats.filter(c => c.kind === 'category' && NOMS_ROBOTS.includes(c.name));
         if (robots.length) {
