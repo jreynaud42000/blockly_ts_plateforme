@@ -1033,7 +1033,90 @@ function telechargerQR() {
     }, 'image/png');
 }
 
+// --- planche A4 : une liste de textes, un QR code par ligne, imprimee par le navigateur (rien ne sort du poste) ---
+// Gabarits pour une feuille A4 a marges de 10 mm (190 x 277 mm utiles) ; chaque case a un contour en pointilles pour
+// decouper. Les images sont fabriquees a 8 px par module au moins : nettes a l'impression, quelle que soit la taille.
+const PLANCHES_QR = {
+    petit: { code: 35, colonnes: 4, lignes: 5 },
+    moyen: { code: 55, colonnes: 3, lignes: 4 },
+    grand: { code: 80, colonnes: 2, lignes: 3 },
+};
+const MAX_PLANCHE_QR = 120;
+const echapperHtml = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', '\'': '&#39;' }[c]));
+
+async function imageQR(Z, texte) {
+    const indices = new Map([[Z.EncodeHintType.MARGIN, 2], [Z.EncodeHintType.CHARACTER_SET, 'UTF-8']]);
+    const matrice = new Z.QRCodeWriter().encode(texte, Z.BarcodeFormat.QR_CODE, 0, 0, indices);
+    const n = matrice.getWidth(), pas = Math.max(8, Math.ceil(600 / n));
+    const toile = document.createElement('canvas');
+    toile.width = toile.height = n * pas;
+    const ctx = toile.getContext('2d');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, toile.width, toile.height);
+    ctx.fillStyle = '#000000';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (matrice.get(x, y)) ctx.fillRect(x * pas, y * pas, pas, pas);
+    return toile.toDataURL('image/png');
+}
+
+async function imprimerPlancheQR() {
+    const statut = $('.ia-qr-planche-statut', colQR);
+    const dire = m => { statut.textContent = m; };
+    const textes = $('.ia-qr-liste', colQR).value.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (!textes.length) { dire('Écrivez au moins un texte (un par ligne).'); return; }
+    if (textes.length > MAX_PLANCHE_QR) { dire('Au plus ' + MAX_PLANCHE_QR + ' QR codes par impression.'); return; }
+    const trop = textes.find(t => t.length > 200);
+    if (trop) { dire('Texte trop long (200 caractères au plus) : « ' + trop.slice(0, 30) + '… »'); return; }
+    const g = PLANCHES_QR[$('.ia-qr-taille', colQR).value] || PLANCHES_QR.moyen;
+    const legende = $('.ia-qr-legende', colQR).checked;
+    const bouton = $('.ia-qr-imprimer', colQR);
+    bouton.disabled = true;
+    dire('Fabrication des QR codes…');
+    try {
+        const Z = await chargerZxing();
+        const images = [];
+        for (const t of textes) images.push(await imageQR(Z, t));
+        const parPage = g.colonnes * g.lignes, pages = [];
+        for (let i = 0; i < images.length; i += parPage) {
+            const cases = images.slice(i, i + parPage).map((src, k) =>
+                '<div class="case"><img src="' + src + '" alt=""><div class="texte">' + (legende ? echapperHtml(textes[i + k]) : '') + '</div></div>').join('');
+            pages.push('<div class="page">' + cases + '</div>');
+        }
+        const largeur = (190 / g.colonnes).toFixed(2), hauteur = (277 / g.lignes).toFixed(2);
+        const doc = '<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>QR codes</title><style>' +
+            '@page { size: A4 portrait; margin: 10mm; }' +
+            '* { box-sizing: border-box; } html, body { margin: 0; background: #fff; color: #000; font-family: Arial, sans-serif; }' +
+            '.page { display: grid; grid-template-columns: repeat(' + g.colonnes + ', ' + largeur + 'mm); grid-auto-rows: ' + hauteur + 'mm;' +
+            ' width: 190mm; break-after: page; page-break-after: always; }' +
+            '.page:last-child { break-after: auto; page-break-after: auto; }' +
+            '.case { border: 0.3mm dashed #999; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2mm; overflow: hidden; }' +
+            '.case img { width: ' + g.code + 'mm; height: ' + g.code + 'mm; image-rendering: pixelated; }' +
+            '.texte { font-size: ' + (g.code >= 55 ? 14 : 11) + 'pt; text-align: center; max-width: 95%; overflow-wrap: anywhere; min-height: 1em; }' +
+            '</style></head><body>' + pages.join('') + '</body></html>';
+        const ancien = document.getElementById('ia-qr-impression');
+        if (ancien) ancien.remove();
+        const cadre = document.createElement('iframe');
+        cadre.id = 'ia-qr-impression';
+        cadre.setAttribute('aria-hidden', 'true');
+        cadre.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+        cadre.onload = () => {
+            const imgs = Array.from(cadre.contentDocument.images);
+            Promise.all(imgs.map(im => im.complete ? null : new Promise(ok => { im.onload = im.onerror = ok; }))).then(() => {
+                cadre.contentWindow.focus();
+                cadre.contentWindow.print();
+            });
+        };
+        cadre.srcdoc = doc;
+        document.body.appendChild(cadre);
+        dire(textes.length + ' QR code' + (textes.length > 1 ? 's' : '') + ' sur ' + pages.length + ' page' + (pages.length > 1 ? 's' : '') +
+             ' A4 : choisissez l\'imprimante (ou « Enregistrer en PDF »), échelle 100 %.');
+    } catch (erreur) {
+        dire('Impression impossible : ' + messageErreur(erreur));
+    } finally {
+        bouton.disabled = false;
+    }
+}
+
 $('.ia-demarrer', colQR).addEventListener('click', () => (qr.enMarche ? arreterQR() : demarrerQR()));
+$('.ia-qr-imprimer', colQR).addEventListener('click', imprimerPlancheQR);
 videoQR.addEventListener('loadedmetadata', () => ajusterCadre(videoQR));
 $('.ia-qr-creer', colQR).addEventListener('click', creerQR);
 $('.ia-qr-a-creer', colQR).addEventListener('keydown', e => { if (e.key === 'Enter') creerQR(); });

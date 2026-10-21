@@ -571,6 +571,13 @@
     .ia-qr-texte.vu { color: #2ecc71; font-weight: bold; }
     .ia-qr-image { display: block; width: 160px; height: 160px; image-rendering: pixelated; margin-top: 6px; }
     .ia-qr-image.replie { display: none; }
+    /* Planche de QR codes (ia-immediat.js : imprimerPlancheQR) */
+    .ia-qr-liste { display: block; box-sizing: border-box; width: 100%; max-width: 520px; margin: 4px 0 8px; padding: 8px 10px; resize: vertical;
+        background: var(--fond-saisie); color: var(--texte-saisie); border: 1px solid var(--bordure-chrome); border-radius: 6px;
+        font: 13px/1.4 Consolas, "DejaVu Sans Mono", monospace; }
+    .ia-qr-planche-options { flex-wrap: wrap; gap: 10px; align-items: center; }
+    .ia-qr-planche-options label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; }
+    .ia-qr-planche-statut { display: block; min-height: 1.2em; margin-top: 6px; font-size: 12px; color: var(--ia-doux, #b8b8b8); }
     /* Boutons de zoom ronds et corbeille de Blockly : leurs icones sont gris fonce, quasi invisibles sur fond sombre.
        On les inverse (clair sur sombre) dans les themes sombres ; le theme clair garde les icones d'origine. */
     :root:not([data-theme="light"]) .blocklyZoom > image { filter: invert(1) brightness(1.15); opacity: 1; }
@@ -2406,6 +2413,23 @@
             <button class="btn-vue ia-qr-telecharger" disabled title="Télécharger l'image (.png)">💾 PNG</button>
           </div>
           <canvas class="ia-qr-image replie"></canvas>
+        </details>
+        <details class="ia-creer ia-qr-planche">
+          <summary>🖨 Planche de QR codes à imprimer (A4)</summary>
+          <p class="ia-intro">Un texte par ligne : chaque ligne donne un QR code. Une ligne écrite deux fois donne deux exemplaires.</p>
+          <textarea class="ia-qr-liste" rows="5" spellcheck="false" placeholder="avancer&#10;reculer&#10;gauche&#10;droite&#10;stop"></textarea>
+          <div class="ia-modele ia-qr-planche-options">
+            <label>Taille :
+              <select class="ia-qr-taille">
+                <option value="petit">petits (3,5 cm, 20 par page)</option>
+                <option value="moyen" selected>moyens (5,5 cm, 12 par page)</option>
+                <option value="grand">grands (8 cm, 6 par page)</option>
+              </select>
+            </label>
+            <label class="ia-qr-avec-texte"><input type="checkbox" class="ia-qr-legende" checked> Texte sous chaque code</label>
+            <button class="btn-vue ia-qr-imprimer">🖨 Imprimer la planche</button>
+          </div>
+          <span class="ia-qr-planche-statut" aria-live="polite"></span>
         </details>
       </div>
     </div>
