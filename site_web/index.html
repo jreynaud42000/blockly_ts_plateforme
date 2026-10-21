@@ -15,13 +15,15 @@
       if (localStorage.getItem('contrasteApp') === 'high') {
         document.documentElement.dataset.contrast = 'high';
       }
-      // Theme de saison (bandeau.js) : « auto » = Halloween du 15 octobre au 2 novembre, Noel en decembre.
+      // Theme de saison (bandeau.js) : « auto » = Halloween du 15 octobre au 2 novembre, salon Educatech Expo
+      // du 2 au 4 decembre 2026, Noel le reste de decembre.
       var saison = localStorage.getItem('saisonApp');
       if (saison === 'auto') {
         var d = new Date(), m = d.getMonth() + 1, j = d.getDate();
-        saison = (m === 10 && j >= 15) || (m === 11 && j <= 2) ? 'halloween' : (m === 12 ? 'noel' : '');
+        saison = (m === 10 && j >= 15) || (m === 11 && j <= 2) ? 'halloween'
+          : (d.getFullYear() === 2026 && m === 12 && j >= 2 && j <= 4) ? 'salon' : (m === 12 ? 'noel' : '');
       }
-      if (saison === 'halloween' || saison === 'noel') document.documentElement.dataset.saison = saison;
+      if (saison === 'halloween' || saison === 'noel' || saison === 'salon') document.documentElement.dataset.saison = saison;
     } catch (erreur) { /* localStorage indisponible (navigation privee...) : tant pis, etat par defaut */ }
   </script>
 
@@ -1270,7 +1272,16 @@
       --ec-sim: #0d1b2a; --ec-bord: #22405f; --ec-code: #0b1826; --ec-code-bord: #22405f;
       --ec-pan: #13263a; --ec-pan-bord: #22405f; --ec-sep: #22405f;
     }
-    /* Filet du bandeau : neige (Noel) ; rayures « bonbon » orange, jaune, blanc (Halloween). */
+    :root[data-saison="salon"]:not([data-theme="light"]):not([data-contrast="high"]) {
+      --bandeau-sombre: #4b3a9e; --accent-fonce: #e0218a;
+      --fond-saisie: #0c1030; --texte-saisie: #e6e9ff; --fond-code: #0f1438; --bordure-chrome: #2f3a7a;
+      --ec-page: #0c1030; --ec-cat-hover: #222a63; --ec-cat-sel: #2c3577; --ec-cat-lisere: #2bb3a0;
+      --ec-grille: #222a5c; --ec-flyout: #171c47;
+      --ec-sim: #12163a; --ec-bord: #2c3577; --ec-code: #0f1438; --ec-code-bord: #2c3577;
+      --ec-pan: #171c47; --ec-pan-bord: #2c3577; --ec-sep: #2c3577;
+    }
+    :root[data-saison="salon"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { background: linear-gradient(90deg, #1f9e8f, #6a2c91); }
+    /* Filet du bandeau : neige (Noel) ; rayures « bonbon » orange, jaune, blanc (Halloween) ; magenta (salon). */
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }
     :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
       border-bottom: 4px solid #ff7a1a;
@@ -1280,7 +1291,8 @@
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #deco-saison {
       display: block; position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 60; }
     #deco-saison > * { position: absolute; display: none; }
-    :root[data-saison="halloween"] #deco-saison > .deco-halloween, :root[data-saison="noel"] #deco-saison > .deco-noel { display: block; }
+    :root[data-saison="halloween"] #deco-saison > .deco-halloween, :root[data-saison="noel"] #deco-saison > .deco-noel,
+    :root[data-saison="salon"] #deco-saison > .deco-salon { display: block; }
     #deco-saison svg { overflow: visible; }
 
     /* Halloween « Nuit hantee » : lune, manoir aux fenetres allumees, chauves-souris, toile, citrouilles, brume. */
@@ -1317,8 +1329,23 @@
     .deco-collines { left: 0; right: 0; bottom: 0; width: 100%; height: 70px; opacity: 0.9; }
     .deco-sapins { right: 110px; bottom: 14px; width: 150px; height: 70px; }
     .deco-etoile { top: 14px; right: 30px; width: 34px; height: 34px; filter: drop-shadow(0 0 8px rgba(255, 212, 59, 0.6)); }
+    /* Salon Educatech Expo (2-4 decembre 2026, stand K3) : pistes de circuit qui s'allument, badge du stand,
+       banniere defilante pour les visiteurs. */
+    .deco-circuit-haut { top: 96px; right: 0; width: 320px; height: 190px; }   /* sous le badge du stand */
+    .deco-circuit-bas { left: 230px; bottom: 30px; width: 260px; height: 120px; }
+    .deco-piste { stroke-dasharray: 8 8; animation: deco-piste 3s linear infinite; }
+    @keyframes deco-piste { from { stroke-dashoffset: 32; } to { stroke-dashoffset: 0; } }
+    .deco-badge-salon { top: 14px; right: 24px; padding: 8px 12px; border-radius: 8px; border: 1px solid #e0218a;
+      background: rgba(224, 33, 138, 0.16); color: #ffd6ec; font: 13px/1.35 var(--font); text-align: right; }
+    .deco-badge-salon b { display: block; color: #ffffff; font-size: 14px; }
+    .deco-badge-salon .stand { display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 999px; background: #2bb3a0; color: #04211d; font-weight: 700; }
+    .deco-banniere-salon { left: 0; right: 0; bottom: 0; height: 26px; overflow: hidden; white-space: nowrap; background: #e0218a; color: #ffffff;
+      font: 600 13px/26px var(--font); opacity: 0.94; }
+    .deco-banniere-salon span { display: inline-block; padding-left: 24px; animation: deco-defile 20s linear infinite; }   /* texte repete 4 fois : -25 % boucle sans a-coup */
+    @keyframes deco-defile { from { transform: translateX(0); } to { transform: translateX(-25%); } }
     @media (prefers-reduced-motion: reduce) {
-      #deco-saison *, #guirlande-saison * { animation: none !important; } }
+      #deco-saison *, #guirlande-saison * { animation: none !important; }
+      .deco-banniere-salon span { padding-left: 24px; } }
 
     /* Colonne des categories : fond et bord droit (le fond lui-meme vient du theme Blockly, voir un.js). */
     .blocklyToolboxDiv { border-right: var(--ec-cat-bord-droit); box-sizing: border-box; }
@@ -1532,7 +1559,8 @@
         <button id="aff-saison-aucune">Aucune</button>
         <button id="aff-saison-halloween">🎃 Halloween</button>
         <button id="aff-saison-noel">🎄 Noël</button>
-        <button id="aff-saison-auto" title="Halloween du 15 octobre au 2 novembre, Noël en décembre">📅 Selon la date</button>
+        <button id="aff-saison-salon" title="Salon Educatech Expo, 2 au 4 décembre 2026, stand K3">🎓 Salon Educatech Expo</button>
+        <button id="aff-saison-auto" title="Halloween du 15 octobre au 2 novembre, salon Educatech Expo du 2 au 4 décembre 2026, Noël le reste de décembre">📅 Selon la date</button>
         <button id="btn-theme" class="btn-vue" style="display:none" title="Passer au thème clair">Thème</button>
         <button id="btn-contraste" class="btn-vue" style="display:none" title="Passer en contraste élevé">Contraste élevé</button>
       </div>

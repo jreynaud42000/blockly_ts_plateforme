@@ -6804,6 +6804,17 @@ try {
         }
     });
 
+    const THEME_SALON = Blockly.Theme.defineTheme('salonMicrobitV2', {   // salon Educatech Expo 2026 (bandeau.js)
+        base: THEME_SOMBRE_NORMAL,
+        fontStyle: POLICE_BLOCS,
+        componentStyles: {
+            workspaceBackgroundColour: '#12163a',
+            toolboxBackgroundColour: '#0c1030',
+            flyoutBackgroundColour: '#171c47',
+            scrollbarColour: '#4b5bb0'
+        }
+    });
+
     function themeClairActif() {
         return document.documentElement.dataset.theme === 'light';
     }
@@ -6812,7 +6823,7 @@ try {
     }
     function appliquerThemeBlockly() {
         const clair = themeClairActif(), eleve = contrasteEleveActif();
-        const saison = { halloween: THEME_HALLOWEEN, noel: THEME_NOEL }[document.documentElement.dataset.saison];
+        const saison = { halloween: THEME_HALLOWEEN, noel: THEME_NOEL, salon: THEME_SALON }[document.documentElement.dataset.saison];
         const theme = clair
             ? (eleve ? THEME_CLAIR_ELEVE : THEME_CLAIR_NORMAL)
             : (eleve ? THEME_SOMBRE_ELEVE : (saison || THEME_SOMBRE_NORMAL));

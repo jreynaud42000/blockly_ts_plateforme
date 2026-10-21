@@ -18,15 +18,17 @@ const contrasteEleve = () => racine.dataset.contrast === 'high';
 function choisirTheme(clair) { if (themeClair() !== clair && $('btn-theme')) $('btn-theme').click(); }
 function choisirContraste(eleve) { if (contrasteEleve() !== eleve && $('btn-contraste')) $('btn-contraste').click(); }
 
-// ---------- Affichage : theme de saison (Halloween, Noel) ----------
-// Choix memorise dans saisonApp : aucune, halloween, noel ou auto (selon la date). L'attribut data-saison
+// ---------- Affichage : theme de saison (Halloween, Noel, salon Educatech Expo) ----------
+// Choix memorise dans saisonApp : aucune, halloween, noel, salon ou auto (selon la date). L'attribut data-saison
 // est pose des le chargement par le petit script en tete de index.html ; un.js y accorde le theme Blockly.
 // Un theme de saison est une variante du sombre en contraste normal : le choisir y ramene, et choisir
 // le theme clair ou le contraste eleve revient a « Aucune ».
-const SAISONS = ['aucune', 'halloween', 'noel', 'auto'];
+const SAISONS = ['aucune', 'halloween', 'noel', 'salon', 'auto'];
+const SALON = { titre: 'Educatech Expo', dates: '2-4 déc. 2026', stand: 'K3' };   // a mettre a jour pour un autre salon
 function saisonDuJour(d = new Date()) {
     const m = d.getMonth() + 1, j = d.getDate();
     if ((m === 10 && j >= 15) || (m === 11 && j <= 2)) return 'halloween';
+    if (d.getFullYear() === 2026 && m === 12 && j >= 2 && j <= 4) return 'salon';   // meme regle qu'en tete de index.html
     return m === 12 ? 'noel' : '';
 }
 function choixSaison() {
@@ -112,7 +114,22 @@ if ($('blockly-wrapper') && !$('deco-saison')) {
             '<path d="M0 70 L0 40 Q120 10 260 34 T520 30 T780 26 T1000 32 L1000 70Z" fill="#dde9f5"/>' +
             '<path d="M0 70 L0 56 Q200 32 420 50 T1000 46 L1000 70Z" fill="#f5f9fd"/></svg>' +
         svg('deco-noel deco-sapins', '0 0 150 70', sapin(10, 26, 1.4) + sapin(62, 14, 1.9) + sapin(118, 32, 1.2)) +
-        svg('deco-noel deco-etoile', '0 0 34 34', '<path class="deco-lueur" d="M17 1 L21 12 L33 12 L23.5 19 L27 31 L17 24 L7 31 L10.5 19 L1 12 L13 12Z" fill="#ffd43b"/>');
+        svg('deco-noel deco-etoile', '0 0 34 34', '<path class="deco-lueur" d="M17 1 L21 12 L33 12 L23.5 19 L27 31 L17 24 L7 31 L10.5 19 L1 12 L13 12Z" fill="#ffd43b"/>') +
+        svg('deco-salon deco-circuit-haut', '0 0 320 190',
+            '<g fill="none" stroke-width="2"><path class="deco-piste" d="M320 120 H250 V160 H190" stroke="#2bb3a0"/>' +
+            '<path class="deco-piste" d="M320 176 H280 V140" stroke="#7b5cff" style="animation-delay:-1s"/>' +
+            '<path class="deco-piste" d="M200 0 V40 H150 V90" stroke="#e0218a" style="animation-delay:-2s"/></g>' +
+            '<g><circle class="deco-lueur" cx="190" cy="160" r="4" fill="#2bb3a0"/><circle class="deco-lueur-2" cx="280" cy="140" r="4" fill="#7b5cff"/>' +
+            '<circle class="deco-lueur" cx="150" cy="90" r="4" fill="#e0218a"/></g>') +
+        svg('deco-salon deco-circuit-bas', '0 0 260 120',
+            '<g fill="none" stroke-width="2"><path class="deco-piste" d="M0 110 H60 V70 H130" stroke="#e0218a"/>' +
+            '<path class="deco-piste" d="M0 30 H40 V50 H90" stroke="#2bb3a0" style="animation-delay:-1.5s"/></g>' +
+            '<circle class="deco-lueur-2" cx="130" cy="70" r="4" fill="#e0218a"/><circle class="deco-lueur" cx="90" cy="50" r="4" fill="#2bb3a0"/>') +
+        '<div class="deco-salon deco-badge-salon">' + SALON.titre + ' · ' + SALON.dates +
+            '<b>Technologie Services</b><span class="stand">Stand ' + SALON.stand + '</span></div>' +
+        '<div class="deco-salon deco-banniere-salon"><span>' +
+            ('Programmez votre micro:bit : essayez ! · Technologie Services · Stand ' + SALON.stand + ' · ' + SALON.titre + ' · ').repeat(4) +
+            '</span></div>';
     $('blockly-wrapper').appendChild(deco);
 }
 if ($('toolbar') && !$('guirlande-saison')) {
@@ -125,7 +142,7 @@ if ($('toolbar') && !$('guirlande-saison')) {
 }
 function majRepereSaison() {
     const repere = $('tb-saison');
-    if (repere) repere.textContent = { halloween: '🎃', noel: '🎄' }[racine.dataset.saison] || '';
+    if (repere) repere.textContent = { halloween: '🎃', noel: '🎄', salon: '🎓' }[racine.dataset.saison] || '';
 }
 
 function majCoches() {
