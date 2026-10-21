@@ -41,7 +41,7 @@ const ETAPES_GENERAL = [
     },
     {
         titre: '1. Les catégories de blocs',
-        texte: 'Les blocs sont rangés par catégories dans cette colonne : Temps, Affichage, Capteurs, Boucles… ' +
+        texte: 'Les blocs sont rangés par catégories dans cette colonne : Temps, Matrice LED, Capteurs, Boucles… ' +
             'Cliquer sur une catégorie ouvre la liste de ses blocs. Les blocs se prennent avec la souris et se ' +
             'déposent dans la grande zone de droite.',
         cible: () => $('.blocklyToolboxDiv'),
@@ -58,7 +58,7 @@ const ETAPES_GENERAL = [
             'indéfiniment » (catégorie Boucles). Les autres blocs s\'emboîtent dedans, comme des pièces de puzzle. ' +
             'Un bloc posé seul, hors de ces blocs, est grisé et n\'est pas exécuté.',
         cible: '#blocklyDiv',
-        consigne: 'Posez « Au démarrage », puis glissez « afficher icône » (catégorie Affichage) à l\'intérieur.',
+        consigne: 'Posez « Au démarrage », puis glissez « afficher icône » (catégorie Matrice LED) à l\'intérieur.',
         attendre: () => blocs().some(b => b.type === 'afficher_icone' && racineEst(b, ['au_demarrage', 'boucle_infinie'])),
     },
     {
@@ -94,7 +94,7 @@ const ETAPES_GENERAL = [
     },
     {
         titre: '7. La console',
-        texte: 'Le bloc « afficher dans la console » (catégorie Affichage) écrit des messages ici, depuis le simulateur ' +
+        texte: 'Le bloc « afficher dans la console » (catégorie Matrice LED) écrit des messages ici, depuis le simulateur ' +
             'ou depuis la vraie carte branchée en USB (bouton « Connecter »). L\'onglet « Graphique » trace les ' +
             'valeurs numériques en courbes et 📊 les exporte vers Excel.',
         cible: '#btn-vue-console',
@@ -325,14 +325,14 @@ const ETAPES_CONSOLE = [
     },
     {
         titre: '2. Le bloc « afficher dans la console »',
-        texte: 'C\'est lui qui écrit dans la console. Il se trouve dans la catégorie « Affichage » : il prend un texte ou une valeur ' +
+        texte: 'C\'est lui qui écrit dans la console. Il se trouve dans la catégorie « Matrice LED » : il prend un texte ou une valeur ' +
             '(un capteur, un nombre, une variable…) et écrit une ligne à chaque exécution.',
-        cible: () => categorie('Affichage'),
-        consigne: 'Cliquez sur la catégorie « Affichage ».',
+        cible: () => categorie('Matrice LED'),
+        consigne: 'Cliquez sur la catégorie « Matrice LED ».',
         attendre: () => {
             const boite = window.workspace && window.workspace.getToolbox && window.workspace.getToolbox();
             const sel = boite && boite.getSelectedItem && boite.getSelectedItem();
-            return !!(sel && sel.getName && sel.getName() === 'Affichage');
+            return !!(sel && sel.getName && sel.getName() === 'Matrice LED');
         },
     },
     {

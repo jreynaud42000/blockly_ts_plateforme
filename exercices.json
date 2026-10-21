@@ -12,7 +12,7 @@
           "titre": "Un cœur au démarrage",
           "consigne": "Fais apparaître un cœur sur la matrice de LED dès que le programme démarre.",
           "indices": [
-            "Les blocs d'affichage sont rangés dans la catégorie « Affichage ».",
+            "Les blocs d'affichage sont rangés dans la catégorie « Matrice LED ».",
             "Il faut le bloc « afficher l'icône », à glisser à l'intérieur du bloc « Au démarrage ».",
             "Dans « Au démarrage », pose « afficher l'icône » et choisis « Cœur » dans la liste. Lance ensuite la simulation."
           ],
@@ -24,7 +24,7 @@
           "titre": "Mon prénom défile",
           "consigne": "Fais défiler ton prénom sur la carte (change le texte « Bonjour ! »).",
           "indices": [
-            "Pour écrire du texte, regarde encore dans la catégorie « Affichage ».",
+            "Pour écrire du texte, regarde encore dans la catégorie « Matrice LED ».",
             "Le bloc « faire défiler » contient un texte : clique dessus pour le modifier.",
             "Pose « faire défiler » dans « Au démarrage », puis remplace « Bonjour ! » par ton prénom."
           ],
@@ -36,7 +36,7 @@
           "titre": "Mon propre dessin",
           "consigne": "Dessine ta propre image sur la matrice : allume au moins 3 LED.",
           "indices": [
-            "Cherche encore dans « Affichage », mais pas l'icône cette fois.",
+            "Cherche encore dans « Matrice LED », mais pas l'icône cette fois.",
             "Le bloc « afficher l'image » a une grille de 25 cases à cocher.",
             "Pose « afficher l'image » dans « Au démarrage » et coche les cases des LED que tu veux allumer (au moins trois)."
           ],

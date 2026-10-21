@@ -5109,6 +5109,16 @@ try {
             // Config enregistree par une version anterieure aux couleurs : completer
             // les champs manquants plutot que de planter au premier acces.
             if (!config.categories.colors) config.categories.colors = {};
+            // Categorie « Affichage » renommee « Matrice LED » (oct. 2026) : une config enregistree avant garde ses reglages.
+            const RENOMMEES = { 'Affichage': 'Matrice LED' };
+            const c = config.categories;
+            for (const [ancien, nouveau] of Object.entries(RENOMMEES)) {
+                c.order = (c.order || []).map(n => (n === ancien ? nouveau : n));
+                c.hidden = (c.hidden || []).map(n => (n === ancien ? nouveau : n));
+                for (const table of [c.labels, c.colors]) {
+                    if (table && ancien in table && !(nouveau in table)) { table[nouveau] = table[ancien]; delete table[ancien]; }
+                }
+            }
             for (const parent in config.groupes) {
                 if (!config.groupes[parent].colors) config.groupes[parent].colors = {};
             }
@@ -5186,7 +5196,7 @@ try {
     const PALETTE_CATEGORIES = {
         'Boucles': '#fd7e14',
         'Temps': '#15aabf',
-        'Affichage': '#f03e3e',
+        'Matrice LED': '#f03e3e',
         'Entrées/Sorties': '#343a40',
         'Capteurs': '#d2cc79',
         'Actionneurs (Audio)': '#622d86',
@@ -5230,7 +5240,7 @@ try {
     // Ordre voulu par l'utilisateur (la table sert aussi d'ordre « par defaut » du panneau administrateur, qui part de
     // TOOLBOX_ORIGINAL). Les categories qui n'y figurent pas (robots, LiDAR) restent
     // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ». « Graphique » n'existe pas encore.
-    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Affichage', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Radio', 'IA', 'Grove',
+    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Radio', 'IA', 'Grove',
                               'Logique', 'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes'];
     const NOMS_ROBOTS = ['Maqueen Plus', 'Maqueen Lite', 'Kitrobot v2', 'LiDAR'];   // regroupes dans « Robots »
     const CATEGORIE_LISTES = {
@@ -5338,7 +5348,7 @@ try {
             ]
           },
           {
-            "kind": "category", "name": "Affichage", "colour": "160",
+            "kind": "category", "name": "Matrice LED", "colour": "160",
             "contents": [
               { "kind": "block", "type": "afficher_valeur", "inputs": { "VALEUR": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour !" } } } } },
               { "kind": "block", "type": "faire_defiler", "inputs": { "VALEUR": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour !" } } } } },
@@ -8659,7 +8669,7 @@ try {
     // Meme fenetre que l'aide d'un bloc, sans code ni exemple.
     const TEXTE_AIDE_CONSOLE =
         "La console affiche les messages écrits par le programme avec le bloc « afficher dans la console » " +
-        "(catégorie Affichage). Elle se trouve en bas de l'application.\n\n" +
+        "(catégorie Matrice LED). Elle se trouve en bas de l'application.\n\n" +
         "AFFICHER OU MASQUER\n" +
         "• Bouton « Console » de la barre d'outils, ou croix ✕ de la console.\n" +
         "• Elle s'ouvre toute seule à la première ligne reçue, sauf si vous l'avez fermée vous-même.\n" +
