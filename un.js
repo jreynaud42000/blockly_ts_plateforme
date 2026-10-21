@@ -447,8 +447,26 @@ try {
         this.appendStatementInput("DO").setCheck(null);
         this.setColour(300);
     }};
+    // Un declenchement par appui (comme MakeCode), pas a chaque tour tant que le bouton reste enfonce : sur la carte,
+    // la scrutation par is_pressed() rappelait le gestionnaire en boucle (message radio envoye sans fin, bouton B
+    // noye). A et B : was_pressed(), memorise par la carte. A+B : front montant de « les deux enfonces », qui
+    // consomme aussi les appuis de A et de B pour ne pas declencher en plus « lorsque A » et « lorsque B ».
     P.forBlock['lorsque_bouton'] = function(block) {
         importerMicrobit();
+        if (block.getFieldValue('BOUTON') === 'ab') {
+            pilote('boutons', [
+                '_boutons_ab_avant = [False]',
+                '',
+                'def _boutons_ab():',
+                '    appuye = button_a.is_pressed() and button_b.is_pressed()',
+                '    front = appuye and not _boutons_ab_avant[0]',
+                '    _boutons_ab_avant[0] = appuye',
+                '    if front:',
+                '        button_a.was_pressed()',
+                '        button_b.was_pressed()',
+                '    return front',
+            ]);
+        }
         return declarerGestionnaire('on_button_pressed_' + block.getFieldValue('BOUTON'), P.statementToCode(block, 'DO'));
     };
 
@@ -948,7 +966,9 @@ try {
             '    paquet = radio.receive_full()',
             '    if paquet is None:',
             '        return',
-            '    message = str(paquet[0], "utf-8")',
+            // receive_full() rend les octets bruts : radio.send() les fait preceder d'un en-tete de 3 octets
+            // (sur la carte, le message s'affichait « ?salut »). receive() fait la meme chose : str(...)[3:].
+            '    message = str(paquet[0][3:], "utf-8")',
             '    _radio_dernier[0] = message',
             '    _radio_dernier[3] = paquet[1]',
             '    g = globals()',
@@ -8956,9 +8976,10 @@ try {
     // Chaque fonction `on_…` que peuvent produire les blocs « lorsque … » doit
     // figurer ici, sinon le bloc correspondant ne serait jamais exécuté.
     const GESTIONNAIRES = [
-        ['def on_button_pressed_a(',  'if button_a.is_pressed(): on_button_pressed_a()'],
-        ['def on_button_pressed_b(',  'if button_b.is_pressed(): on_button_pressed_b()'],
-        ['def on_button_pressed_ab(', 'if button_a.is_pressed() and button_b.is_pressed(): on_button_pressed_ab()'],
+        // Un declenchement par appui (voir P.forBlock['lorsque_bouton']) ; A+B en premier : il consomme les appuis.
+        ['def on_button_pressed_ab(', 'if _boutons_ab(): on_button_pressed_ab()'],
+        ['def on_button_pressed_a(',  'if button_a.was_pressed(): on_button_pressed_a()'],
+        ['def on_button_pressed_b(',  'if button_b.was_pressed(): on_button_pressed_b()'],
         ['def on_logo_touched(',      'if pin_logo.is_touched(): on_logo_touched()'],
         ['def on_logo_released(',     'if not pin_logo.is_touched(): on_logo_released()'],
         ['def on_pin_pin0_touched(',  'if pin0.is_touched(): on_pin_pin0_touched()'],
@@ -12732,6 +12753,15 @@ try {
     // environnements plutot que de compter sur une difference de simulateur.
     window.simu_btnA_clics = 0;
     window.simu_btnB_clics = 0;
+    // Appui memorise pour button_x.was_pressed() : pose a l'appui, consomme a la lecture (un declenchement par appui).
+    window.simu_appuiA = false;
+    window.simu_appuiB = false;
+    window.simu_consommerAppui = function(bouton) {
+        const cle = bouton === 'a' ? 'simu_appuiA' : bouton === 'b' ? 'simu_appuiB' : null;
+        if (!cle || !window[cle]) return false;
+        window[cle] = false;
+        return true;
+    };
     window.simu_lireClicsBouton = function(bouton) {
         if (bouton === 'a') { const n = window.simu_btnA_clics; window.simu_btnA_clics = 0; return n; }
         if (bouton === 'b') { const n = window.simu_btnB_clics; window.simu_btnB_clics = 0; return n; }
@@ -12826,6 +12856,7 @@ try {
 
         window.simu_btnA_pressed = false;
         window.simu_btnB_pressed = false;
+        window.simu_appuiA = window.simu_appuiB = false;
         window.simu_logo_pressed = false;
         window.simu_pin0_pressed = false;
         window.simu_pin1_pressed = false;
@@ -12896,8 +12927,8 @@ try {
                 // Compte aussi comme un "clic" pour get_presses() (voir plus
                 // haut) — uniquement les boutons A/B, seuls concernés par ce
                 // bloc (pas les broches ni le logo).
-                if (idHTML === 'btn-a') window.simu_btnA_clics++;
-                if (idHTML === 'btn-b') window.simu_btnB_clics++;
+                if (idHTML === 'btn-a') { window.simu_btnA_clics++; window.simu_appuiA = true; }
+                if (idHTML === 'btn-b') { window.simu_btnB_clics++; window.simu_appuiB = true; }
                 // Un passage (5 tours, voir simu_lancerTours) est déjà en
                 // cours : le drapeau qu'on vient de poser sera vu par ses
                 // prochains tours tout seul. Relancer ici redémarrerait tout
@@ -13040,6 +13071,7 @@ try {
         btnAB.addEventListener('mousedown', () => {
             window.simu_btnA_pressed = true;
             window.simu_btnB_pressed = true;
+            window.simu_appuiA = window.simu_appuiB = true;   // comme sur la carte : A et B sont tous deux appuyes
             window.simu_continuerOuLancer();
         });
         btnAB.addEventListener('mouseup', () => {
