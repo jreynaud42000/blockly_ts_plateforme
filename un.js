@@ -7082,6 +7082,7 @@ try {
         return ligne;
     }
 
+    window.consoleAjouterLigne = (texte, source) => ecrireConsole(String(texte) + '\n', source || 'info');   // radio entre simulateurs
     function ecrireConsole(texte, source) {
         if (!consoleSortie) return;
         if (source !== 'info') ouvrirConsoleAuto();
@@ -11025,6 +11026,55 @@ try {
         messageRadioEnAttente = '';
         return m;
     };
+
+    // ---- Radio entre simulateurs (multi-editeur radio, multi.html, ou deux onglets du meme navigateur) ----
+    // radio.send() du simulateur publie le message sur un BroadcastChannel ; chaque autre editeur dont la radio est
+    // allumee sur le meme groupe et le meme canal le recoit comme avec « Simuler la reception ». Reglages par defaut de
+    // MicroPython : groupe 0, canal 7. Tant que le programme recepteur n'a pas tourne, ses reglages sont lus dans son
+    // code (radio.on(), radio.config(group=N) / channel=N ecrits en nombres).
+    const ID_RADIO = Math.random().toString(36).slice(2);
+    const radioSimu = { connue: false, code: '', allumee: false, groupe: 0, canal: 7 };
+    window.simu_radioEtat = function(quoi, valeur) {
+        const code = String(window.currentPythonCode || '');
+        if (!radioSimu.connue || radioSimu.code !== code) Object.assign(radioSimu, reglagesRadioDuCode(), { connue: true, code });
+        radioSimu[quoi] = quoi === 'allumee' ? !!valeur : Number(valeur);
+    };
+    function reglagesRadioDuCode() {
+        const code = String(window.currentPythonCode || '');
+        const nombre = (motif, defaut) => { const m = code.match(motif); return m ? Number(m[1]) : defaut; };
+        return { allumee: /radio\.on\(\)/.test(code), groupe: nombre(/radio\.config\([^)]*group\s*=\s*(\d+)/, 0),
+                 canal: nombre(/radio\.config\([^)]*channel\s*=\s*(\d+)/, 7) };
+    }
+    // Reglages vus pendant l'execution, tant que le programme n'a pas change depuis ; sinon ceux ecrits dans le code.
+    const reglagesRadio = () => (radioSimu.connue && radioSimu.code === String(window.currentPythonCode || '') ? radioSimu : reglagesRadioDuCode());
+    let busRadio = null;
+    try { busRadio = 'BroadcastChannel' in window ? new BroadcastChannel('microbit-radio-v1') : null; } catch (erreur) { busRadio = null; }
+    window.simu_radioEmettre = function(message) {
+        const r = reglagesRadio();
+        if (!busRadio || !r.allumee) return;
+        busRadio.postMessage({ id: ID_RADIO, groupe: r.groupe, canal: r.canal, message: String(message) });
+        if (typeof window.consoleAjouterLigne === 'function') window.consoleAjouterLigne('📡 envoyé : ' + message, 'info');
+    };
+    // Messages recus en file, un seul par declenchement (comme « Simuler la reception », qui poursuit la simulation
+    // en cours ou la lance) ; 60 ms entre deux messages pour que chacun soit traite par le programme.
+    const fileRadio = [];
+    function distribuerRadio() {
+        if (!fileRadio.length) return;
+        messageRadioEnAttente = fileRadio.shift();
+        if (typeof window.consoleAjouterLigne === 'function') window.consoleAjouterLigne('📡 reçu : ' + messageRadioEnAttente, 'info');
+        window.simu_continuerOuLancer();
+        messageRadioEnAttente = '';
+        if (fileRadio.length) setTimeout(distribuerRadio, 60);
+    }
+    if (busRadio) {
+        busRadio.onmessage = (ev) => {
+            const d = ev.data || {}, r = reglagesRadio();
+            if (d.id === ID_RADIO || !r.allumee || d.groupe !== r.groupe || d.canal !== r.canal) return;
+            if (typeof window.simu_continuerOuLancer !== 'function') return;
+            if (fileRadio.length < 20) fileRadio.push(String(d.message));   // au-dela, perdus comme sur la carte
+            if (fileRadio.length === 1) distribuerRadio();
+        };
+    }
 
     window.simu_servo = function(broche, mode, valeur, angle) {
         window.simuQueue.push({ type: 'servo', broche: String(broche), mode: String(mode),

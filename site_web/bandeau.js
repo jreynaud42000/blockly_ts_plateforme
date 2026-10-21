@@ -140,6 +140,21 @@ if ($('toolbar') && !$('guirlande-saison')) {
     guirlande.innerHTML = dessinGuirlande();
     $('toolbar').appendChild(guirlande);
 }
+// ---------- Multi-editeur radio (multi.html) ----------
+// Fichier > Multi-editeur radio ouvre deux editeurs cote a cote dans un nouvel onglet (le travail en cours reste ici).
+// Dans chacun d'eux (?editeur=1 ou 2), une pastille « Carte 1 / Carte 2 » suit le logo et l'entree du menu disparait.
+if ($('multi-editeur-btn')) {
+    if (racine.dataset.editeur) $('multi-editeur-btn').hidden = true;
+    else $('multi-editeur-btn').addEventListener('click', () => { window.open('multi.html', '_blank', 'noopener'); });
+}
+if (racine.dataset.editeur && $('tb-logo')) {
+    const pastille = document.createElement('span');
+    pastille.id = 'tb-carte';
+    pastille.textContent = 'Carte ' + racine.dataset.editeur;
+    pastille.title = 'Multi-éditeur radio : carte simulée n° ' + racine.dataset.editeur;
+    $('tb-logo').after(pastille);
+}
+
 function majRepereSaison() {
     const repere = $('tb-saison');
     if (repere) repere.textContent = { halloween: '🎃', noel: '🎄', salon: '🎓' }[racine.dataset.saison] || '';

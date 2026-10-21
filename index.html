@@ -8,6 +8,20 @@
        un flash visible de l'etat par defaut (sombre, contraste normal)
        avant de basculer vers le choix memorise. -->
   <script>
+    // Multi-editeur radio (multi.html) : chaque carte (?editeur=1 ou 2) range ses donnees a part (seance, exercices...)
+    // pour que les deux editeurs de la page ne s'ecrasent pas ; les reglages d'affichage restent communs.
+    (function () {
+      var ed = new URLSearchParams(location.search).get('editeur');
+      if (ed !== '1' && ed !== '2') return;
+      document.documentElement.dataset.editeur = ed;
+      var COMMUNES = ['themeApp', 'contrasteApp', 'saisonApp', 'blockly_ts_config_admin', 'tuto-accueil-masque',
+                      'console_hauteur_v1', 'ia_onglets_teachable_v1', 'code_enseignant_v1'];
+      var prefixe = 'multi' + ed + ':', S = Storage.prototype, lire = S.getItem, ecrire = S.setItem, effacer = S.removeItem;
+      var cle = function (k) { k = String(k); return COMMUNES.indexOf(k) >= 0 ? k : prefixe + k; };
+      S.getItem = function (k) { return lire.call(this, cle(k)); };
+      S.setItem = function (k, v) { return ecrire.call(this, cle(k), v); };
+      S.removeItem = function (k) { return effacer.call(this, cle(k)); };
+    })();
     try {
       if (localStorage.getItem('themeApp') === 'light') {
         document.documentElement.dataset.theme = 'light';
@@ -178,6 +192,9 @@
     #tb-logo { display: flex; align-items: center; padding: 3px 6px; margin-right: 2px; flex-shrink: 0;
       background: #fff; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
     #tb-logo img { height: 24px; width: auto; display: block; }
+    /* Multi-editeur radio : numero de la carte (bandeau.js) */
+    #tb-carte { flex-shrink: 0; margin: 0 4px; padding: 3px 9px; border-radius: 999px; background: #fff; color: var(--couleur-bandeau);
+      font-weight: 700; font-size: 13px; white-space: nowrap; }
 
     /* Nom du fichier : encadre blanc, texte de la couleur du bandeau (champ de saisie : un clic permet de le renommer) */
     #tb-nomfichier {
@@ -1583,6 +1600,9 @@
         <button id="tb-telecharger-xml" disabled title="Non disponible dans cette version">Télécharger .xml</button>
         <button id="download-btn">Télécharger .hex</button>
         <button id="download-py-btn">Télécharger .py</button>
+        <!-- Multi-editeur radio (multi.html) : deux editeurs cote a cote, leurs simulations communiquent par radio -->
+        <div class="menu-titre">Radio</div>
+        <button id="multi-editeur-btn" title="Ouvre deux éditeurs côte à côte dans un nouvel onglet : les deux cartes simulées communiquent par radio">📡 Multi-éditeur radio (2 cartes)</button>
         <!-- Seances pour groupes d'eleves (seances.js) : distribuer, rendre et ramasser des exercices par fichiers -->
         <div class="menu-titre">Séance</div>
         <!-- Plateforme en ligne (plateforme.js) : visibles seulement quand l'application est servie par plateforme/serveur.py -->
@@ -3326,11 +3346,15 @@
             return float(texte)
         except:
             return None
+    # Radio entre simulateurs (un.js, simu_radio*) : les messages envoyes partent vers les autres editeurs du
+    # navigateur (multi-editeur radio, ou deux onglets) qui ont la radio allumee sur le meme groupe et le meme canal.
     class RadioMock:
-        def on(self): pass
-        def off(self): pass
-        def config(self, **kwargs): pass
-        def send(self, message): pass
+        def on(self): window.simu_radioEtat('allumee', 1)
+        def off(self): window.simu_radioEtat('allumee', 0)
+        def config(self, **kwargs):
+            if 'group' in kwargs: window.simu_radioEtat('groupe', int(kwargs['group']))
+            if 'channel' in kwargs: window.simu_radioEtat('canal', int(kwargs['channel']))
+        def send(self, message): window.simu_radioEmettre(str(message))
         def receive(self): return None
 
     # reset() redemarre la carte : dans le simulateur, l'ecran s'eteint, le son

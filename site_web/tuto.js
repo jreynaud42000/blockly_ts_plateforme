@@ -712,6 +712,7 @@ function mettreEnAvantEntrees() {
 }
 function afficherAccueil() {
     if (accueil || actif || accueilMasque() || !bouton('menu-aide-btn')) return;
+    if (document.documentElement.dataset.editeur) return;   // multi-editeur radio : pas d'accueil dans chaque carte
     accueil = document.createElement('div');
     accueil.id = 'tuto-accueil';
     accueil.setAttribute('role', 'dialog');

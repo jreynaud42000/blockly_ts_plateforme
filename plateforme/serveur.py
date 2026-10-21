@@ -457,7 +457,7 @@ TYPES = {".mjs": "text/javascript", ".wasm": "application/wasm", ".js": "text/ja
 
 def fichier_autorise(chemin):
     """Seuls les fichiers de l'application sont servis (jamais la base, plateforme/, .git, les sources Python)."""
-    if chemin in ("/", "/index.html", "/exercices.json"):
+    if chemin in ("/", "/index.html", "/multi.html", "/exercices.json"):
         return True
     if "/." in chemin or ".." in chemin:
         return False
