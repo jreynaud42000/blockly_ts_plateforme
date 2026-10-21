@@ -1329,6 +1329,10 @@
     .injectionDiv .blocklyFlyout .blocklyFlyoutLabelText, .injectionDiv .blocklyFlyoutLabelText {
         fill: var(--ec-label) !important; font-style: italic; font-weight: var(--ec-label-fw); }
 
+    /* Trait entre deux groupes de blocs d'une meme sous-categorie (un.js : titres groupe-flyout). */
+    .trait-groupe-flyout { stroke: var(--ec-label); stroke-opacity: 0.45; stroke-width: 1px; }
+    :root[data-contrast="high"] .trait-groupe-flyout { stroke-opacity: 1; stroke-width: 2px; }
+
     /* Simulation, panneau de code, console : fond, bord et separateur (« :root » = specificite superieure aux regles d'origine). */
     :root #simulator-container { background: var(--ec-sim); border-left: var(--ec-bord-w) solid var(--ec-bord); }
     :root #code-container { background: var(--ec-code); border-left: var(--ec-bord-w) solid var(--ec-code-bord); }

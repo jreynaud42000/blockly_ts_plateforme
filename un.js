@@ -5609,15 +5609,34 @@ try {
               ]
             },
             {
-            "kind": "category", "name": "Afficheur 4 digits", "colour": String(COULEUR_GROVE),
+            // Afficheur 4 digits, ecrans LCD (simple et RGB) et OLED reunis : un titre par module, un trait fin
+            // entre deux modules (classe groupe-flyout, trait dessine par decorerGroupesFlyout plus bas).
+            "kind": "category", "name": "Affichage", "colour": String(COULEUR_GROVE),
             "contents": [
+              { "kind": "label", "text": "Afficheur 4 digits" },
               { "kind": "block", "type": "grove_4d_definir" },
               { "kind": "block", "type": "grove_4d_nombre", "inputs": { "VALEUR": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
               { "kind": "block", "type": "grove_4d_chiffre", "inputs": { "VALEUR": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "POSITION": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
               { "kind": "block", "type": "grove_4d_points" },
               { "kind": "block", "type": "grove_4d_luminosite", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "7" } } } } },
               { "kind": "block", "type": "grove_4d_effacer" },
-
+              { "kind": "label", "text": "Écran LCD 16x2", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_lcd_init" },
+              { "kind": "block", "type": "grove_lcd_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_lcd_effacer" },
+              { "kind": "block", "type": "grove_lcd_alimenter" },
+              { "kind": "label", "text": "Écran LCD 16x2 RGB (rétroéclairage couleur)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_lcdrgb_init" },
+              { "kind": "block", "type": "grove_lcdrgb_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_lcdrgb_effacer" },
+              { "kind": "block", "type": "grove_lcdrgb_alimenter" },
+              { "kind": "block", "type": "grove_lcdrgb_fond_couleur" },
+              { "kind": "block", "type": "grove_lcdrgb_fond_rvb", "inputs": { "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_lcdrgb_retro" },
+              { "kind": "label", "text": "Écran OLED 0,96″", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_oled_init" },
+              { "kind": "block", "type": "grove_oled_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_oled_effacer" }
               ]
             },
             {
@@ -5689,31 +5708,6 @@ try {
               { "kind": "block", "type": "grove_dht22_definir" },
               { "kind": "block", "type": "grove_dht22_mesure" },
 
-              ]
-            },
-            {
-            "kind": "category", "name": "Écran LCD 16x2", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_lcd_init" },
-              { "kind": "block", "type": "grove_lcd_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_lcd_effacer" },
-              { "kind": "block", "type": "grove_lcd_alimenter" },
-              { "kind": "block", "type": "grove_lcdrgb_init" },
-              { "kind": "block", "type": "grove_lcdrgb_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_lcdrgb_effacer" },
-              { "kind": "block", "type": "grove_lcdrgb_alimenter" },
-              { "kind": "block", "type": "grove_lcdrgb_fond_couleur" },
-              { "kind": "block", "type": "grove_lcdrgb_fond_rvb", "inputs": { "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_lcdrgb_retro" },
-
-              ]
-            },
-            {
-            "kind": "category", "name": "Écran OLED 0,96″", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_oled_init" },
-              { "kind": "block", "type": "grove_oled_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_oled_effacer" }
               ]
             },
             {
@@ -6627,6 +6621,26 @@ try {
     // masquage, ni au retour de la colonne apres le lacher. Ecart residuel (defilement borne par Blockly) : la
     // translation du canevas est recalee directement.
     const boiteAOutils = window.workspace.getToolbox();
+
+    // Trait fin et continu au-dessus des titres de groupe de la colonne de blocs (titres « web-class »: groupe-flyout,
+    // par exemple Grove > Affichage) : Blockly ne sait faire que des espaces, le trait est ajoute a chaque ouverture.
+    const tiroir = boiteAOutils && boiteAOutils.getFlyout && boiteAOutils.getFlyout();
+    if (tiroir && typeof tiroir.show === 'function') {
+        const afficherTiroir = tiroir.show.bind(tiroir);
+        tiroir.show = function (contenu) {
+            afficherTiroir(contenu);
+            const largeur = tiroir.getWidth ? tiroir.getWidth() : 0;
+            tiroir.getWorkspace().getCanvas().querySelectorAll('.groupe-flyout').forEach(titre => {
+                if (titre.querySelector('.trait-groupe-flyout')) return;
+                const x = titre.transform.baseVal.consolidate() ? titre.transform.baseVal.consolidate().matrix.e : 0;
+                const trait = Blockly.utils.dom.createSvgElement('line', {
+                    class: 'trait-groupe-flyout', x1: 0, y1: -12, x2: Math.max(40, largeur - 2 * x), y2: -12,
+                }, null);
+                titre.insertBefore(trait, titre.firstChild);
+            });
+        };
+    }
+
     if (boiteAOutils) {
         const espace = window.workspace;
         const origineX = () => espace.getMetrics().absoluteLeft + espace.scrollX;   // abscisse ecran de l'origine du canevas
