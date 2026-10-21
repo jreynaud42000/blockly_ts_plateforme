@@ -5613,9 +5613,19 @@ try {
               ]
             },
             {
-            "kind": "category", "name": "Relais", "colour": String(COULEUR_GROVE),
+            // Relais, pilote moteur et pilote 16 servos reunis : un titre par module, un trait fin entre deux modules.
+            "kind": "category", "name": "Moteurs et relais", "colour": String(COULEUR_GROVE),
             "contents": [
-              { "kind": "block", "type": "grove_relais" }
+              { "kind": "label", "text": "Relais" },
+              { "kind": "block", "type": "grove_relais" },
+              { "kind": "label", "text": "Pilote moteur", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_moteur_vitesse", "inputs": { "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "30" } } } } },
+              { "kind": "block", "type": "grove_moteur_action" },
+              { "kind": "block", "type": "grove_moteur_defaut" },
+              { "kind": "label", "text": "Pilote 16 servos (PCA9685)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_pca_init" },
+              { "kind": "block", "type": "grove_pca_angle", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "ANGLE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } },
+              { "kind": "block", "type": "grove_pca_continu", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "50" } } } } }
               ]
             },
             {
@@ -5732,23 +5742,6 @@ try {
               { "kind": "block", "type": "grove_couleur_init" },
               { "kind": "block", "type": "grove_couleur_lire" },
 
-              ]
-            },
-            {
-            "kind": "category", "name": "Pilote moteur", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_moteur_vitesse", "inputs": { "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "30" } } } } },
-              { "kind": "block", "type": "grove_moteur_action" },
-              { "kind": "block", "type": "grove_moteur_defaut" },
-
-              ]
-            },
-            {
-            "kind": "category", "name": "Pilote 16 servos (PCA9685)", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_pca_init" },
-              { "kind": "block", "type": "grove_pca_angle", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "ANGLE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } },
-              { "kind": "block", "type": "grove_pca_continu", "inputs": { "VOIE": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "50" } } } } }
               ]
             },
             {
