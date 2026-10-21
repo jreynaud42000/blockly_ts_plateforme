@@ -5585,10 +5585,24 @@ try {
             "kind": "category", "name": "Grove", "colour": String(COULEUR_GROVE),
             "contents": [
             {
+            // LED, barre de LED et ruban RGB reunis : un titre par module, un trait fin entre deux modules (comme « Affichage »).
             "kind": "category", "name": "LED", "colour": String(COULEUR_GROVE),
             "contents": [
+              { "kind": "label", "text": "LED" },
               { "kind": "block", "type": "grove_led_etat" },
-              { "kind": "block", "type": "grove_led_luminosite", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "1023" } } } } }
+              { "kind": "block", "type": "grove_led_luminosite", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "1023" } } } } },
+              { "kind": "label", "text": "Barre de LED", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_barre_niveau", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "5" } } } } },
+              { "kind": "block", "type": "grove_barre_led", "inputs": { "LED": { "shadow": { "type": "math_number", "fields": { "NUM": "1" } } } } },
+              { "kind": "label", "text": "Ruban RGB (WS2813)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "grove_ruban_definir" },
+              { "kind": "block", "type": "grove_ruban_couleur" },
+              { "kind": "block", "type": "grove_ruban_effacer" },
+              { "kind": "block", "type": "grove_ruban_couleur_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_ruban_effacer_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_ruban_perso", "inputs": { "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_ruban_perso_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
+              { "kind": "block", "type": "grove_ruban_luminosite", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "100" } } } } }
             ]
             },
             {
@@ -5602,20 +5616,6 @@ try {
             "kind": "category", "name": "Relais", "colour": String(COULEUR_GROVE),
             "contents": [
               { "kind": "block", "type": "grove_relais" }
-              ]
-            },
-            {
-            "kind": "category", "name": "Ruban RGB (WS2813)", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_ruban_definir" },
-              { "kind": "block", "type": "grove_ruban_couleur" },
-              { "kind": "block", "type": "grove_ruban_effacer" },
-              { "kind": "block", "type": "grove_ruban_couleur_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_ruban_effacer_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_ruban_perso", "inputs": { "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_ruban_perso_index", "inputs": { "INDEX": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "R": { "shadow": { "type": "math_number", "fields": { "NUM": "255" } } }, "V": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "B": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
-              { "kind": "block", "type": "grove_ruban_luminosite", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "100" } } } } },
-
               ]
             },
             {
@@ -5647,13 +5647,6 @@ try {
               { "kind": "block", "type": "grove_oled_init" },
               { "kind": "block", "type": "grove_oled_texte", "inputs": { "TEXTE": { "shadow": { "type": "text", "fields": { "TEXT": "Bonjour" } } }, "X": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "Y": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } } } },
               { "kind": "block", "type": "grove_oled_effacer" }
-              ]
-            },
-            {
-            "kind": "category", "name": "Barre de LED", "colour": String(COULEUR_GROVE),
-            "contents": [
-              { "kind": "block", "type": "grove_barre_niveau", "inputs": { "NIVEAU": { "shadow": { "type": "math_number", "fields": { "NUM": "5" } } } } },
-              { "kind": "block", "type": "grove_barre_led", "inputs": { "LED": { "shadow": { "type": "math_number", "fields": { "NUM": "1" } } } } }
               ]
             },
             {
