@@ -10434,6 +10434,9 @@ try {
     // l'exécution courante : sans cela, un minuteur laissé par une exécution
     // interrompue ferait avancer la suivante d'un cran de trop.
     let jetonSimulation = 0;
+    // Vrai si une pause (action 'sleep') a ete jouee depuis la fin du dernier passage de 5 tours
+    // (voir simu_lancerTours : sinon, 20 ms de temps implicite font avancer les robots).
+    let pauseDansPassage = false;
 
     /** Reprend la file après un délai, sauf si la simulation a été relancée entre-temps. */
     function suiteApres(ms) {
@@ -12904,6 +12907,7 @@ try {
             window.simu_reinitialiser();
         }
         else if (action.type === 'sleep') {
+            pauseDansPassage = true;   // du temps passe : pas de temps implicite en fin de passage (simu_lancerTours)
             // Avancer AVANT la vraie pause : au moment ou suiteApres() reprendra
             // la main, le robot doit deja avoir parcouru ce temps-la. Les
             // trois fonctions se protègent elles-mêmes via leur .actif —
@@ -12957,9 +12961,16 @@ try {
             // Si le jeton a change, quelque chose de plus recent gere deja
             // simuEnCours correctement tout seul - rien a faire ici.
             const jeton = jetonSimulation;
+            // Boucle sans aucune pause : sur la carte, les moteurs tournent quand meme pendant que la boucle
+            // s'execute. Le robot simule n'avancant que pendant les pauses (voir l'action 'sleep'), on fait
+            // passer ici 20 ms entre deux passages, pour lui comme pour l'ecran (signale : « Maqueen Lite :
+            // moteur gauche a 150 » seul dans « Repeter indefiniment » laissait le robot immobile).
+            const tempsImplicite = pauseDansPassage ? 0 : 20;
+            pauseDansPassage = false;
+            if (tempsImplicite) { avancerMaqueen(tempsImplicite); avancerKitrobot(tempsImplicite); avancerMaqueenLite(tempsImplicite); }
             setTimeout(() => {
                 if (jeton === jetonSimulation) window.simu_lancerTours(5);
-            }, 0);
+            }, tempsImplicite);
             return;
         }
         window.simuEnCours = true;
