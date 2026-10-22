@@ -2836,7 +2836,7 @@ try {
         return ['_grove_th().temperature()', P.ORDER_FUNCTION_CALL];
     };
 
-    // --- DHT11 et DHT22 : experimental, fiables uniquement sur micro:bit V1 ---
+    // --- DHT11 et DHT22 : assembleur sur micro:bit V1, machine.time_pulse_us sur V2 (experimental) ---
     //
     // Assemblage ARM Thumb repris de rhubarbdog/microbit-dht11 (MIT), seule
     // implementation DHT11 connue pour micro:bit-MicroPython qui fonctionne
@@ -2852,12 +2852,14 @@ try {
     // decrit lui-meme comme instable : une mesure valide toutes les ~20
     // secondes environ (issue #93, depot micropython-microbit-v2 de la
     // fondation micro:bit). Le decalage bit-a-bit ci-dessous (DHT_DECALAGE),
-    // lui, n'a jamais ete revalide pour le V2 par personne. Plutot que de
-    // deviner un decalage invisible dans un mauvais resultat, la lecture
-    // refuse proprement sur V2 (machine.freq() les distingue) : _mesurer()
-    // renvoie alors False et les blocs -1, plutot qu'une valeur fausse sans
-    // avertissement. Utiliser AHT20/DHT20 (en I²C, fiable sur V1 et V2) si la
-    // carte peut etre un V2.
+    // lui, n'a jamais ete revalide pour le V2 par personne.
+    // Sur V2 (machine.freq() les distingue), une autre lecture prend donc le
+    // relais (oct. 2026) : machine.time_pulse_us mesure la duree de chaque
+    // impulsion haute (bit 0 ~27 us, bit 1 ~70 us), sans assembleur ni decalage
+    // de broche ; la somme de controle ecarte une lecture fausse, jusqu'a 3
+    // essais. Experimental tant qu'elle n'est pas validee sur de vraies cartes
+    // et de vrais capteurs : en cas d'echec, les blocs renvoient -1, jamais une
+    // valeur fausse. L'AHT20/DHT20 (I²C) reste le choix le plus sur sur V2.
 
     const DHT_DECALAGE = {
         pin0: 3, pin1: 2, pin2: 1, pin8: 18, pin12: 20,
@@ -2980,12 +2982,48 @@ try {
             '            accumulateur = 0',
             '    return octets',
             '',
+            '# micro:bit V2 (64 MHz) : l\'assembleur ci-dessus echantillonne trop vite.',
+            '# On mesure plutot la duree de chaque impulsion haute avec',
+            '# machine.time_pulse_us : bit 0 = environ 27 us, bit 1 = environ 70 us.',
+            '# Entre deux bits, la ligne reste basse 50 us : c\'est le temps dont la',
+            '# boucle dispose pour relancer la mesure suivante (assez sur V2).',
+            'def _dht_mesurer_octets_v2(broche, depart_ms):',
+            '    mesure = machine.time_pulse_us',
+            '    hauts = [0] * 41',
+            '    import gc',
+            '    gc.collect()   # pas de ramasse-miettes pendant la lecture',
+            '    broche.write_digital(1)',
+            '    sleep(50)',
+            '    broche.write_digital(0)   # signal de depart',
+            '    sleep(depart_ms)',
+            '    broche.read_digital()     # la carte lache la ligne',
+            '    broche.set_pull(broche.PULL_UP)',
+            '    if mesure(broche, 0, 1000) < 0:   # reponse du capteur : bas ~80 us',
+            '        return None',
+            '    for i in range(41):   # haut ~80 us de la reponse, puis les 40 bits',
+            '        hauts[i] = mesure(broche, 1, 1000)',
+            '    octets = bytearray(5)',
+            '    for i in range(40):',
+            '        duree = hauts[i + 1]',
+            '        if duree < 0:',
+            '            return None   # impulsion manquee : mesure a refaire',
+            '        octets[i // 8] = (octets[i // 8] << 1) | (1 if duree > 48 else 0)',
+            '    if octets[4] != (octets[0] + octets[1] + octets[2] + octets[3]) & 0xFF:',
+            '        return None',
+            '    return octets',
+            '',
             '# Commun aux deux capteurs : signal de depart, capture, verification du',
-            '# nombre de bits recus. Renvoie les 5 octets bruts, ou None si la carte',
-            '# est un V2 ou si la mesure a echoue (capteur absent, bruit, ...).',
-            'def _dht_mesurer_octets(broche, decalage):',
+            '# nombre de bits recus. Renvoie les 5 octets bruts, ou None si la mesure',
+            '# a echoue (capteur absent, bruit, ...). V2 : lecture par time_pulse_us,',
+            '# jusqu\'a 3 essais (une impulsion peut etre manquee).',
+            'def _dht_mesurer_octets(broche, decalage, depart_ms=20):',
             '    if machine.freq() > 20000000:',
-            '        return None   # V2 : refus volontaire, voir en tete de pilote',
+            '        for essai in range(3):',
+            '            octets = _dht_mesurer_octets_v2(broche, depart_ms)',
+            '            if octets is not None:',
+            '                return octets',
+            '            sleep(1100)',
+            '        return None',
             '    tampon = bytearray(320)',
             '    limite = (len(tampon) // 4) * 4',
             '    for i in range(limite, len(tampon)):',
@@ -3038,7 +3076,7 @@ try {
             '        self.t, self.h = -1, -1',
             '',
             '    def _mesurer(self):',
-            '        octets = _dht_mesurer_octets(self._p, self._d)',
+            '        octets = _dht_mesurer_octets(self._p, self._d, 2)   # depart : 1 a 10 ms pour le DHT22',
             '        sleep(2000)   # le DHT22 refuse une nouvelle lecture avant ~2 s',
             '        if octets is None:',
             '            return False',
@@ -3070,7 +3108,8 @@ try {
             this.setNextStatement(true, null);
             this.setColour(COULEUR_GROVE);
             this.setTooltip("Facultatif : sans ce bloc, le " + nomCapteur + " est pris sur P1. " +
-                "Fiable uniquement sur micro:bit V1 — sur V2, les mesures renvoient -1 (voir readme.txt §7).");
+                "Sur micro:bit V2, lecture expérimentale : -1 si la mesure échoue (voir readme.txt §7). " +
+                "L'AHT20/DHT20 (I²C) reste le plus fiable.");
         }};
         P.forBlock[type] = function(block) {
             piloteDht();
@@ -3087,9 +3126,9 @@ try {
                 ]), "GRANDEUR");
             this.setOutput(true, "Number");
             this.setColour(COULEUR_GROVE);
-            this.setTooltip("Renvoie -1 sur micro:bit V2 : ce capteur n'est fiable que sur le V1, " +
-                "protocole minuté en assembleur incompatible avec l'horloge du V2. Utiliser AHT20/DHT20 " +
-                "(module I²C ci-dessus) à la place si la carte peut être un V2.");
+            this.setTooltip("Mesure du capteur (une mesure par seconde au plus pour le DHT11, toutes les 2 s pour le DHT22). " +
+                "Sur micro:bit V2, lecture expérimentale : -1 si la mesure échoue, jamais une valeur fausse. " +
+                "L'AHT20/DHT20 (module I²C) reste le plus fiable.");
         }};
         P.forBlock[type] = function(block) {
             piloteDht();
@@ -8457,11 +8496,11 @@ try {
     exemple(['grove_th_init'], 'Humidité du capteur', "Initialise le capteur, puis affiche l'humidité (en %) chaque seconde.",
         [exStart(exB('grove_th_init')), exLoop(exAff(exB('grove_th_mesure', { GRANDEUR: 'h' })), exWait(1))]);
     exemple(['grove_dht11_definir', 'grove_dht11_mesure'], 'Température du DHT11',
-        "Branche le DHT11 sur P1 et affiche la température chaque seconde. Fiable seulement sur micro:bit V1.",
+        "Branche le DHT11 sur P1 et affiche la température chaque seconde. Sur micro:bit V2, lecture expérimentale (-1 si la mesure échoue).",
         [exStart(exB('grove_dht11_definir', { BROCHE: 'pin1' })),
          exLoop(exAff(exB('grove_dht11_mesure', { GRANDEUR: 'c' })), exWait(1))]);
     exemple(['grove_dht22_definir', 'grove_dht22_mesure'], 'Température du DHT22',
-        "Branche le DHT22 sur P1 et affiche la température chaque seconde. Fiable seulement sur micro:bit V1.",
+        "Branche le DHT22 sur P1 et affiche la température chaque seconde. Sur micro:bit V2, lecture expérimentale (-1 si la mesure échoue).",
         [exStart(exB('grove_dht22_definir', { BROCHE: 'pin1' })),
          exLoop(exAff(exB('grove_dht22_mesure', { GRANDEUR: 'c' })), exWait(1))]);
     exemple(['grove_couleur_init', 'grove_couleur_lire'], 'Lire le rouge détecté',

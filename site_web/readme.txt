@@ -364,13 +364,16 @@ DHT11 / DHT22, visibles comme les autres blocs (pas masques) : protocole 1 fil
 aux impulsions de quelques dizaines de microsecondes, qu'une boucle MicroPython
 interpretee ne peut pas mesurer, d'ou un pilote commun en assembleur ARM Thumb
 (repris de rhubarbdog/microbit-dht11, MIT) ; seul le decodage des 5 octets
-recus differe entre les deux capteurs. Fiable sur le V1 (16 MHz) uniquement :
-sur le V2 (64 MHz), le meme code echantillonne trop vite, et le decalage
-bit-a-bit necessaire au V2 n'a jamais ete verifie sur du materiel reel. Plutot
-que de deviner, la lecture refuse proprement sur V2 (temperature() et
-humidite() renvoient -1 pour les deux capteurs) au lieu de donner une valeur
-fausse en silence. Utiliser AHT20/DHT20 a la place si la carte peut etre un V2
-— le tooltip de chaque bloc le rappelle.
+recus differe entre les deux capteurs. Ce code ne vaut que pour le V1 (16 MHz) :
+sur le V2 (64 MHz), il echantillonne trop vite. Sur V2, une autre lecture prend
+donc le relais (oct. 2026, EXPERIMENTALE) : machine.time_pulse_us mesure la
+duree de chaque impulsion haute (bit 0 ~27 us, bit 1 ~70 us), sans assembleur ;
+la somme de controle ecarte une lecture fausse et la mesure est tentee 3 fois.
+En cas d'echec, temperature() et humidite() renvoient -1, jamais une valeur
+fausse. A valider sur de vraies cartes : branchement sur P0, P1 ou P2, module
+Grove (resistance de tirage incluse) ou resistance de 10 kOhm vers 3,3 V,
+1 s (DHT11) ou 2 s (DHT22) au moins entre deux mesures. L'AHT20/DHT20 (I2C)
+reste le choix le plus sur sur V2 — le tooltip de chaque bloc le rappelle.
 
 Ne sont PAS fournis, et pourquoi :
 - Vision AI V2 : pile SSCMA complete (JSON transporte par blocs sur I2C), hors
