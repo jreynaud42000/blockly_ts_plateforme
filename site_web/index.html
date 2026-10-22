@@ -1141,10 +1141,19 @@
        animee par des images cles, dont la duree vient de la vitesse. */
     .servo { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 62px; }
     /* Premier lot Grove : bouton poussoir, buzzer, relais, ecran OLED. */
-    .grove-bouton-poussoir { width: 56px; height: 56px; border-radius: 50%; border: 4px solid #3b3f46; background: #d93a2b;
-        color: #fff; font-size: 11px; font-weight: 600; cursor: pointer; margin: 4px auto; display: block;
-        box-shadow: 0 3px 0 #8f2419; touch-action: none; user-select: none; }
-    .grove-bouton-poussoir.enfonce { transform: translateY(3px); box-shadow: 0 0 0 #8f2419; background: #b52e21; }
+    /* Bouton poussoir Grove dessine (meme carte que le potentiometre) : le capuchon s'enfonce tant qu'on appuie
+       ou que « maintenu enfonce » est coche (un.js). */
+    .grove-bouton-poussoir { display: block; margin: 2px auto 4px; padding: 0; border: 0; background: none; cursor: pointer;
+        touch-action: none; user-select: none; border-radius: 8px; }
+    .grove-bouton-poussoir:hover { background: none; }
+    .grove-bouton-poussoir:focus-visible { outline: 2px solid #4dabf7; outline-offset: 2px; }
+    .grove-bouton-poussoir svg { display: block; }
+    .bp-socle { fill: #2b2f36; }
+    .bp-coin { fill: #8a9099; }
+    .bp-ombre { fill: #15171b; }
+    .bp-capuchon { fill: #4a4f57; stroke: #5d636c; stroke-width: 1.5; transition: transform 0.05s; }
+    .grove-bouton-poussoir.enfonce .bp-capuchon { transform: translateY(3px); fill: #2f3339; stroke: #69db7c; stroke-width: 2.5; }   /* liseré vert : enfoncé */
+    .grove-bouton-poussoir.enfonce .bp-ombre { fill: #2b2f36; }
     .grove-sortie { display: flex; align-items: center; gap: 6px; font-size: 11px; margin: 2px 0; }
     .buzzer-pastille { width: 14px; height: 14px; border-radius: 50%; background: #3b3f46; border: 2px solid #6b7480; box-sizing: border-box; }
     .buzzer-pastille.on { background: #ffb020; border-color: #ffd27a; animation: buzzer-vibre 0.12s linear infinite; }
@@ -1921,7 +1930,19 @@
         <!-- Premier lot Grove (un.js : simu_groveEntree, simu_groveSortie, simu_oled) -->
         <div class="grove-bloc" id="grove-sec-bouton">
           <span class="grove-titre">Bouton poussoir</span>
-          <button id="grove-bouton-appui" class="grove-bouton-poussoir" title="Maintenir enfoncé pour appuyer sur le bouton">Appuyer</button>
+          <button id="grove-bouton-appui" class="grove-bouton-poussoir" title="Maintenir enfoncé pour appuyer sur le bouton" aria-label="Bouton poussoir Grove : maintenir pour appuyer">
+            <svg viewBox="0 0 120 100" width="96" height="80" aria-hidden="true">
+              <rect class="pot-carte" x="18" y="8" width="84" height="88" rx="6"/>
+              <circle class="pot-trou" cx="26" cy="16" r="3"/><circle class="pot-trou" cx="94" cy="16" r="3"/>
+              <rect class="pot-connecteur" x="44" y="84" width="32" height="10" rx="2"/>
+              <text class="pot-texte" x="60" y="81" text-anchor="middle">Button</text>
+              <rect class="bp-socle" x="38" y="28" width="44" height="44" rx="4"/>
+              <circle class="bp-coin" cx="43" cy="33" r="2"/><circle class="bp-coin" cx="77" cy="33" r="2"/>
+              <circle class="bp-coin" cx="43" cy="67" r="2"/><circle class="bp-coin" cx="77" cy="67" r="2"/>
+              <circle class="bp-ombre" cx="60" cy="53" r="14"/>
+              <circle class="bp-capuchon" cx="60" cy="50" r="14"/>
+            </svg>
+          </button>
           <label class="grove-case"><input type="checkbox" id="grove-bouton-maintenu"> maintenu enfoncé</label>
         </div>
 

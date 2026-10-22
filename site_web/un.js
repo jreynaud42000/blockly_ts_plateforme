@@ -12368,9 +12368,13 @@ try {
     if (curseurJY) curseurJY.addEventListener('input', () => { valeurJY.textContent = curseurJY.value; });
     // Bouton poussoir Grove : enfonce tant que le pointeur (souris, doigt) appuie dessus.
     if (boutonPoussoirGrove) {
-        const regler = enfonce => () => { boutonPoussoirEnfonce = enfonce; boutonPoussoirGrove.classList.toggle('enfonce', enfonce); };
+        // Le capuchon dessine reste enfonce tant qu'on appuie, ou tant que « maintenu enfonce » est coche.
+        const majVisuel = () => boutonPoussoirGrove.classList.toggle('enfonce',
+            boutonPoussoirEnfonce || !!(caseBoutonPoussoir && caseBoutonPoussoir.checked));
+        const regler = enfonce => () => { boutonPoussoirEnfonce = enfonce; majVisuel(); };
         boutonPoussoirGrove.addEventListener('pointerdown', regler(true));
         ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => boutonPoussoirGrove.addEventListener(t, regler(false)));
+        if (caseBoutonPoussoir) caseBoutonPoussoir.addEventListener('change', majVisuel);
     }
     const visuelPir = document.getElementById('grove-pir-visuel');
     if (visuelPir && casePir) {
