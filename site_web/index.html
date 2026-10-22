@@ -3155,6 +3155,11 @@
     # montes en miroir (_kb_avancer inverse le cote droit) — un detail de
     # cablage sans interet ici, donc le mock pilote directement les deux
     # cotes du modele cinematique (voir avancerKitrobot dans un.js).
+    # Tables des blocs « definir » (servos, ultrason, buzzer, ligne, ruban) : le pilote reel est retire,
+    # mais ces blocs y ecrivent encore (« name '_KB_BROCHES' is not defined » sinon). Sans effet ici.
+    _KB_BROCHES = {}
+    _KB_RUBAN_N = [8]
+
     def _kb_avancer(vitesse):
         window.simu_kitrobotMoteur('g', vitesse)
         window.simu_kitrobotMoteur('d', vitesse)
@@ -3540,6 +3545,7 @@
             '_mq_v3_vitesse_reelle': _mq_v3_vitesse_reelle, '_mq_v3_del_carrosserie': _mq_v3_del_carrosserie,
             '_mq_v3_pid_avancer': _mq_v3_pid_avancer, '_mq_v3_pid_tourner': _mq_v3_pid_tourner,
             '_mq_v3_pid_stop': _mq_v3_pid_stop,
+            '_KB_BROCHES': _KB_BROCHES, '_KB_RUBAN_N': _KB_RUBAN_N,
             '_kb_avancer': _kb_avancer, '_kb_pivoter': _kb_pivoter, '_kb_moteur': _kb_moteur,
             '_kb_arreter_moteur': _kb_arreter_moteur, '_kb_arreter': _kb_arreter,
             '_kb_case': _kb_case, '_kb_virage': _kb_virage, '_kb_distance': _kb_distance,
