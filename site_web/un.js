@@ -11565,6 +11565,7 @@ try {
         robotMaqueenEl.style.transform =
             'translate(-50%, -50%) rotate(' + MQ.cap + 'deg) scale(' + MQ_ECHELLE_ROBOT + ')';
         mettreAJourIndicateursLigneMaqueen();
+        if (window.pisteObstaclesMaj) window.pisteObstaclesMaj();   // distance mesuree sur les obstacles
     }
 
     /** Allume/eteint le point de chaque capteur de ligne visible, d'apres la position actuelle du robot. */
@@ -11641,8 +11642,10 @@ try {
         // le bon sens vers les capteurs L1/L2 (decalage negatif = cote gauche).
         const omega = (vG - vD) / MQ_EMPATTEMENT;   // rad/s
         const rad = MQ.cap * Math.PI / 180;
+        const x0 = MQ.x, y0 = MQ.y;
         MQ.x += v * dt * Math.cos(rad);
         MQ.y += v * dt * Math.sin(rad);
+        if (window.pisteObstaclesBloquer) window.pisteObstaclesBloquer(MQ, robotMaqueenEl, x0, y0);   // arret au contact d'un obstacle
         // Surtout ne pas ramener dans [0, 360[ : une transition CSS interpole
         // numeriquement entre l'ancien et le nouvel angle, donc un saut du
         // genre 350 -> 10 (repli) se lirait comme -340 (tour complet a
@@ -11823,6 +11826,7 @@ try {
         robotKitrobotEl.style.transform =
             'translate(-50%, -50%) rotate(' + KB.cap + 'deg) scale(' + MQ_ECHELLE_ROBOT + ')';
         mettreAJourIndicateursLigneKitrobot();
+        if (window.pisteObstaclesMaj) window.pisteObstaclesMaj();   // distance mesuree sur les obstacles
     }
 
     function deplacerRobotKitrobotInstantanement() {
@@ -11859,8 +11863,10 @@ try {
         const v = (vG + vD) / 2;
         const omega = (vG - vD) / KB_EMPATTEMENT;
         const rad = KB.cap * Math.PI / 180;
+        const x0 = KB.x, y0 = KB.y;
         KB.x += v * dt * Math.cos(rad);
         KB.y += v * dt * Math.sin(rad);
+        if (window.pisteObstaclesBloquer) window.pisteObstaclesBloquer(KB, robotKitrobotEl, x0, y0);   // arret au contact d'un obstacle
         KB.cap += omega * dt * 180 / Math.PI;   // jamais replié dans [0,360[ : voir PIÈGE nº 31 (Maqueen)
         if (robotKitrobotEl) {
             robotKitrobotEl.style.transition =
@@ -12031,6 +12037,7 @@ try {
         robotMaqueenLiteEl.style.transform =
             'translate(-50%, -50%) rotate(' + ML.cap + 'deg) scale(' + MQ_ECHELLE_ROBOT + ')';
         mettreAJourIndicateursLigneMaqueenLite();
+        if (window.pisteObstaclesMaj) window.pisteObstaclesMaj();   // distance mesuree sur les obstacles
     }
 
     function deplacerRobotMaqueenLiteInstantanement() {
@@ -12072,8 +12079,10 @@ try {
         const v = (vG + vD) / 2;
         const omega = (vG - vD) / ML_EMPATTEMENT;
         const rad = ML.cap * Math.PI / 180;
+        const x0 = ML.x, y0 = ML.y;
         ML.x += v * dt * Math.cos(rad);
         ML.y += v * dt * Math.sin(rad);
+        if (window.pisteObstaclesBloquer) window.pisteObstaclesBloquer(ML, robotMaqueenLiteEl, x0, y0);   // arret au contact d'un obstacle
         ML.cap += omega * dt * 180 / Math.PI;   // jamais replié dans [0,360[, comme les deux autres robots
         if (robotMaqueenLiteEl) {
             robotMaqueenLiteEl.style.transition =
@@ -12160,6 +12169,204 @@ try {
     const pisteTitreEl = document.getElementById('piste-titre');
     const NOM_ROBOT_ACTIF = { maqueen: 'Maqueen Plus', kitrobot: 'Kitrobot v2', maqueenlite: 'Maqueen Lite' };
 
+    // ------------------------------------------
+    // OBSTACLES DE LA PISTE (oct. 2026)
+    // ------------------------------------------
+    // Bouton « Obstacles » : on pose sur la piste des cubes, murs et canettes (coordonnees de la piste,
+    // 300 x 220, gardees dans le navigateur). Tant qu'il y en a au moins un, la distance du robot actif
+    // n'est plus reglee au curseur : elle est mesuree par un cone de 5 rayons (+/- 12 degres) partant de
+    // l'avant du robot, comme un capteur a ultrasons (2 unites de piste = 1 cm). Rien de touche : la
+    // portee du curseur (les bords de la piste ne comptent pas). Au contact d'un obstacle, le robot
+    // s'arrete (il peut encore tourner sur place ou reculer).
+    const PISTE_UNITES_PAR_CM = 2;
+    const CLE_OBSTACLES = 'piste_obstacles_v1';
+    const FORMES_OBSTACLES = {
+        cube: { l: 22, h: 22 }, 'mur-h': { l: 80, h: 10 }, 'mur-v': { l: 10, h: 80 }, canette: { r: 9 },
+    };
+    const pisteObstaclesEl = document.getElementById('maqueen-piste');
+    const calqueObstacles = document.getElementById('piste-obstacles');
+    const barreObstacles = document.getElementById('piste-obstacles-barre');
+    const btnObstacles = document.getElementById('piste-obstacles-btn');
+    let obstacles = [];
+    try { obstacles = JSON.parse(localStorage.getItem(CLE_OBSTACLES) || '[]').filter(o => FORMES_OBSTACLES[o.forme]); }
+    catch (erreur) { obstacles = []; }
+    let formeObstacle = 'cube';
+    const sauverObstacles = () => { try { localStorage.setItem(CLE_OBSTACLES, JSON.stringify(obstacles)); } catch (erreur) { /* rien */ } };
+
+    function dessinerObstacles() {
+        if (!calqueObstacles) return;
+        calqueObstacles.textContent = '';
+        obstacles.forEach((o, i) => {
+            const f = FORMES_OBSTACLES[o.forme], d = document.createElement('div');
+            const l = f.r ? f.r * 2 : f.l, h = f.r ? f.r * 2 : f.h;
+            d.className = 'piste-obstacle' + (f.r ? ' canette' : '');
+            d.dataset.indice = i;
+            d.title = 'Glisser pour déplacer, double-clic pour supprimer';
+            Object.assign(d.style, { left: ((o.x - l / 2) / MQ_LARGEUR * 100) + '%', top: ((o.y - h / 2) / MQ_HAUTEUR * 100) + '%',
+                                     width: (l / MQ_LARGEUR * 100) + '%', height: (h / MQ_HAUTEUR * 100) + '%' });
+            calqueObstacles.appendChild(d);
+        });
+        const panneau = document.getElementById('piste-panneau');
+        if (panneau) panneau.classList.toggle('avec-obstacles', obstacles.length > 0);
+        [document.getElementById('maqueen-distance'), document.getElementById('kitrobot-distance'),
+         document.getElementById('maqueenlite-distance')].forEach(c => { if (c) c.disabled = obstacles.length > 0; });
+        majDistancesObstacles();
+    }
+
+    // Robot actif : etat (x, y, cap), sprite, curseur et etiquette de sa distance.
+    function robotSurPiste() {
+        if (MQ.actif) return { etat: MQ, el: robotMaqueenEl, curseur: 'maqueen-distance' };
+        if (KB.actif) return { etat: KB, el: robotKitrobotEl, curseur: 'kitrobot-distance' };
+        if (ML.actif) return { etat: ML, el: robotMaqueenLiteEl, curseur: 'maqueenlite-distance' };
+        return null;
+    }
+    // Taille du sprite en unites de piste (il est affiche en pixels d'ecran, a l'echelle choisie).
+    function demiTaillesRobot(el) {
+        const k = MQ_LARGEUR / Math.max(1, pisteObstaclesEl ? pisteObstaclesEl.clientWidth : MQ_LARGEUR);
+        const e = Number(MQ_ECHELLE_ROBOT) || 1;
+        return { longueur: (el ? el.offsetWidth : 30) / 2 * e * k, largeur: (el ? el.offsetHeight : 30) / 2 * e * k };
+    }
+
+    function rayonVersObstacle(ox, oy, dx, dy, o) {   // distance jusqu'a l'obstacle le long du rayon, ou Infinity
+        const f = FORMES_OBSTACLES[o.forme];
+        if (f.r) {
+            const fx = ox - o.x, fy = oy - o.y, b = fx * dx + fy * dy, c = fx * fx + fy * fy - f.r * f.r;
+            const disc = b * b - c;
+            if (disc < 0) return Infinity;
+            const t = -b - Math.sqrt(disc);
+            return t >= 0 ? t : (c <= 0 ? 0 : Infinity);
+        }
+        let tmin = -Infinity, tmax = Infinity;
+        for (const [o0, d0, mini, maxi] of [[ox, dx, o.x - f.l / 2, o.x + f.l / 2], [oy, dy, o.y - f.h / 2, o.y + f.h / 2]]) {
+            if (Math.abs(d0) < 1e-9) { if (o0 < mini || o0 > maxi) return Infinity; continue; }
+            let t1 = (mini - o0) / d0, t2 = (maxi - o0) / d0;
+            if (t1 > t2) [t1, t2] = [t2, t1];
+            tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2);
+            if (tmin > tmax) return Infinity;
+        }
+        return tmax < 0 ? Infinity : Math.max(0, tmin);
+    }
+
+    function mesurerDistanceObstacles(robot) {   // en cm, ou null sans obstacle
+        if (!obstacles.length || !robot) return null;
+        const { etat, el, curseur } = robot;
+        const portee = Number((document.getElementById(curseur) || {}).max) || 200;
+        const t = demiTaillesRobot(el), cap = etat.cap * Math.PI / 180;
+        const ox = etat.x + Math.cos(cap) * t.longueur, oy = etat.y + Math.sin(cap) * t.longueur;
+        let mini = Infinity;
+        for (let k = -2; k <= 2; k++) {
+            const a = cap + k * 6 * Math.PI / 180, dx = Math.cos(a), dy = Math.sin(a);
+            for (const o of obstacles) mini = Math.min(mini, rayonVersObstacle(ox, oy, dx, dy, o));
+        }
+        return Math.min(portee, Math.round(mini / PISTE_UNITES_PAR_CM));
+    }
+
+    function majDistancesObstacles() {
+        const robot = robotSurPiste(), cm = mesurerDistanceObstacles(robot);
+        if (cm === null) return;
+        const c = document.getElementById(robot.curseur), v = document.getElementById(robot.curseur + '-val');
+        if (c) c.value = cm;
+        if (v) v.textContent = cm;
+    }
+
+    // Le robot (cercle) touche-t-il un obstacle a la position (x, y) ?
+    function robotToucheObstacle(x, y, rayon) {
+        return obstacles.some(o => {
+            const f = FORMES_OBSTACLES[o.forme];
+            if (f.r) return Math.hypot(x - o.x, y - o.y) < rayon + f.r;
+            const px = Math.max(o.x - f.l / 2, Math.min(x, o.x + f.l / 2)), py = Math.max(o.y - f.h / 2, Math.min(y, o.y + f.h / 2));
+            return Math.hypot(x - px, y - py) < rayon;
+        });
+    }
+    // Deplace le robot de (x0, y0) vers (etat.x, etat.y) par petits pas et l'arrete au premier contact
+    // (un grand pas pourrait sinon traverser un mur fin). Un robot deja au contact peut s'en eloigner.
+    function bloquerAuxObstacles(etat, el, x0, y0) {
+        if (!obstacles.length) return;
+        const rayon = demiTaillesRobot(el).largeur * 0.9;
+        const x1 = etat.x, y1 = etat.y, n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 1.5));
+        const depart = robotToucheObstacle(x0, y0, rayon);
+        let fx = x0, fy = y0;
+        for (let i = 1; i <= n; i++) {
+            const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n;
+            const permis = !robotToucheObstacle(x, y, rayon) || (depart && !robotPlusProche(x, y, fx, fy));
+            if (!permis) break;
+            fx = x; fy = y;
+        }
+        etat.x = fx; etat.y = fy;
+    }
+    // Deja au contact : on n'autorise que les pas qui ne rapprochent pas de l'obstacle le plus proche.
+    function robotPlusProche(x, y, x0, y0) {
+        const dist = (px, py) => Math.min(...obstacles.map(o => {
+            const f = FORMES_OBSTACLES[o.forme];
+            if (f.r) return Math.hypot(px - o.x, py - o.y) - f.r;
+            const qx = Math.max(o.x - f.l / 2, Math.min(px, o.x + f.l / 2)), qy = Math.max(o.y - f.h / 2, Math.min(py, o.y + f.h / 2));
+            return Math.hypot(px - qx, py - qy);
+        }));
+        return dist(x, y) < dist(x0, y0);
+    }
+
+    // Mode Obstacles : clic = poser, glisser = deplacer, double-clic = supprimer.
+    const coordPiste = ev => {
+        const r = pisteObstaclesEl.getBoundingClientRect();
+        return { x: (ev.clientX - r.left) / r.width * MQ_LARGEUR, y: (ev.clientY - r.top) / r.height * MQ_HAUTEUR };
+    };
+    function basculerModeObstacles(actif) {
+        if (!pisteObstaclesEl) return;
+        pisteObstaclesEl.classList.toggle('pose-obstacles', actif);
+        if (barreObstacles) barreObstacles.classList.toggle('replie', !actif);
+        if (btnObstacles) btnObstacles.classList.toggle('actif', actif);
+    }
+    if (btnObstacles && pisteObstaclesEl && calqueObstacles) {
+        btnObstacles.addEventListener('click', () => basculerModeObstacles(!pisteObstaclesEl.classList.contains('pose-obstacles')));
+        document.getElementById('piste-obstacles-terminer').addEventListener('click', () => basculerModeObstacles(false));
+        document.getElementById('piste-obstacles-effacer').addEventListener('click', () => {
+            if (obstacles.length && !confirm('Supprimer tous les obstacles de la piste ?')) return;
+            obstacles = []; sauverObstacles(); dessinerObstacles();
+        });
+        document.querySelectorAll('.piste-obstacles-choix button').forEach(b => b.addEventListener('click', () => {
+            formeObstacle = b.dataset.forme;
+            document.querySelectorAll('.piste-obstacles-choix button').forEach(x => x.classList.toggle('choisi', x === b));
+        }));
+        let glisse = null;
+        calqueObstacles.addEventListener('pointerdown', ev => {
+            if (!pisteObstaclesEl.classList.contains('pose-obstacles')) return;
+            const cible = ev.target.closest('.piste-obstacle');
+            const p = coordPiste(ev);
+            if (cible) {
+                const o = obstacles[Number(cible.dataset.indice)];
+                glisse = { o, dx: o.x - p.x, dy: o.y - p.y, bouge: false };
+                calqueObstacles.setPointerCapture(ev.pointerId);
+            } else {
+                obstacles.push({ forme: formeObstacle, x: Math.round(p.x), y: Math.round(p.y) });
+                sauverObstacles(); dessinerObstacles();
+            }
+            ev.preventDefault();
+        });
+        calqueObstacles.addEventListener('pointermove', ev => {
+            if (!glisse) return;
+            const p = coordPiste(ev);
+            glisse.o.x = Math.round(Math.max(0, Math.min(MQ_LARGEUR, p.x + glisse.dx)));
+            glisse.o.y = Math.round(Math.max(0, Math.min(MQ_HAUTEUR, p.y + glisse.dy)));
+            glisse.bouge = true;
+            dessinerObstacles();
+        });
+        const finirGlisse = () => { if (glisse && glisse.bouge) sauverObstacles(); glisse = null; };
+        calqueObstacles.addEventListener('pointerup', finirGlisse);
+        calqueObstacles.addEventListener('pointercancel', finirGlisse);
+        calqueObstacles.addEventListener('dblclick', ev => {
+            const cible = ev.target.closest('.piste-obstacle');
+            if (!cible || !pisteObstaclesEl.classList.contains('pose-obstacles')) return;
+            obstacles.splice(Number(cible.dataset.indice), 1);
+            sauverObstacles(); dessinerObstacles();
+        });
+    }
+    window.pisteObstaclesTest = { liste: () => obstacles, mesurer: () => mesurerDistanceObstacles(robotSurPiste()),
+                                  touche: robotToucheObstacle, dessiner: dessinerObstacles };
+    // Relais pour les robots (definis plus haut dans ce fichier, et appeles parfois avant cette section).
+    window.pisteObstaclesMaj = majDistancesObstacles;
+    window.pisteObstaclesBloquer = bloquerAuxObstacles;
+    dessinerObstacles();
+
     function rafraichirPisteEtRobots() {
         const panneau = document.getElementById('piste-panneau');
         if (!panneau) return;
@@ -12183,6 +12390,7 @@ try {
         drapeauxPiste.forEach(d => d.classList.toggle('visible', pisteMaqueenActuelle === 'depart_arrivee'));
 
         dessinerPisteMaqueen();
+        if (window.pisteObstaclesMaj) window.pisteObstaclesMaj();   // robot actif change : sa distance suit les obstacles poses
 
         const utilisesMaqueen = capteursLigneUtilisesMaqueen();
         if (ligneCapteursMaqueenEl) ligneCapteursMaqueenEl.classList.toggle('visible', utilisesMaqueen.size > 0);

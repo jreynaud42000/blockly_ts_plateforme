@@ -880,16 +880,37 @@
        sont posés — voir robotActifDetecte() dans un.js). --- */
     #piste-panneau { width: 100%; box-sizing: border-box; border-top: 1px solid var(--bordure-chrome); padding-top: 12px; }
     #piste-panneau h4 { margin: 0 0 10px 0; color: #ffb74d; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
-    .maqueen-piste-barre { display: flex; gap: 6px; margin-bottom: 8px; }
-    #maqueen-piste-select { flex: 1; min-width: 0; box-sizing: border-box; padding: 6px;
+    .maqueen-piste-barre { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }   /* menu sur sa ligne, boutons dessous */
+    #maqueen-piste-select { flex: 1 1 100%; min-width: 0; box-sizing: border-box; padding: 6px;
         border-radius: 4px; background: var(--fond-saisie); color: var(--texte-saisie); border: 1px solid var(--bordure-chrome); font-size: 12px; }
-    #maqueen-piste-editer { font-size: 11px; padding: 6px 8px; margin: 0; white-space: nowrap; }
+    #maqueen-piste-editer, #piste-obstacles-btn { flex: 1; font-size: 11px; padding: 6px 8px; margin: 0; white-space: nowrap; }
 
     #maqueen-edition-barre { display: none; margin-bottom: 8px; }
     #maqueen-edition-barre.active { display: block; }
     #maqueen-edition-barre p { font-size: 11px; color: #b8b8b8; margin: 0 0 6px 0; }
     .maqueen-edition-boutons { display: flex; gap: 6px; }
     .maqueen-edition-boutons button { flex: 1; font-size: 12px; padding: 6px; margin: 0; }
+    /* Obstacles de la piste (un.js, OBSTACLES DE LA PISTE) : calque au-dessus du trace, sous les robots.
+       Hors mode Obstacles, ils laissent passer le pointeur (glisser le robot reste possible). */
+    #piste-obstacles-barre { margin-bottom: 8px; }
+    #piste-obstacles-barre.replie { display: none; }
+    #piste-obstacles-barre p { font-size: 11px; color: #b8b8b8; margin: 0 0 6px 0; }
+    .piste-obstacles-choix { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+    .piste-obstacles-choix button { margin: 0; font-size: 11.5px; padding: 4px 8px; }
+    .piste-obstacles-choix button.choisi { background: #cf4400; color: #fff; }
+    #piste-obstacles-btn.actif { background: #cf4400; color: #fff; }
+    #piste-obstacles { position: absolute; inset: 0; pointer-events: none; }
+    #maqueen-piste.pose-obstacles { cursor: crosshair; }
+    #maqueen-piste.pose-obstacles #piste-obstacles { pointer-events: auto; }
+    .piste-obstacle { position: absolute; box-sizing: border-box; background: #8d5a2b; border: 1.5px solid #4a2c10;
+      border-radius: 2px; box-shadow: 2px 2px 0 rgba(0,0,0,0.35); background-image: linear-gradient(135deg, rgba(255,255,255,0.18), rgba(0,0,0,0.12)); }
+    .piste-obstacle.canette { border-radius: 50%; background: #c62828; border-color: #6d1010;
+      background-image: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.55), rgba(255,255,255,0) 45%); }
+    #maqueen-piste.pose-obstacles .piste-obstacle { cursor: grab; outline: 1px dashed rgba(255,255,255,0.7); outline-offset: 1px; }
+    #maqueen-piste.pose-obstacles .piste-obstacle:active { cursor: grabbing; }
+    /* Distance mesuree sur la piste : le curseur suit la mesure et ne se regle plus a la main. */
+    .distance-auto { display: none; font-weight: normal; font-size: 11px; color: #69db7c; }
+    #piste-panneau.avec-obstacles .distance-auto { display: inline; }
     #maqueen-piste-annuler, #maqueen-piste-effacer { background: #8c8c8c; }
     #maqueen-piste-annuler:hover, #maqueen-piste-effacer:hover { background: #6e6e6e; }
 
@@ -2084,6 +2105,24 @@
         <div class="maqueen-piste-barre">
           <select id="maqueen-piste-select" title="Choisir la piste"></select>
           <button id="maqueen-piste-editer" class="btn-vue" title="Créer ou modifier une piste personnalisée">✏ Éditer la piste</button>
+          <button id="piste-obstacles-btn" class="btn-vue" title="Poser des obstacles sur la piste pour tester le capteur de distance">🧱 Obstacles</button>
+        </div>
+        <!-- Obstacles (un.js, OBSTACLES DE LA PISTE) : mesures par le capteur de distance du robot actif, qui
+             s'arrete a leur contact. Les bords de la piste ne comptent pas comme des murs. -->
+        <div id="piste-obstacles-barre" class="replie">
+          <p>Choisissez un obstacle puis cliquez sur la piste pour le poser. Glissez un obstacle pour le déplacer,
+            double-cliquez dessus pour le supprimer. Le capteur de distance du robot le mesure, et le robot
+            s'arrête à son contact.</p>
+          <div class="piste-obstacles-choix" role="group" aria-label="Obstacle à poser">
+            <button type="button" class="btn-vue choisi" data-forme="cube">◼ Cube</button>
+            <button type="button" class="btn-vue" data-forme="mur-h">▬ Mur</button>
+            <button type="button" class="btn-vue" data-forme="mur-v">▮ Mur vertical</button>
+            <button type="button" class="btn-vue" data-forme="canette">● Canette</button>
+          </div>
+          <div class="maqueen-edition-boutons">
+            <button id="piste-obstacles-terminer">Terminer</button>
+            <button id="piste-obstacles-effacer">Tout effacer</button>
+          </div>
         </div>
         <label class="grove-titre" for="maqueen-largeur-piste" style="display:block; margin-bottom:8px;">
           Largeur de la piste (px) : <b id="maqueen-largeur-piste-val">26</b></label>
@@ -2107,6 +2146,7 @@
              "Départ/Arrivée" changent avec le robot actif, pas avec le tracé. -->
         <div id="maqueen-piste">
           <canvas id="maqueen-piste-canevas" width="300" height="220"></canvas>
+          <div id="piste-obstacles" aria-label="Obstacles posés sur la piste"></div>
           <div class="piste-drapeau piste-drapeau-depart"><span class="piste-drapeau-etiquette">Départ</span></div>
           <div class="piste-drapeau piste-drapeau-arrivee"><span class="piste-drapeau-etiquette">Arrivée</span></div>
           <div id="maqueen-robot">
@@ -2190,7 +2230,7 @@
             <span class="maqueen-capteur-ligne" data-capteur="R2">R2<i class="maqueen-capteur-point"></i></span>
           </div>
           <label class="grove-titre" for="maqueen-distance" style="margin-top:8px; display:block;">
-            Distance obstacle (cm) : <b id="maqueen-distance-val">50</b></label>
+            Distance obstacle (cm) : <b id="maqueen-distance-val">50</b> <span class="distance-auto">· mesurée sur la piste</span></label>
           <input type="range" id="maqueen-distance" min="0" max="200" value="50">
 
           <div class="grove-bloc" id="maqueen-ir-panneau" style="margin-top:10px;">
@@ -2215,7 +2255,7 @@
             <span class="maqueen-capteur-ligne" data-capteur="droit">D<i class="maqueen-capteur-point"></i></span>
           </div>
           <label class="grove-titre" for="kitrobot-distance" style="margin-top:8px; display:block;">
-            Distance obstacle (cm) : <b id="kitrobot-distance-val">50</b></label>
+            Distance obstacle (cm) : <b id="kitrobot-distance-val">50</b> <span class="distance-auto">· mesurée sur la piste</span></label>
           <input type="range" id="kitrobot-distance" min="0" max="200" value="50">
         </div>
 
@@ -2226,7 +2266,7 @@
             <span class="maqueen-capteur-ligne" data-capteur="droit">D<i class="maqueen-capteur-point"></i></span>
           </div>
           <label class="grove-titre" for="maqueenlite-distance" style="margin-top:8px; display:block;">
-            Distance obstacle (cm) : <b id="maqueenlite-distance-val">50</b></label>
+            Distance obstacle (cm) : <b id="maqueenlite-distance-val">50</b> <span class="distance-auto">· mesurée sur la piste</span></label>
           <input type="range" id="maqueenlite-distance" min="0" max="200" value="50">
         </div>
       </div>
