@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["app.py"],
       "port": 8000
+    },
+    {
+      "name": "plateforme_essai",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "set PLATEFORME_DONNEES=C:\\Users\\jreyn\\AppData\\Local\\Temp\\claude\\C--Users-jreyn-OneDrive-Documents-claude-blockly-ts-plateforme\\215711fa-de83-4d87-9ccc-4bace91a5069\\scratchpad\\donnees&& python plateforme/serveur.py"],
+      "port": 8080
     }
   ]
 }

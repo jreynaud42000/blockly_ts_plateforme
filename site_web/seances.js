@@ -740,7 +740,7 @@ function brancher() {
     // Reprise apres un rechargement de la page : la seance reste ouverte, le travail aussi.
     try {
         const a = JSON.parse(localStorage.getItem(CLE_ACTIVE) || 'null');
-        if (a && a.def && a.eleves && moteur()) { moteur().activer(a.def, a.eleves, a.groupe); lancerEnvoiAuto(a.classe); }
+        if (a && a.def && a.eleves && moteur()) { moteur().activer(a.def, a.eleves, a.groupe); lancerEnvoiAuto(a.classe); moteur().reprendreEvaluation(); }
     } catch (e) { /* rien a reprendre */ }
     majMenu();
     verifierClasse();
@@ -749,7 +749,7 @@ brancher();
 
 // Pour plateforme.js (solution 3) : les memes fenetres, la meme seance en preparation, le meme tableau de resultats.
 window.seancesApi = { voile, fermer, esc, morceau, cellule, espaceVierge, construireSeance, demarrerSeance, lancerEnvoiAuto, majMenu, fenetreEnseignant,
-                      quitterSansDemander: () => { moteur().quitter(); lancerEnvoiAuto(null); try { localStorage.removeItem(CLE_ACTIVE); } catch (e) { /* rien */ } majMenu(); },
+                      quitterSansDemander: () => { moteur().quitter(true); lancerEnvoiAuto(null); try { localStorage.removeItem(CLE_ACTIVE); } catch (e) { /* rien */ } majMenu(); },
                       seanceActive: () => { try { return JSON.parse(localStorage.getItem(CLE_ACTIVE) || 'null'); } catch (e) { return null; } },
                       appliquerSeance: d => { brouillon = Object.assign(brouillonVide(), d); garderBrouillon(); },
                       csvDepuis: liste => { const garde = rendus; rendus = liste; const t = csvRendus(); rendus = garde; return t; } };
