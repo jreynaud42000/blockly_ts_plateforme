@@ -453,6 +453,17 @@
     #voile-blocs-figes.visible { display: flex; }
     #voile-blocs-figes span { background: #2a2a2a; color: #ffcc80; padding: 10px 18px; border-radius: 6px;
                                font-size: 13px; font-weight: bold; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+    /* Proposition du multi-editeur radio (bandeau.js) : bandeau non bloquant en haut de la zone de blocs. */
+    #proposition-radio { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 40;
+                         width: max-content; max-width: calc(100% - 24px); box-sizing: border-box;
+                         display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px;
+                         background: var(--fond-code); color: var(--texte-code); border: 2px solid #1864ab; border-radius: 8px;
+                         box-shadow: 0 4px 16px rgba(0,0,0,0.35); font-size: 13px; }
+    #proposition-radio[hidden] { display: none; }
+    .proposition-radio-boutons { display: flex; flex-wrap: wrap; gap: 6px; }
+    #proposition-radio button { margin: 0; padding: 5px 10px; font-size: 12px; border-radius: 5px; cursor: pointer;
+                                border: 1px solid var(--bordure-chrome); background: var(--fond-saisie); color: var(--texte-saisie); }
+    #proposition-radio .proposition-radio-primaire { background: #1864ab; border-color: #1864ab; color: #fff; font-weight: 700; }
 
     #code-container { flex: 0 0 24%; min-width: 240px; min-height: 0; height: 100%; background: var(--fond-code); color: var(--texte-code); padding: 15px; box-sizing: border-box; overflow-y: auto; border-left: 2px solid var(--fond-chrome); display: flex; flex-direction: column;}
     #code-container h3 { margin-top: 0; color: #ff7a33; font-size: 14px; text-transform: uppercase; }
@@ -1746,6 +1757,15 @@
     <div id="blockly-wrapper">
       <div id="blocklyDiv"></div>
       <div id="voile-blocs-figes"><span>✎ Blocs figés — édition manuelle du code en cours</span></div>
+      <!-- Proposition du multi-editeur radio (bandeau.js) : au premier bloc Radio pose par l'eleve -->
+      <div id="proposition-radio" role="status" hidden>
+        <span>📡 Ce programme utilise la radio. Pour tester l'échange entre deux cartes, ouvre le multi-éditeur radio.</span>
+        <span class="proposition-radio-boutons">
+          <button id="proposition-radio-ouvrir" class="proposition-radio-primaire">Ouvrir le multi-éditeur</button>
+          <button id="proposition-radio-plus-tard">Plus tard</button>
+          <button id="proposition-radio-jamais">Ne plus proposer</button>
+        </span>
+      </div>
     </div>
     <div id="code-container" class="replie">
       <div class="code-entete">

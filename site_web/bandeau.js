@@ -147,6 +147,38 @@ if ($('multi-editeur-btn')) {
     if (racine.dataset.editeur) $('multi-editeur-btn').hidden = true;
     else $('multi-editeur-btn').addEventListener('click', () => { window.open('multi.html', '_blank', 'noopener'); });
 }
+// Proposition du multi-editeur : quand l'eleve glisse un bloc Radio (types radio_*) dans la zone de programmation,
+// un bandeau (#proposition-radio) propose d'ouvrir le multi-editeur. Seul le glisser declenche (evenement 'drag' de
+// fin) : charger un fichier, un exercice ou un exemple ne glisse rien. Une seule fois par onglet (sessionStorage) ;
+// « Ne plus proposer » est memorise dans le navigateur (localStorage). Jamais dans le multi-editeur lui-meme,
+// ni pendant une seance ouverte (exercicesSeance.active()).
+const CLE_RADIO_VUE = 'propositionRadioVue', CLE_RADIO_JAMAIS = 'propositionRadioJamais';
+function lireStockage(stockage, cle) { try { return stockage.getItem(cle); } catch (erreur) { return null; } }
+function ecrireStockage(stockage, cle) { try { stockage.setItem(cle, '1'); } catch (erreur) { /* navigation privee */ } }
+function installerPropositionRadio() {
+    const bandeau = $('proposition-radio'), ws = window.workspace;
+    if (!bandeau || !ws || racine.dataset.editeur || !$('multi-editeur-btn')) return;
+    const fermer = () => { bandeau.hidden = true; };
+    $('proposition-radio-ouvrir').addEventListener('click', () => { fermer(); $('multi-editeur-btn').click(); });
+    $('proposition-radio-plus-tard').addEventListener('click', fermer);
+    $('proposition-radio-jamais').addEventListener('click', () => { ecrireStockage(localStorage, CLE_RADIO_JAMAIS); fermer(); });
+    ws.addChangeListener(ev => {
+        if (ev.type !== Blockly.Events.BLOCK_DRAG || ev.isStart) return;
+        if (lireStockage(sessionStorage, CLE_RADIO_VUE) || lireStockage(localStorage, CLE_RADIO_JAMAIS)) return;
+        if (window.exercicesSeance && window.exercicesSeance.active()) return;   // seance ouverte : pas de proposition
+        const bloc = ws.getBlockById(ev.blockId);   // absent si le bloc a fini a la corbeille
+        if (!bloc || !bloc.getDescendants(false).some(b => b.type.startsWith('radio_'))) return;
+        ecrireStockage(sessionStorage, CLE_RADIO_VUE);
+        // Centre sur l'espace de programmation, a droite de la colonne de categories (qui le recouvrirait).
+        const boite = ws.getToolbox && ws.getToolbox();
+        const colonne = boite && boite.getWidth ? boite.getWidth() : 0;
+        bandeau.style.left = 'calc(' + colonne + 'px + (100% - ' + colonne + 'px) / 2)';
+        bandeau.style.maxWidth = 'calc(100% - ' + (colonne + 24) + 'px)';
+        bandeau.hidden = false;
+    });
+}
+if (window.workspace) installerPropositionRadio();
+else window.addEventListener('load', installerPropositionRadio);
 if (racine.dataset.editeur && $('tb-logo')) {
     const pastille = document.createElement('span');
     pastille.id = 'tb-carte';

@@ -462,6 +462,16 @@ Cote simulateur, la section "Radio : message a recevoir" apparait des qu'un bloc
 reception" : le dispatcher le classe et appelle le bon gestionnaire, exactement
 comme sur la carte. La force du signal simulee vaut -42.
 
+Proposition du multi-editeur radio (oct. 2026) : quand l'eleve glisse un bloc
+Radio dans la zone de programmation, un bandeau propose d'ouvrir le
+multi-editeur radio (Fichier > Multi-editeur radio : deux editeurs vierges cote
+a cote, dans un nouvel onglet ; le programme en cours reste dans l'onglet
+d'origine). Boutons : "Ouvrir le multi-editeur", "Plus tard", "Ne plus
+proposer" (memorise dans le navigateur). Une seule proposition par onglet ;
+rien au chargement d'un fichier, d'un exercice ou d'un exemple (seul un
+glisser la declenche), ni dans le multi-editeur lui-meme, ni pendant une
+seance ouverte (bandeau.js).
+
 ---------------------------------------------------------
 9. LES FONCTIONS
 ---------------------------------------------------------
