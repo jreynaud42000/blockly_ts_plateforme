@@ -156,12 +156,30 @@ const CLE_RADIO_VUE = 'propositionRadioVue', CLE_RADIO_JAMAIS = 'propositionRadi
 function lireStockage(stockage, cle) { try { return stockage.getItem(cle); } catch (erreur) { return null; } }
 function ecrireStockage(stockage, cle) { try { stockage.setItem(cle, '1'); } catch (erreur) { /* navigation privee */ } }
 function installerPropositionRadio() {
-    const bandeau = $('proposition-radio'), ws = window.workspace;
+    const bandeau = $('proposition-radio'), ws = window.workspace, reactiver = $('proposition-radio-reactiver');
+    if (reactiver && (racine.dataset.editeur || !$('multi-editeur-btn'))) reactiver.hidden = true;
     if (!bandeau || !ws || racine.dataset.editeur || !$('multi-editeur-btn')) return;
     const fermer = () => { bandeau.hidden = true; };
+    // Bandeau et confirmation : centres sur l'espace de programmation, a droite de la colonne de categories
+    // (qui les recouvrirait sinon).
+    const placer = el => {
+        const boite = ws.getToolbox && ws.getToolbox();
+        const colonne = boite && boite.getWidth ? boite.getWidth() : 0;
+        el.style.left = 'calc(' + colonne + 'px + (100% - ' + colonne + 'px) / 2)';
+        el.style.maxWidth = 'calc(100% - ' + (colonne + 24) + 'px)';
+    };
+    // Menu Aide > Reactiver : annule « Ne plus proposer » (et le « deja propose » de l'onglet), grisee sinon.
+    const majReactiver = () => { if (reactiver) reactiver.disabled = !lireStockage(localStorage, CLE_RADIO_JAMAIS); };
+    majReactiver();
+    if (reactiver) reactiver.addEventListener('click', () => {
+        try { localStorage.removeItem(CLE_RADIO_JAMAIS); sessionStorage.removeItem(CLE_RADIO_VUE); } catch (erreur) { /* navigation privee */ }
+        majReactiver();
+        const info = $('proposition-radio-info');
+        if (info) { placer(info); info.hidden = false; clearTimeout(info.minuteur); info.minuteur = setTimeout(() => { info.hidden = true; }, 3500); }
+    });
     $('proposition-radio-ouvrir').addEventListener('click', () => { fermer(); $('multi-editeur-btn').click(); });
     $('proposition-radio-plus-tard').addEventListener('click', fermer);
-    $('proposition-radio-jamais').addEventListener('click', () => { ecrireStockage(localStorage, CLE_RADIO_JAMAIS); fermer(); });
+    $('proposition-radio-jamais').addEventListener('click', () => { ecrireStockage(localStorage, CLE_RADIO_JAMAIS); fermer(); majReactiver(); });
     ws.addChangeListener(ev => {
         if (ev.type !== Blockly.Events.BLOCK_DRAG || ev.isStart) return;
         if (lireStockage(sessionStorage, CLE_RADIO_VUE) || lireStockage(localStorage, CLE_RADIO_JAMAIS)) return;
@@ -169,11 +187,7 @@ function installerPropositionRadio() {
         const bloc = ws.getBlockById(ev.blockId);   // absent si le bloc a fini a la corbeille
         if (!bloc || !bloc.getDescendants(false).some(b => b.type.startsWith('radio_'))) return;
         ecrireStockage(sessionStorage, CLE_RADIO_VUE);
-        // Centre sur l'espace de programmation, a droite de la colonne de categories (qui le recouvrirait).
-        const boite = ws.getToolbox && ws.getToolbox();
-        const colonne = boite && boite.getWidth ? boite.getWidth() : 0;
-        bandeau.style.left = 'calc(' + colonne + 'px + (100% - ' + colonne + 'px) / 2)';
-        bandeau.style.maxWidth = 'calc(100% - ' + (colonne + 24) + 'px)';
+        placer(bandeau);
         bandeau.hidden = false;
     });
 }

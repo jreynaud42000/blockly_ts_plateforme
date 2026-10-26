@@ -459,7 +459,11 @@
                          display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 8px 12px;
                          background: var(--fond-code); color: var(--texte-code); border: 2px solid #1864ab; border-radius: 8px;
                          box-shadow: 0 4px 16px rgba(0,0,0,0.35); font-size: 13px; }
-    #proposition-radio[hidden] { display: none; }
+    #proposition-radio[hidden], #proposition-radio-info[hidden] { display: none; }
+    #proposition-radio-info { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 40;
+                              width: max-content; max-width: calc(100% - 24px); box-sizing: border-box; padding: 8px 12px; font-size: 13px;
+                              background: var(--fond-code); color: var(--texte-code); border: 2px solid #1864ab; border-radius: 8px;
+                              box-shadow: 0 4px 16px rgba(0,0,0,0.35); }
     .proposition-radio-boutons { display: flex; flex-wrap: wrap; gap: 6px; }
     #proposition-radio button { margin: 0; padding: 5px 10px; font-size: 12px; border-radius: 5px; cursor: pointer;
                                 border: 1px solid var(--bordure-chrome); background: var(--fond-saisie); color: var(--texte-saisie); }
@@ -1746,6 +1750,8 @@
         <button id="tb-mission" disabled title="Non disponible dans cette version">🚀 Mon premier programme</button>
         <button id="tuto-clicdroit-menu-btn">🖱 Visite guidée clic droit</button>
         <button id="tuto-console-menu-btn">⌨ Visite guidée Console</button>
+        <!-- Annule « Ne plus proposer » du bandeau multi-editeur radio (bandeau.js) ; grise tant que rien n'est a annuler -->
+        <button id="proposition-radio-reactiver" title="La proposition d'ouvrir le multi-éditeur radio reviendra au prochain bloc Radio glissé">📡 Réactiver la proposition du multi-éditeur</button>
         <!-- Numero de version : en dernier dans le menu Aide (texte de #copyright-toolbar, a tenir
              identique a app.py, app.spec et version_info.txt). Simple mention, pas un bouton. -->
         <div class="menu-version">Version <span id="copyright-toolbar">V2.0E</span></div>
@@ -1766,6 +1772,7 @@
           <button id="proposition-radio-jamais">Ne plus proposer</button>
         </span>
       </div>
+      <div id="proposition-radio-info" role="status" hidden>📡 La proposition reviendra au prochain bloc Radio glissé.</div>
     </div>
     <div id="code-container" class="replie">
       <div class="code-entete">

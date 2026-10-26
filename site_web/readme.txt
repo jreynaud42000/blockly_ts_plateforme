@@ -471,6 +471,11 @@ proposer" (memorise dans le navigateur). Une seule proposition par onglet ;
 rien au chargement d'un fichier, d'un exercice ou d'un exemple (seul un
 glisser la declenche), ni dans le multi-editeur lui-meme, ni pendant une
 seance ouverte (bandeau.js).
+Pour annuler "Ne plus proposer" : menu Aide > "Reactiver la proposition du
+multi-editeur" (grisee tant qu'il n'y a rien a annuler, absente du
+multi-editeur). Attention, en ligne (jreynaud42000.github.io), tous les
+editeurs partagent la meme memoire du navigateur : ce reglage vaut pour tous
+ceux qui ont cette proposition.
 
 ---------------------------------------------------------
 9. LES FONCTIONS
