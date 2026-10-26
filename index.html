@@ -187,6 +187,7 @@
     #btn-vue-console:not(.inactif), #btn-vue-simu:not(.inactif), #btn-vue-code:not(.inactif), #btn-vue-ia:not(.inactif) {
       box-shadow: inset 0 -3px 0 #fff; border-radius: 4px 4px 0 0; }
     .tb-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.25); margin: 0 2px; }
+    #btn-radio-multi[hidden] { display: none; }   /* .tb-btn impose display: flex (bouton cache dans le multi-editeur) */
 
     /* Logo (accessoire : le fichier logo.png actuel est conserve) */
     #tb-logo { display: flex; align-items: center; padding: 3px 6px; margin-right: 2px; flex-shrink: 0;
@@ -1708,6 +1709,11 @@
     <button id="btn-vue-ia" class="tb-btn inactif" title="IA : reconnaissance d'images et de sons (caméra, micro)" aria-label="Afficher ou masquer le panneau IA">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"/></svg>
       IA
+    </button>
+    <!-- Bouton Radio : ouvre le multi-editeur radio (meme effet que Fichier > Multi-editeur radio, bandeau.js) -->
+    <button id="btn-radio-multi" class="tb-btn" title="Multi-éditeur radio : deux cartes simulées côte à côte qui communiquent par radio (nouvel onglet)" aria-label="Ouvrir le multi-éditeur radio">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2" fill="currentColor"/><path d="M8.5 8.5a5 5 0 0 0 0 7"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M5.5 5.5a9 9 0 0 0 0 13"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>
+      Radio
     </button>
 
     <div class="tb-sep"></div>

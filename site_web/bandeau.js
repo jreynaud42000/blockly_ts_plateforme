@@ -147,6 +147,11 @@ if ($('multi-editeur-btn')) {
     if (racine.dataset.editeur) $('multi-editeur-btn').hidden = true;
     else $('multi-editeur-btn').addEventListener('click', () => { window.open('multi.html', '_blank', 'noopener'); });
 }
+// Bouton « Radio » du bandeau (a droite de IA) : meme effet que l'entree du menu Fichier, cache dans le multi-editeur.
+if ($('btn-radio-multi')) {
+    if (racine.dataset.editeur || !$('multi-editeur-btn')) $('btn-radio-multi').hidden = true;
+    else $('btn-radio-multi').addEventListener('click', () => $('multi-editeur-btn').click());
+}
 // Proposition du multi-editeur : quand l'eleve glisse un bloc Radio (types radio_*) dans la zone de programmation,
 // un bandeau (#proposition-radio) propose d'ouvrir le multi-editeur. Seul le glisser declenche (evenement 'drag' de
 // fin) : charger un fichier, un exercice ou un exemple ne glisse rien. Une seule fois par onglet (sessionStorage) ;
