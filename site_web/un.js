@@ -8676,6 +8676,27 @@ try {
         }
     }
 
+    // « Au démarrage » (unique : maxInstances) et « Répéter indéfiniment » : si l'espace de travail en a déjà un, le
+    // contenu de celui de l'exemple s'ajoute à la fin du sien au lieu de créer un doublon.
+    const BLOCS_A_FUSIONNER = ['au_demarrage', 'boucle_infinie'];
+    /** Bloc de ce type déjà présent : celui de la pile « Au démarrage » d'abord, sinon le premier posé seul en haut. */
+    function blocAFusionner(espace, type) {
+        const candidats = espace.getBlocksByType(type, true).filter(b => !b.isInsertionMarker() && !b.isShadow());
+        if (type !== 'boucle_infinie') return candidats[0] || null;
+        // Une boucle rangée dans une autre (« si », fonction...) n'est pas « la » boucle du programme.
+        const principales = candidats.filter(b => !b.getSurroundParent());
+        return principales.find(b => b.getRootBlock().type === 'au_demarrage') || principales[0] || null;
+    }
+    /** Ajoute la pile `def` (blocs d'instruction) à la fin de l'entrée DO de `cible`. Renvoie le premier bloc ajouté. */
+    function ajouterDansDO(espace, cible, def) {
+        const b = Blockly.serialization.blocks.append(def, espace, { recordUndo: true });
+        let dernier = cible.getInputTargetBlock('DO');
+        while (dernier && dernier.getNextBlock()) dernier = dernier.getNextBlock();
+        const prise = dernier ? dernier.nextConnection : cible.getInput('DO').connection;
+        if (prise && b.previousConnection) prise.connect(b.previousConnection);
+        return b;
+    }
+
     /** Ajoute l'exemple sous les blocs existants, en un seul pas d'annulation (Ctrl+Z). */
     function insererExemple(ex) {
         const espace = window.workspace;
@@ -8689,13 +8710,26 @@ try {
         let premier = null;
         Blockly.Events.setGroup(true);
         try {
-            JSON.parse(JSON.stringify(ex.blocs)).forEach(def => {
+            const aPoser = JSON.parse(JSON.stringify(ex.blocs));
+            while (aPoser.length) {
+                const def = aPoser.shift();
+                const cible = BLOCS_A_FUSIONNER.includes(def.type) ? blocAFusionner(espace, def.type) : null;
+                if (cible) {
+                    // Ce qui suivait le bloc dans l'exemple (une boucle accrochée sous « Au démarrage ») est traité ensuite.
+                    if (def.next && def.next.block) aPoser.unshift(def.next.block);
+                    const contenu = def.inputs && def.inputs.DO && def.inputs.DO.block;
+                    if (contenu) {
+                        const b = ajouterDansDO(espace, cible, contenu);
+                        if (!premier) premier = b;
+                    }
+                    continue;
+                }
                 const b = Blockly.serialization.blocks.append(def, espace, { recordUndo: true });
                 const pos = b.getRelativeToSurfaceXY();
                 b.moveBy(x - pos.x, y - pos.y);
                 y = b.getBoundingRectangle().bottom + 40;
                 if (!premier) premier = b;
-            });
+            }
         } finally {
             Blockly.Events.setGroup(false);
         }
