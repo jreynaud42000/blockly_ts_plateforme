@@ -750,15 +750,21 @@
        que de s'etirer pour occuper toute la rangee. 210px = 280px (largeur
        de la carte) x 0.75 (REDUCTION, voir adapterEchelleSimulateur) : la
        largeur reellement occupee une fois la carte mise a l'echelle. */
-    #carte-cadre { width: 210px; flex: 0 0 auto; display: flex; justify-content: center; }
+    #carte-cadre { width: 210px; flex: 0 0 auto; display: flex; justify-content: center;
+                   /* Ombre portee sur le cadre (pas box-shadow sur la carte) : elle suit la decoupe des trous. */
+                   filter: drop-shadow(0 15px 25px rgba(0,0,0,0.6)); }
     #microbit-board {
         /* Coins bas peu arrondis (pas 25px) : sur la vraie carte, le bord du
            bas est quasiment droit — un grand rayon ici "grignotait" en
            arrondi les coins de la reglette de connecteurs, donnant a tort
            l'impression d'encoches decoupees dans le bord dore. */
-        width: 280px; height: 230px; background: #191919; border-radius: 15px 15px 6px 6px;
-        position: relative; box-shadow: 0px 15px 25px rgba(0,0,0,0.6);
+        width: 280px; height: 230px; background: #121212; border-radius: 10px 10px 6px 6px;
+        position: relative;
         overflow: hidden; user-select: none;
+        /* Trous des 5 pastilles du connecteur, mesures sur une photo de la carte (oct. 2026) :
+           decoupes dans la carte, on voit le fond derriere comme sur la vraie. */
+        -webkit-mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 230' preserveAspectRatio='none'><path fill-rule='evenodd' d='M0 0H280V230H0ZM10.36 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM66.64 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM129.8 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM192.96 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM249.24 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0Z'/></svg>"); mask-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 280 230' preserveAspectRatio='none'><path fill-rule='evenodd' d='M0 0H280V230H0ZM10.36 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM66.64 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM129.8 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM192.96 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0ZM249.24 193.1a10.2 10.2 0 1 0 20.4 0a10.2 10.2 0 1 0 -20.4 0Z'/></svg>");
+        -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
         /* flex: 0 0 auto — sinon la colonne, en min-height: 0, ecrase la carte
            des que son contenu deborde. */
         flex: 0 0 auto;
@@ -769,7 +775,9 @@
     /* LED eteinte : sur la vraie carte, le composant reste visible (petit
        boitier blanc/argente), pas un carre sombre quasi invisible comme
        avant — d'apres la photo officielle micro:bit V2 (microbit.org). */
-    .led { width: 8px; height: 14px; background: linear-gradient(180deg, #e2ded1, #b8b3a3); border-radius: 2px; transition: 0.05s; box-shadow: inset 0 0 1px rgba(0,0,0,0.4); }
+    .led { width: 8px; height: 14px; border-radius: 1.5px; transition: 0.05s;
+           background: linear-gradient(#d49a5a, #d49a5a) center / 3px 4px no-repeat, #e8e3d6;
+           box-shadow: inset 0 0 0 0.8px #a8a294; }
     .led.on { background: #ff3333; box-shadow: 0 0 8px #ff3333; }
     
     /* --- NOUVEAU : GESTION DU TEXTE SUR LES LEDS --- */
@@ -790,18 +798,23 @@
 
     .mb-btn-wrap { position: absolute; top: 95px; display: flex; flex-direction: column; align-items: center;}
     #wrap-a { left: 15px; } #wrap-b { right: 15px; }
-    .mb-btn-outer { width: 32px; height: 32px; background: linear-gradient(180deg, #a8a8a8, #7d7d7d); border-radius: 2px; position: relative; }
-    .mb-btn-inner { position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; background: #111; border-radius: 50%; cursor: pointer; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); }
+    .mb-btn-outer { width: 36px; height: 36px; border-radius: 2px; position: relative; box-sizing: border-box; border: 1px solid #6e6a64;
+                    background: radial-gradient(circle at 5px 5px, #222 2.4px, transparent 2.6px),
+                                radial-gradient(circle at 29px 5px, #222 2.4px, transparent 2.6px),
+                                radial-gradient(circle at 5px 29px, #222 2.4px, transparent 2.6px),
+                                radial-gradient(circle at 29px 29px, #222 2.4px, transparent 2.6px), #a9a59f; }
+    .mb-btn-inner { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; background: #141414; border-radius: 50%; cursor: pointer;
+                    box-shadow: 0 0 0 1px #3a3a3a, inset 0 2px 4px rgba(0,0,0,0.8); }
     .mb-btn-inner:active { background: #333; }
-    /* Deux petites pattes claires au bord bas du bouton (photo officielle :
-       pas de 4 points aux coins, ce sont deux languettes en bas). */
-    .mb-btn-tab { position: absolute; bottom: -2px; width: 6px; height: 3px; background: #d6d6d6; border-radius: 0 0 1px 1px; }
-    .mb-btn-tab-l { left: 4px; } .mb-btn-tab-r { right: 4px; }
+    /* Pattes metalliques aux 4 coins du poussoir (photo de la carte, oct. 2026) : chaque element dessine
+       la patte du bas, son ombre portee celle du haut. */
+    .mb-btn-tab { position: absolute; bottom: -4px; width: 6px; height: 4px; background: #d8d8d8; box-shadow: 0 -38px 0 #d8d8d8; }
+    .mb-btn-tab-l { left: -4px; } .mb-btn-tab-r { right: -4px; }
     /* Etiquette A/B : sur la vraie carte c'est un petit triangle bleu avec la
        lettre imprimee dedans, pas juste une lettre coloree isolee. */
-    .mb-btn-label { position: relative; width: 26px; height: 22px; margin-top: 6px; }
-    .mb-btn-label-tri { position: absolute; inset: 0; background: #0396d6; clip-path: polygon(0 0, 0 100%, 100% 100%); }
-    .mb-btn-label-lettre { position: absolute; left: 5px; bottom: 1px; color: #111; font-weight: 800; font-size: 12px; font-family: sans-serif; }
+    .mb-btn-label { position: relative; width: 22px; height: 22px; margin-top: 7px; }
+    .mb-btn-label-tri { position: absolute; inset: 0; background: #1f9a80; clip-path: polygon(0 0, 0 100%, 100% 100%); }
+    .mb-btn-label-lettre { position: absolute; left: 3px; bottom: 1px; color: #0b0b0b; font-weight: 700; font-size: 11px; font-family: Arial, sans-serif; }
     #wrap-b .mb-btn-label { position: absolute; top: -30px; left: 12px; }
 
     .mb-btn-label-ab { position: absolute; color: white; font-weight: bold; font-size: 13px; left: -32px; top: 8px; }
@@ -816,16 +829,19 @@
     /* Accent en coin : deux triangles bleus separes (pas un seul zigzag),
        d'apres la photo officielle micro:bit V2 — un grand triangle et un
        plus petit distinct, avec un espace noir entre les deux. */
-    .mb-accent { position: absolute; top: 0; left: 0; width: 68px; height: 68px; background: #0396d6; clip-path: polygon(0 0, 100% 0, 0 100%); }
-    .mb-accent2 { position: absolute; top: 0; left: 78px; width: 34px; height: 34px; background: #0396d6; clip-path: polygon(0 0, 100% 0, 0 100%); }
+    .mb-accent { position: absolute; top: 0; left: 0; width: 74px; height: 74px; background: #1f9a80; clip-path: polygon(0 0, 100% 0, 0 100%); }
+    .mb-accent2 { position: absolute; top: 0; left: 84px; width: 34px; height: 34px; background: #1f9a80; clip-path: polygon(0 0, 100% 0, 0 100%); }
+    .mb-accent3 { position: absolute; top: 0; left: 126px; width: 20px; height: 20px; background: #1f9a80; clip-path: polygon(0 0, 100% 0, 0 100%); }
+    /* Fond du circuit (photo) : zone gris fonce en haut a droite et pistes de cuivre discretes, sous tout le reste. */
+    .mb-pcb { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
     /* Connecteur micro-USB : petit boitier gris qui depasse du bord haut. */
-    .mb-usb { position: absolute; top: -3px; left: 90px; width: 26px; height: 9px;
+    .mb-usb { position: absolute; top: -3px; left: 122px; width: 36px; height: 7px;
               background: linear-gradient(180deg, #cfcfcf, #8f8f8f); border-radius: 2px 2px 0 0;
               border: 1px solid #6b6b6b; border-bottom: none; }
     .mb-usb-notch { position: absolute; top: 2px; left: 3px; right: 3px; height: 3px; background: #4a4a4a; border-radius: 1px; }
-    .mb-logo { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 40px; height: 18px; border: 4px solid #e4c558; border-radius: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: 0.1s; }
+    .mb-logo { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); width: 40px; height: 18px; border: 4px solid #c39a45; border-radius: 12px; display: flex; justify-content: center; align-items: center; gap: 6px; cursor: pointer; transition: 0.1s; }
     .mb-logo:active { background: rgba(228, 197, 88, 0.3); }
-    .mb-logo-dot { width: 4px; height: 4px; background: #e4c558; border-radius: 50%; }
+    .mb-logo-dot { width: 5px; height: 5px; background: #c39a45; border-radius: 50%; }
     /* Indicateur du microphone (nouveaute V2, voir microbit.org/fr) : petit
        cercle temoin + icone micro imprimee, a droite du logo tactile. */
     .mb-mic-indicateur { position: absolute; top: 18px; right: 34px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
@@ -844,9 +860,10 @@
        touchaient, plus haut). */
     .mb-edge { position: absolute; bottom: 0; left: 0; right: 0; height: 58px; }
     .mb-edge svg { display: block; width: 100%; height: 100%; }
-    .mb-edge-txt { font-family: sans-serif; font-weight: 800; font-size: 12px; fill: #141414; text-anchor: middle; }
-    .mb-edge-txt-petit { font-size: 8px; }
-    .mb-edge-trou { fill: url(#mb-edge-trou); }
+    /* Connecteur mesure sur une photo de la carte (oct. 2026) : domes en demi-cercle, grands trous
+       (decoupes par le masque de #microbit-board), traits fins, encoches a fond plat, etiquettes de meme taille. */
+    .mb-edge-txt { font-family: Arial, sans-serif; font-weight: 800; font-size: 11px; fill: #111; text-anchor: middle; }
+    .mb-edge-trou { fill: none; stroke: #a47e35; stroke-width: 0.8; }
     /* Retour visuel manquant apres le passage en SVG : le <rect> transparent
        (voir un.js, lierCapteurTactile) n'assombrissait plus rien au clic,
        contrairement a l'ancien filter: brightness() sur le <div> de plot. */
@@ -1796,8 +1813,11 @@
       <div id="simulateur-console">
       <div id="carte-cadre">
       <div id="microbit-board">
+          <!-- Dessin d'apres une photo de la carte (oct. 2026) : fond du circuit, trois triangles vert d'eau -->
+          <svg class="mb-pcb" viewBox="0 0 280 230" aria-hidden="true"><polygon points="190,0 280,0 280,150" fill="#191919"/><g stroke="#1f1f1f" stroke-width="1.2" fill="none"><path d="M70 60 L95 85 L95 150"/><path d="M78 55 L105 82 L105 140"/><path d="M200 70 L180 90 L180 150"/><path d="M210 75 L192 93 L192 160 L170 172"/><path d="M60 140 L80 160 L80 172"/><path d="M220 140 L205 155 L205 172"/></g><circle cx="104" cy="22" r="2.2" fill="none" stroke="#8c7a3a" stroke-width="1.2"/><circle cx="176" cy="22" r="2.2" fill="none" stroke="#8c7a3a" stroke-width="1.2"/><rect x="98" y="7" width="7" height="4" rx="2" fill="none" stroke="#777" stroke-width="1.2"/><rect x="175" y="7" width="7" height="4" rx="2" fill="none" stroke="#777" stroke-width="1.2"/></svg>
           <div class="mb-accent"></div>
           <div class="mb-accent2"></div>
+          <div class="mb-accent3"></div>
           <div class="mb-usb"><div class="mb-usb-notch"></div></div>
           <div class="mb-logo" id="mb-logo"><div class="mb-logo-dot"></div><div class="mb-logo-dot"></div></div>
           <div class="mb-mic-indicateur">
@@ -1837,99 +1857,17 @@
           </div>
 
           <div class="mb-edge">
+            <!-- Connecteur dore mesure sur une photo de la carte (oct. 2026, voir ETAT_DU_PROJET.md) : 20 pistes de
+                 largeur egale (1 / 4 / 5 / 5 / 4 / 1), pastilles = 5 pistes, traits de 1,4 ; domes en demi-cercle ;
+                 trous de rayon 10,2 decoupes dans la carte (masque de #microbit-board) ; encoche a fond plat sous
+                 chaque pastille. Zones cliquables bornees aux milieux des espaces entre pastilles. -->
             <svg viewBox="0 0 280 58" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <radialGradient id="mb-edge-trou" cx="35%" cy="30%" r="70%">
-                  <stop offset="0%" stop-color="#ffffff"/>
-                  <stop offset="60%" stop-color="#e2e2e2"/>
-                  <stop offset="100%" stop-color="#b7b7b7"/>
-                </radialGradient>
-              </defs>
-              <!-- Bande a dents, pleine largeur, bord du bas onduleux (encoche
-                   peu profonde sous chaque etiquette) : "bosselé", propre au
-                   V2. Le haut reste droit ici ; les domes sont un calque a
-                   part, peints par-dessus (voir plus bas). Frontiere domes/
-                   bande a y=12 (pas 18) : mesure sur la capture de reference
-                   (echantillonnage de colonnes), la zone noire au-dessus des
-                   dents est nettement plus basse que ce que donnait 18. -->
-              <path d="M0,12 L280,12 L280,58 L275.96,58 Q259.96,51 243.96,58 L219.56,58 Q203.56,51 187.56,58
-                       L156,58 Q140,51 124,58 L92.44,58 Q76.44,51 60.44,58 L36.04,58 Q20.04,51 4.04,58
-                       L0,58 Z" fill="#d9b41c"/>
-              <!-- Domes : un par plot, en or plein, arc elliptique. Largeur
-                   fixee a 5x la largeur d'une piste doree (demande explicite
-                   de l'utilisateur : largeur piste = 5.1556, largeur dome =
-                   25.7778 -> rx=12.89), ry=12 inchange. Peints AVANT les
-                   dents (voir plus bas) pour que les traits separateurs, y
-                   compris ceux colles au bord d'un dome, restent entiers sur
-                   toute leur hauteur au lieu d'etre partiellement recouverts
-                   par le dome.
-                   Positions recalculees en resolvant ensemble trois
-                   contraintes : largeur totale = 280 (largeur de la carte),
-                   les 20 pistes dorees egales entre elles (deja acquis),
-                   ET desormais largeur dome = 5x largeur piste. Un dome plus
-                   etroit qu'avant (25.78 au lieu de 36) laisse plus de place
-                   aux espaces, donc largeur de piste recalculee a 5.1556 (au
-                   lieu de 2.6) pour que tout reboucle exactement sur 280 —
-                   voir le calcul complet dans ETAT_DU_PROJET.md. -->
-              <path d="M7.16,19 L7.16,12 A12.89,12 0 0,1 32.93,12 L32.93,19 Z" fill="#d9b41c"/>
-              <path d="M63.56,19 L63.56,12 A12.89,12 0 0,1 89.33,12 L89.33,19 Z" fill="#d9b41c"/>
-              <path d="M127.11,19 L127.11,12 A12.89,12 0 0,1 152.89,12 L152.89,19 Z" fill="#d9b41c"/>
-              <path d="M190.67,19 L190.67,12 A12.89,12 0 0,1 216.44,12 L216.44,19 Z" fill="#d9b41c"/>
-              <path d="M247.07,19 L247.07,12 A12.89,12 0 0,1 272.84,12 L272.84,19 Z" fill="#d9b41c"/>
-              <!-- Dents = traits separateurs entre les PISTES dorees (pas les
-                   pistes elles-memes) : nombre exact precise par l'utilisateur
-                   — 1 piste a gauche de 0, 4 entre 0 et 1, 5 entre 1 et 2, 5
-                   entre 2 et 3V, 4 entre 3V et GND, 1 a droite de GND. Pour N
-                   pistes visibles et bien separees dans un espace, il faut
-                   N+1 traits (un a CHAQUE bord, colle au dome voisin, sinon
-                   la piste du bord se fond dans le dome, meme couleur, sans
-                   frontiere visible). Un seul trait suffit cote piste
-                   d'extremite (bord gauche/droit de la carte) puisqu'il n'y
-                   a rien de l'autre cote a separer. -->
-              <g fill="#2e2500">
-                <rect x="5.16" y="12" width="2" height="46"/>
-                <rect x="32.93" y="12" width="2" height="46"/>
-                <rect x="40.09" y="12" width="2" height="46"/>
-                <rect x="47.24" y="12" width="2" height="46"/>
-                <rect x="54.4" y="12" width="2" height="46"/>
-                <rect x="61.56" y="12" width="2" height="46"/>
-                <rect x="89.33" y="12" width="2" height="46"/>
-                <rect x="96.49" y="12" width="2" height="46"/>
-                <rect x="103.64" y="12" width="2" height="46"/>
-                <rect x="110.8" y="12" width="2" height="46"/>
-                <rect x="117.96" y="12" width="2" height="46"/>
-                <rect x="125.11" y="12" width="2" height="46"/>
-                <rect x="152.89" y="12" width="2" height="46"/>
-                <rect x="160.04" y="12" width="2" height="46"/>
-                <rect x="167.2" y="12" width="2" height="46"/>
-                <rect x="174.36" y="12" width="2" height="46"/>
-                <rect x="181.51" y="12" width="2" height="46"/>
-                <rect x="188.67" y="12" width="2" height="46"/>
-                <rect x="216.44" y="12" width="2" height="46"/>
-                <rect x="223.6" y="12" width="2" height="46"/>
-                <rect x="230.76" y="12" width="2" height="46"/>
-                <rect x="237.91" y="12" width="2" height="46"/>
-                <rect x="245.07" y="12" width="2" height="46"/>
-                <rect x="272.84" y="12" width="2" height="46"/>
-              </g>
-              <circle class="mb-edge-trou" cx="20.04" cy="7" r="5"/>
-              <circle class="mb-edge-trou" cx="76.44" cy="7" r="5"/>
-              <circle class="mb-edge-trou" cx="140" cy="7" r="5"/>
-              <circle class="mb-edge-trou" cx="203.56" cy="7" r="5"/>
-              <circle class="mb-edge-trou" cx="259.96" cy="7" r="5"/>
-              <text class="mb-edge-txt" x="20.04" y="29">0</text>
-              <text class="mb-edge-txt" x="76.44" y="29">1</text>
-              <text class="mb-edge-txt" x="140" y="29">2</text>
-              <text class="mb-edge-txt mb-edge-txt-petit" x="203.56" y="28">3V</text>
-              <text class="mb-edge-txt mb-edge-txt-petit" x="259.96" y="28">GND</text>
-              <!-- Zones cliquables : bornees aux milieux des espaces entre
-                   domes (recalcules avec les nouvelles positions), pas des
-                   tranches fixes comme avant. -->
-              <rect class="mb-edge-zone" id="pin0" x="0" y="0" width="48.25" height="58" fill="transparent"/>
-              <rect class="mb-edge-zone" id="pin1" x="48.25" y="0" width="59.97" height="58" fill="transparent"/>
-              <rect class="mb-edge-zone" id="pin2" x="108.22" y="0" width="63.56" height="58" fill="transparent"/>
-              <rect class="mb-edge-zone" x="171.78" y="0" width="59.98" height="58" fill="transparent"/>
-              <rect class="mb-edge-zone" x="231.76" y="0" width="48.24" height="58" fill="transparent"/>
+              <defs><clipPath id="mb-edge-contour"><path d="M0,30.3 L6.88,30.3 L6.88,22.9 A13.69,13.69 0 0,1 34.25,22.9 L34.25,30.3 L63.16,30.3 L63.16,22.9 A13.69,13.69 0 0,1 90.53,22.9 L90.53,30.3 L126.31,30.3 L126.31,22.9 A13.69,13.69 0 0,1 153.69,22.9 L153.69,30.3 L189.47,30.3 L189.47,22.9 A13.69,13.69 0 0,1 216.84,22.9 L216.84,30.3 L245.75,30.3 L245.75,22.9 A13.69,13.69 0 0,1 273.12,22.9 L273.12,30.3 L280,30.3 L280,58 L267.94,58 C265.44,58 264.94,54.4 263.44,54.4 L255.44,54.4 C253.94,54.4 253.44,58 250.94,58 L211.66,58 C209.16,58 208.66,54.4 207.16,54.4 L199.16,54.4 C197.66,54.4 197.16,58 194.66,58 L148.5,58 C146,58 145.5,54.4 144,54.4 L136,54.4 C134.5,54.4 134,58 131.5,58 L85.34,58 C82.84,58 82.34,54.4 80.84,54.4 L72.84,54.4 C71.34,54.4 70.84,58 68.34,58 L29.06,58 C26.56,58 26.06,54.4 24.56,54.4 L16.56,54.4 C15.06,54.4 14.56,58 12.06,58 L0,58 Z"/></clipPath></defs>
+              <path d="M0,30.3 L6.88,30.3 L6.88,22.9 A13.69,13.69 0 0,1 34.25,22.9 L34.25,30.3 L63.16,30.3 L63.16,22.9 A13.69,13.69 0 0,1 90.53,22.9 L90.53,30.3 L126.31,30.3 L126.31,22.9 A13.69,13.69 0 0,1 153.69,22.9 L153.69,30.3 L189.47,30.3 L189.47,22.9 A13.69,13.69 0 0,1 216.84,22.9 L216.84,30.3 L245.75,30.3 L245.75,22.9 A13.69,13.69 0 0,1 273.12,22.9 L273.12,30.3 L280,30.3 L280,58 L267.94,58 C265.44,58 264.94,54.4 263.44,54.4 L255.44,54.4 C253.94,54.4 253.44,58 250.94,58 L211.66,58 C209.16,58 208.66,54.4 207.16,54.4 L199.16,54.4 C197.66,54.4 197.16,58 194.66,58 L148.5,58 C146,58 145.5,54.4 144,54.4 L136,54.4 C134.5,54.4 134,58 131.5,58 L85.34,58 C82.84,58 82.34,54.4 80.84,54.4 L72.84,54.4 C71.34,54.4 70.84,58 68.34,58 L29.06,58 C26.56,58 26.06,54.4 24.56,54.4 L16.56,54.4 C15.06,54.4 14.56,58 12.06,58 L0,58 Z" fill="#c39a45"/>
+              <g clip-path="url(#mb-edge-contour)" fill="#735b36"><rect x="5.48" y="30.3" width="1.4" height="27.7"/><rect x="34.25" y="30.3" width="1.4" height="27.7"/><rect x="41.13" y="30.3" width="1.4" height="27.7"/><rect x="48" y="30.3" width="1.4" height="27.7"/><rect x="54.88" y="30.3" width="1.4" height="27.7"/><rect x="61.76" y="30.3" width="1.4" height="27.7"/><rect x="90.53" y="30.3" width="1.4" height="27.7"/><rect x="97.41" y="30.3" width="1.4" height="27.7"/><rect x="104.28" y="30.3" width="1.4" height="27.7"/><rect x="111.16" y="30.3" width="1.4" height="27.7"/><rect x="118.04" y="30.3" width="1.4" height="27.7"/><rect x="124.91" y="30.3" width="1.4" height="27.7"/><rect x="153.69" y="30.3" width="1.4" height="27.7"/><rect x="160.56" y="30.3" width="1.4" height="27.7"/><rect x="167.44" y="30.3" width="1.4" height="27.7"/><rect x="174.32" y="30.3" width="1.4" height="27.7"/><rect x="181.19" y="30.3" width="1.4" height="27.7"/><rect x="188.07" y="30.3" width="1.4" height="27.7"/><rect x="216.84" y="30.3" width="1.4" height="27.7"/><rect x="223.72" y="30.3" width="1.4" height="27.7"/><rect x="230.6" y="30.3" width="1.4" height="27.7"/><rect x="237.47" y="30.3" width="1.4" height="27.7"/><rect x="244.35" y="30.3" width="1.4" height="27.7"/><rect x="273.12" y="30.3" width="1.4" height="27.7"/></g>
+              <circle class="mb-edge-trou" cx="20.56" cy="21.1" r="10.2"/><circle class="mb-edge-trou" cx="76.84" cy="21.1" r="10.2"/><circle class="mb-edge-trou" cx="140" cy="21.1" r="10.2"/><circle class="mb-edge-trou" cx="203.16" cy="21.1" r="10.2"/><circle class="mb-edge-trou" cx="259.44" cy="21.1" r="10.2"/>
+              <text class="mb-edge-txt" x="20.56" y="48.2">0</text><text class="mb-edge-txt" x="76.84" y="48.2">1</text><text class="mb-edge-txt" x="140" y="48.2">2</text><text class="mb-edge-txt" x="203.16" y="48.2">3V</text><text class="mb-edge-txt" x="259.44" y="48.2">GND</text>
+              <rect class="mb-edge-zone" id="pin0" x="0" y="0" width="48.7" height="58" fill="transparent"/><rect class="mb-edge-zone" id="pin1" x="48.7" y="0" width="59.72" height="58" fill="transparent"/><rect class="mb-edge-zone" id="pin2" x="108.42" y="0" width="63.16" height="58" fill="transparent"/><rect class="mb-edge-zone" x="171.58" y="0" width="59.72" height="58" fill="transparent"/><rect class="mb-edge-zone" x="231.3" y="0" width="48.7" height="58" fill="transparent"/>
             </svg>
           </div>
       </div>

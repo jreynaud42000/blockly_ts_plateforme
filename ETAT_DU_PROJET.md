@@ -285,6 +285,30 @@ nouveau retour de l'utilisateur :
     mesurent 5,15–5,16 (uniforme), et largeur dôme ÷ largeur piste = 5,0
     exactement.
 
+16. **Photo de la vraie carte fournie (oct. 2026), « je veux une représentation
+    exacte »** : carte redessinée d'après la photo (maquette A choisie parmi deux) —
+    triangles vert d'eau (`#1f9a80`, trois le long du bord haut), zone gris foncé et
+    pistes de circuit discrètes (`.mb-pcb`), poussoirs à boîtier métallisé avec 4 plots
+    et 4 pattes, LED CMS blanc cassé à pastille orange, logo et or mats (`#c39a45`),
+    connecteur USB centré. Connecteur **mesuré sur la photo** (Pillow : profil de l'or
+    colonne par colonne, courbe de luminosité le long de la bande pour les traits,
+    photo inclinée d'environ 2° donc mesures prises côté pastilles 0 et 1) en gardant
+    les règles validées aux passes 12 à 15 : 20 pistes égales, 1 / 4 / 5 / 5 / 4 / 1,
+    pastille = 5 pistes. Changements : traits de 1,4 (au lieu de 2, d'où piste 5,48 et
+    pastille 27,38) ; dômes = côtés droits + demi-cercle de rayon 13,69, sommet 21 au-
+    dessus de la bande ; trous de rayon 10,2 (au lieu de 5) **découpés dans la carte**
+    par un masque CSS (on voit le fond derrière, comme sur la vraie), l'ombre portée
+    passant de `box-shadow` à `filter: drop-shadow` sur `#carte-cadre` pour suivre la
+    découpe ; bande de 28 ; encoche à fond plat sous chaque pastille (3,6 de profondeur,
+    17 de large) ; étiquettes toutes en 11 (3V et GND compris). Identifiants et zones
+    cliquables conservés ; vérifié : `pin0` à `pin2`, logo et bouton A s'activent et
+    se mettent en surbrillance, aucune erreur console.
+
+    Reprise de blockly_ts_microbit (3f09efa) dans Mode classe, Adacraft minimal et
+    Plateforme ; vérifié dans Mode classe : thèmes sombre et clair, contraste élevé
+    clair et sombre, les deux cartes de `multi.html` (masque et ombre), `pin0`, `pin2`,
+    bouton A et logo par de vrais clics.
+
 Leçon retenue pour la suite : un même mot (« encoches », « bord ») a désigné
 successivement trois défauts différents selon la capture en main à ce
 moment-là — ne jamais supposer que deux signalements consécutifs parlent du
