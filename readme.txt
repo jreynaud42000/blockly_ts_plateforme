@@ -1654,3 +1654,23 @@ le professeur garde la seance complete (export). En ligne : derriere Caddy (HTTP
 et PLATEFORME_PROXY=1. Sur la plateforme, le signe de vie de l'exe (/_vie) et le mode classe (/_classe/) recoivent 410 :
 la page arrete aussitot ses signes de vie.
 A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.
+
+45. VUE MONTAGE : LA CARTE D'EXTENSION ET SES CABLES (oct. 2026)
+Des qu'un bloc Grove ou Servos est pose, le bouton "Voir le montage" apparait sous "Reinitialiser la simulation".
+Il ouvre, par-dessus la zone de blocs, un dessin du montage :
+- la micro:bit couchee sur la carte Grove (Grove Shield for micro:bit v2.0 de Seeed) et enfichee dans son connecteur ;
+  comme sur la vraie carte, les 4 ports Grove sont alignes en bas (I2C, P0/P14, P1/P15, P2/P16) et 8 pastilles pour
+  pinces crocodile bordent la carte (GND, P8, P12, P13 a gauche ; 3V3, P0, P1, P2 a droite) ;
+- chaque module du programme sous son port, relie par son cable Grove a 4 fils (jaune, blanc, rouge, noir) ;
+  pour P8, P12 et P13, fils a pinces crocodile depuis les pastilles (signal et GND a gauche, 3V3 a droite, son fil
+  passe sous la carte), avec la mention "hors port Grove" (le port "P8 / P12" de la barre de LED n'existe pas sur
+  la carte v2.0).
+"port partage" signale deux modules branches au meme endroit (possible dans le programme, pas sur la table) ;
+"bus I2C partage" rappelle que plusieurs modules I2C se suivent sur le meme bus (un hub I2C sur la table).
+La carte micro:bit est deplacee dans le montage (pas copiee) : boutons, broches, logo et LED y fonctionnent comme
+d'habitude, et la simulation continue. Le montage montre ou chaque module est branche ; l'etat des modules (valeurs,
+LED, moteurs) reste dans "Peripheriques". Fermer : bouton "Fermer", "Fermer le montage" ou touche Echap.
+La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancrure, ports, pastilles, prise micro
+USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
+trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
+blockly_ts_microbit, ou la vue montage dessine aussi la carte moteurs DFR0548.

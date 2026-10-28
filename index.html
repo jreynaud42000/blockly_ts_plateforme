@@ -880,6 +880,45 @@
        faux et les blocs correspondants ne se declenchent jamais. */
     #btn-shake { background: #5e5e5e; width: 100%; font-size: 15px; padding: 10px; box-sizing: border-box; margin: 0; }
     #btn-shake:hover { background: #747474; }
+
+    /* Vue montage (montage.js) : la micro:bit enfichee dans sa carte d'extension, modules et cables autour.
+       Posee sur la zone de blocs, la simulation continue derriere. */
+    #montage-panneau { position: absolute; inset: 10px; z-index: 75; /* au-dessus de la boite a outils Blockly (70) */ display: flex; flex-direction: column;
+        background: var(--fond-chrome); color: var(--texte-chrome); border: 2px solid var(--bordure-chrome);
+        border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.45); overflow: hidden; }
+    #montage-panneau[hidden] { display: none; }
+    .montage-entete { display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 10px 14px; border-bottom: 1px solid var(--bordure-chrome); }
+    .montage-entete h3 { margin: 0; font-size: 16px; }
+    #montage-sous-titre { font-size: 13px; opacity: 0.85; }
+    #montage-fermer { min-height: 44px; padding: 8px 14px; }
+    .montage-zone { flex: 1 1 auto; min-height: 0; overflow: auto; display: flex; justify-content: center; align-items: flex-start; padding: 8px; }
+    .montage-cadre-echelle { position: relative; flex: 0 0 auto; overflow: hidden; }
+    #montage-scene { position: absolute; left: 0; top: 0; width: 1000px; transform-origin: 0 0; }
+    #montage-scene > svg { position: absolute; left: 0; top: 0; width: 1000px; height: 100%; overflow: visible; }
+    #montage-svg-haut { pointer-events: none; z-index: 3; }
+    #montage-carte { position: absolute; left: 360px; top: 20px; width: 280px; height: 230px; z-index: 2;
+        filter: drop-shadow(0 10px 16px rgba(0,0,0,0.55)); }
+    #montage-carte #microbit-board { transform: none !important; }
+    .montage-fil { fill: none; stroke-width: 3.2; stroke-linecap: round; }
+    .montage-fil-ombre { fill: none; stroke: rgba(0,0,0,0.45); stroke-width: 5.4; stroke-linecap: round; }
+    .montage-serigraphie { fill: #f2f2f2; font: 600 18px sans-serif; }   /* lisible une fois la scene reduite */
+    .montage-serigraphie.petite { font-size: 14px; }
+    .montage-puce { fill: #fff; font: 600 10px sans-serif; }
+    .montage-segments { fill: #ff3b30; font: 700 30px monospace; letter-spacing: 2px; }
+    .montage-libelle { fill: var(--texte-chrome); font: 600 16px sans-serif; }
+    .montage-note { fill: var(--texte-chrome); opacity: 0.8; font: 14px sans-serif; }
+    .montage-note.alerte { fill: #ffb300; opacity: 1; }
+    :root[data-theme="light"]:not([data-contrast="high"]) .montage-note.alerte { fill: #9a5b00; }
+    :root[data-theme="light"][data-contrast="high"] .montage-note.alerte { fill: #5c3300; }   /* sur blanc : 9:1 au lieu de 1,8:1 */
+    .montage-aide { margin: 0; padding: 8px 14px; font-size: 13px; border-top: 1px solid var(--bordure-chrome); }
+    .montage-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    #btn-montage { background: #0b7285; width: 100%; font-size: 15px; padding: 10px; box-sizing: border-box; margin: 0; }
+    #btn-montage:hover { background: #0f8aa0; }
+    #btn-montage[hidden] { display: none; }
+    #carte-cadre.montage-carte-absente { align-items: center; }
+    #carte-cadre.montage-carte-absente::after { content: "La carte est affichée dans le montage."; font-size: 13px;
+        color: var(--texte-chrome); opacity: 0.8; text-align: center; }
     @keyframes secousse {
         0%, 100% { transform: translateX(0) rotate(0deg); }
         20% { transform: translateX(-7px) rotate(-2deg); }
@@ -1785,6 +1824,20 @@
   <div id="main-container">
     <div id="blockly-wrapper">
       <div id="blocklyDiv"></div>
+      <!-- Vue montage (montage.js) : carte d'extension, modules et cables d'apres les blocs poses -->
+      <section id="montage-panneau" hidden aria-labelledby="montage-titre">
+        <div class="montage-entete">
+          <div><h3 id="montage-titre">Montage</h3><span id="montage-sous-titre"></span></div>
+          <button id="montage-fermer">✕ Fermer</button>
+        </div>
+        <div class="montage-zone"><div class="montage-cadre-echelle"><div id="montage-scene">
+          <svg id="montage-svg-bas" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+          <div id="montage-carte"></div>
+          <svg id="montage-svg-haut" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+        </div></div></div>
+        <ul id="montage-resume" class="montage-sr" aria-label="Branchements"></ul>
+        <p class="montage-aide">Le montage montre où chaque module est branché ; son état s'affiche dans « Périphériques ». Échap pour fermer.</p>
+      </section>
       <div id="voile-blocs-figes"><span>✎ Blocs figés — édition manuelle du code en cours</span></div>
       <!-- Proposition du multi-editeur radio (bandeau.js) : au premier bloc Radio pose par l'eleve -->
       <div id="proposition-radio" role="status" hidden>
@@ -1876,6 +1929,7 @@
       <button id="btn-shake">🤚 Secouer la carte</button>
       <button id="run-sim">▶ Lancer la simulation</button>
       <button id="btn-reset">⟲ Réinitialiser la simulation</button>
+      <button id="btn-montage" hidden aria-expanded="false" aria-controls="montage-panneau">🔌 Voir le montage</button>
       </div>
       </div>
 
@@ -2476,6 +2530,7 @@
   <script type="module" src="ia-immediat.js"></script>
   <script type="module" src="tuto.js"></script>
   <script type="module" src="bandeau.js"></script>
+  <script type="module" src="montage.js"></script>
   <script type="module" src="exercices.js"></script>
   <script type="module" src="seances.js"></script>
   <script type="module" src="plateforme.js"></script>

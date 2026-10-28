@@ -6,7 +6,7 @@ Variante « mode classe » (solution 2, séance servie par le PC du professeur) 
 Variante « plateforme en ligne » (solution 3, comptes élèves, classe et maison) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_plateforme` (copie Git du mode classe + `plateforme/`, `plateforme.js`) — **non déployée**
 Lancement : double-clic sur `lancer_projet.bat`, puis <http://localhost:8000> — ou l'exe `dist\MicrobitBlockly_V2.0E.exe`
 Hébergement : dossier `site_web` (site statique, voir `PROMPT_RECREATION.md` §26)
-Fichiers ajoutés depuis la V2.0C : `bandeau.js`, `exercices.js`, `exercices.json`, `ia-immediat.js`, `ia-son-immediat.js`, `seances.js`, `lib/mediapipe`, `lib/zxing`, `site_web/` (voir la section « Évolutions de la copie »)
+Fichiers ajoutés depuis la V2.0C : `bandeau.js`, `montage.js`, `exercices.js`, `exercices.json`, `ia-immediat.js`, `ia-son-immediat.js`, `seances.js`, `lib/mediapipe`, `lib/zxing`, `site_web/` (voir la section « Évolutions de la copie »)
 
 Ce fichier dit **où on en est** : ce qui a été vérifié, ce qui ne peut l'être
 sans matériel, et ce qui a été écarté. Les deux autres documents complètent :
@@ -393,6 +393,17 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
     module), et la séquence de déclenchement de l'ultrason (elle vérifie
     l'état de repos de la broche écho avant de choisir le front à mesurer —
     fidèlement reproduite, mais jamais vue fonctionner sur une vraie carte).
+10. **La vue montage** (oct. 2026, `montage.js`, readme §45), reprise de
+   `blockly_ts_microbit` (commit c7244e5). Vérifiée là-bas dans le navigateur intégré
+   (carte Grove, « port partagé », « bus I2C partagé », « hors port Grove », clics
+   dans le montage, Échap, thèmes) ; ici, cet éditeur n'a pas les blocs DFR0548 :
+   seule la carte Grove apparaît. Carte Grove redessinée dans Mode classe (oct. 2026)
+   d'après les photos du produit (The Pi Hut, vue de dessus avec règle) : ports en bas,
+   8 pastilles pour pinces crocodile, micro:bit couchée dans le connecteur central ;
+   modules en rangée sous leurs ports. Vérifié dans le navigateur intégré de Mode
+   classe (8 modules, port partagé, pinces sur P8/P12/P13, Échap) et par calcul des
+   contrastes dans les quatre thèmes ; ici, ajouts identiques, non ouverts dans le
+   navigateur. Positions mesurées sur photo, à quelques millimètres près.
 
 ## Écarté volontairement
 

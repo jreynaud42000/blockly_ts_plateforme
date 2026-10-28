@@ -27,6 +27,7 @@ Un seul dossier, servi par son propre serveur Python (`app.py`, voir ci-dessous)
 | `ia.js` | Reconnaissance d'images et de sons (Teachable Machine, `lib/tm/`), panneau IA |
 | `tuto.js` | Visites guidées (menu Aide) : bulle, surbrillance, étapes qui attendent une action réelle |
 | `bandeau.js` | Colle du bandeau : libellés Afficher/Masquer, voyant, sélecteur de carte, pastilles, recherche de blocs (§22, §23) |
+| `montage.js` | Vue montage : carte d'extension Grove v2.0, modules et câbles d'après les blocs ; déplace `#microbit-board`, ne le copie pas (readme §45) |
 | `exercices.js` + `exercices.json` | Exercices pas à pas, progression, mode évaluation ; les exercices sont des données (§25) |
 | `site_web/` | Copie prête à héberger en site statique (§26) — à régénérer après chaque modification |
 | `firmware.hex` | Image MicroPython officielle (fournie par l'utilisateur) |
