@@ -1656,7 +1656,7 @@ la page arrete aussitot ses signes de vie.
 A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.
 
 45. VUE MONTAGE : LA CARTE D'EXTENSION ET SES CABLES (oct. 2026)
-Des qu'un bloc Grove, Servos ou Carte moteurs DFR0548 est pose, le montage remplace la carte seule dans la colonne du simulateur
+Des qu'un bloc Grove, Servos ou d'une carte d'extension (DFR0548, Motor:bit) est pose, le montage remplace la carte seule dans la colonne du simulateur
 (oct. 2026), si elle fait au moins 480 px de large ; les boutons Secouer et Reinitialiser passent en ligne dessous, et
 "Agrandir" ouvre le meme montage par-dessus la zone de blocs. Colonne plus etroite (modules et etiquettes
 illisibles) : la carte seule reste, avec le bouton "Voir le montage" sous "Reinitialiser la simulation". Le passage
@@ -1707,7 +1707,7 @@ la legende ajoute "la carte n'a que 4 LED". Pour un autre module, choisir une br
 sont les plus sures pour un module numerique ; P0, P1, P2 pour un capteur analogique).
 
 46. CARTE MOTEURS DFRobot DFR0548 (oct. 2026)
-Nouvelle categorie "Carte moteurs DFR0548", apres Servos, pour la carte d'extension DFRobot micro:bit Driver Expansion
+Sous-categorie "DFR0548" de "Cartes d'extension" (apres Servos), pour la carte d'extension DFRobot micro:bit Driver Expansion
 Board (DFR0548) : une puce PCA9685 a l'adresse I2C 0x40, a 50 Hz. Quatre blocs :
 - "servo S1 a S8 a ... degres" (0 a 180 degres, impulsion de 600 a 2400 us) ;
 - "moteur M1 a M4 sens horaire / antihoraire vitesse ... (0 a 255)" : le moteur tourne jusqu'a un autre ordre ;
@@ -1730,7 +1730,7 @@ Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte. Pas 
 d'un .py (ils deviennent des blocs "code").
 
 47. CARTE MOTEURS ELECFREAKS MOTOR:BIT V1.6 (oct. 2026)
-Nouvelle categorie "Carte moteurs Motor:bit", apres "Carte moteurs DFR0548", pour la carte ELECFREAKS Motor:bit
+Sous-categorie "Motor:bit" de "Cartes d'extension", apres "DFR0548", pour la carte ELECFREAKS Motor:bit
 (EF03406, puce TB6612, deux moteurs a courant continu, 1,2 A par voie). Deux blocs :
 - "Motor:bit : moteur M1 / M2 sens horaire / antihoraire vitesse ... (0 a 255)" : le moteur tourne jusqu'a un autre ordre ;
 - "Motor:bit : arreter le moteur M1 / M2 / les deux moteurs".
@@ -1747,3 +1747,8 @@ I2C sur P19 / P20. Un module sur P1, P2, P8 ou P12 affiche "P8 : moteur M1" (par
 broches de la carte servent aux blocs Entrees/Sorties.
 Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte (sens des moteurs, rapport cyclique a
 vitesse 255).
+Categorie "Cartes d'extension" (oct. 2026, choix de l'utilisateur) : les anciennes categories "Carte moteurs DFR0548"
+et "Carte moteurs Motor:bit" sont reunies dans une seule categorie, apres Servos, qui s'ouvre sur une sous-categorie par
+carte (DFR0548, Motor:bit), comme Grove, Radio et Robots. Les blocs, leur couleur, la simulation et le montage ne
+changent pas. Un reglage du panneau administrateur fait sur une ancienne categorie (masquee, renommee, recoloree) ne
+s'applique plus : a refaire sur "Cartes d'extension" ou ses sous-categories.

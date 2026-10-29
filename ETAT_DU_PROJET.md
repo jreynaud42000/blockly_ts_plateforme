@@ -452,6 +452,13 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    vitesse, P12 sens), jamais exécuté sur une vraie carte. Carte du montage dessinée
    d'après le dessin coté du wiki ELECFREAKS. Si une carte est disponible : vérifier
    le sens « horaire » de chaque moteur et le niveau de P8 / P12.
+13. **Catégorie « Cartes d'extension »** (oct. 2026, maquette A choisie par
+   l'utilisateur) : « Carte moteurs DFR0548 » et « Carte moteurs Motor:bit » réunies
+   dans une catégorie parente avec deux sous-catégories (DFR0548, Motor:bit), comme
+   Grove ; couleurs des blocs inchangées. Vérifié dans Mode classe : colonne des
+   catégories, tiroir Motor:bit (2 blocs, bleu), panneau administrateur (catégorie et
+   ses deux sous-menus), aucune erreur console. Un réglage administrateur déjà fait
+   sur une ancienne catégorie ne s'applique plus.
 
 ## Écarté volontairement
 

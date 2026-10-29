@@ -5488,8 +5488,10 @@ try {
         'Capteurs': '#d2cc79',
         'Actionneurs (Audio)': '#622d86',
         'Servos': '#25f478',
-        'Carte moteurs DFR0548': '#0b7285',
-        'Carte moteurs Motor:bit': '#1971c2',
+        // Cartes d'extension : chaque carte garde sa couleur (ses blocs ne changent pas de teinte).
+        'Cartes d\'extension': '#0b7285',
+        'DFR0548': '#0b7285',
+        'Motor:bit': '#1971c2',
         'Radio': '#1864ab',
         'IA': '#9c6644',
         'Grove': '#2b8a3e',
@@ -5529,7 +5531,7 @@ try {
     // Ordre voulu par l'utilisateur (la table sert aussi d'ordre « par defaut » du panneau administrateur, qui part de
     // TOOLBOX_ORIGINAL). Les categories qui n'y figurent pas (robots, LiDAR) restent
     // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ». « Graphique » n'existe pas encore.
-    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Carte moteurs DFR0548', 'Carte moteurs Motor:bit', 'Radio', 'IA', 'Grove',
+    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Cartes d\'extension', 'Radio', 'IA', 'Grove',
                               'Logique', 'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes'];
     const NOMS_ROBOTS = ['Maqueen Plus', 'Maqueen Lite', 'Kitrobot v2', 'LiDAR'];   // regroupes dans « Robots »
     const CATEGORIE_LISTES = {
@@ -5761,7 +5763,11 @@ try {
             ]
           },
           {
-            "kind": "category", "name": "Carte moteurs DFR0548", "colour": "190",
+            // Cartes d'extension reunies (choix de l'utilisateur, maquette A) : une sous-categorie par carte, comme Grove.
+            "kind": "category", "name": "Cartes d'extension", "colour": "190",
+            "contents": [
+            {
+            "kind": "category", "name": "DFR0548", "colour": "190",
             "contents": [
               { "kind": "label", "text": "Servomoteurs (S1 à S8)", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "dfr_servo", "inputs": { "ANGLE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } },
@@ -5771,13 +5777,15 @@ try {
               { "kind": "label", "text": "Moteurs pas à pas", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "dfr_pas_a_pas", "inputs": { "QUANTITE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } }
             ]
-          },
-          {
-            "kind": "category", "name": "Carte moteurs Motor:bit", "colour": "210",
+            },
+            {
+            "kind": "category", "name": "Motor:bit", "colour": "210",
             "contents": [
               { "kind": "label", "text": "Moteurs (M1 et M2)", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "motorbit_moteur", "inputs": { "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "150" } } } } },
               { "kind": "block", "type": "motorbit_moteur_arreter" }
+            ]
+            }
             ]
           },
           {
