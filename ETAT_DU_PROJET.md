@@ -404,6 +404,27 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    classe (8 modules, port partagé, pinces sur P8/P12/P13, Échap) et par calcul des
    contrastes dans les quatre thèmes ; ici, ajouts identiques, non ouverts dans le
    navigateur. Positions mesurées sur photo, à quelques millimètres près.
+   **BitMaker V2** et choix de la carte (boutons radio « Carte d'extension »,
+   mémorisés dans `localStorage` sous `montageCarte`), repris de `blockly_ts_microbit`
+   (commit ffbb986) : carte dessinée d'après la photo de dessus Seeed (57 × 70 mm,
+   cotes converties depuis les pixels), vérifiée là-bas dans le navigateur (7 modules,
+   P13 « réservée aux LED de la carte », bascule mémorisée, thèmes). À comparer avec
+   une vraie carte : sens des fils de chaque port (lu sur la sérigraphie).
+   Ruban sur P13 avec la BitMaker = les 4 LED de la carte, repris de
+   `blockly_ts_microbit` (commit 768788c, vérifié là-bas en simulation : couleurs
+   recopiées en direct, « la carte n'a que 4 LED » au-delà de 4, extinction à la
+   réinitialisation). Les couleurs sont recopiées de `#grove-ruban`
+   (MutationObserver), sans toucher à `un.js`.
+   **Montage dans la colonne** (maquette B choisie par l'utilisateur), repris de
+   `blockly_ts_microbit` (commit d8a5ce8) : une seule scène, déplacée entre
+   `#montage-colonne-zone` et la vue agrandie ; trois modes (carte seule, colonne,
+   agrandi), seuil de 480 px avec 24 px d'hystérésis (ResizeObserver sur
+   `#simulator-container`). Vérifié là-bas (538 px : montage ; 303 px : carte seule
+   et « Voir le montage » ; retour automatique ; Agrandir, Échap, Fermer ; thèmes).
+   À revoir sur un vrai poste en faisant glisser la poignée de la colonne.
+   `montage.js` repris ensuite de `blockly_ts_microbit` (commit 2d49aac, DFR0548
+   redessinée d'après le schéma DFRobot) pour garder un fichier identique d'un
+   éditeur à l'autre ; sans blocs DFR0548 ici, ce dessin n'apparaît jamais.
 
 ## Écarté volontairement
 

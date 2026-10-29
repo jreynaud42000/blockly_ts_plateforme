@@ -1656,8 +1656,11 @@ la page arrete aussitot ses signes de vie.
 A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.
 
 45. VUE MONTAGE : LA CARTE D'EXTENSION ET SES CABLES (oct. 2026)
-Des qu'un bloc Grove ou Servos est pose, le bouton "Voir le montage" apparait sous "Reinitialiser la simulation".
-Il ouvre, par-dessus la zone de blocs, un dessin du montage :
+Des qu'un bloc Grove ou Servos est pose, le montage remplace la carte seule dans la colonne du simulateur
+(oct. 2026), si elle fait au moins 480 px de large ; les boutons Secouer et Reinitialiser passent en ligne dessous, et
+"Agrandir" ouvre le meme montage par-dessus la zone de blocs. Colonne plus etroite (modules et etiquettes
+illisibles) : la carte seule reste, avec le bouton "Voir le montage" sous "Reinitialiser la simulation". Le passage
+de l'un a l'autre se fait tout seul quand on redimensionne la colonne. Le montage montre :
 - la micro:bit couchee sur la carte Grove (Grove Shield for micro:bit v2.0 de Seeed) et enfichee dans son connecteur ;
   comme sur la vraie carte, les 4 ports Grove sont alignes en bas (I2C, P0/P14, P1/P15, P2/P16) et 8 pastilles pour
   pinces crocodile bordent la carte (GND, P8, P12, P13 a gauche ; 3V3, P0, P1, P2 a droite) ;
@@ -1674,3 +1677,17 @@ La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancr
 USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
 trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
 blockly_ts_microbit, ou la vue montage dessine aussi la carte moteurs DFR0548.
+Choix de la carte (oct. 2026) : en tete du montage, "Carte d'extension" propose Grove Shield v2.0 ou BitMaker V2
+(boutons radio, choix memorise dans le navigateur, Grove par defaut).
+BitMaker V2 (Seeed, 57 x 70 mm), dessinee d'apres la photo de dessus du fabricant : 3 ports Grove a gauche (P8 :
+P8 et P14 ; I2C ; P15 : P15 et P16) et 3 a droite (~P0 : P0 et P1 ; ~P1 : P1 et P2 ; ~P2 : P2 et P12), avec les
+noms des fils comme sur la carte ; 4 LED RGB (Pixel 0 a 3) sur P13 ; 5 pastilles 0, 1, 2, VCC, GND ; en haut, prise
+batterie JST, micro USB et selecteur 5 V / 3,3 V (en partie sous la micro:bit). Une broche seule va sur le port ou
+elle est le signal 1 (fil jaune) ; un module a deux broches va sur le port qui les porte toutes les deux (joystick
+X = P0, Y = P1 sur ~P0). P1 et P2 sortant chacune sur deux ports, "port partage" signale aussi deux modules qui
+utilisent la meme broche par deux ports differents. P13 n'a pas de port : "P13 reservee aux LED de la carte".
+Ruban RGB sur P13 avec la BitMaker : ce sont les 4 LED de la carte. Pas de module ni de cable ; la legende
+"Ruban RGB · LED de la carte (P13)" s'affiche sous la carte et les 4 LED dessinees prennent en direct les couleurs du
+ruban de "Peripheriques" (LED n° 0 a 3 = Pixel 0 a 3), eteintes a la reinitialisation. Au-dela de 4 LED dans le bloc,
+la legende ajoute "la carte n'a que 4 LED". Pour un autre module, choisir une broche qui a un port (P8, P14, P15, P16
+sont les plus sures pour un module numerique ; P0, P1, P2 pour un capteur analogique).
