@@ -7,9 +7,9 @@
 // illisibles : la carte seule reste, avec le bouton « Voir le montage ») ; « Agrandir » ouvre la meme scene
 // par-dessus la zone de blocs. Une seule scene, deplacee d'un endroit a l'autre.
 //
-// Le montage est un dessin statique : il montre OU chaque module est branche, d'apres les blocs
-// poses. L'etat des modules (LED, curseurs, moteurs qui tournent) reste dans la liste
-// « Peripheriques » du simulateur. La carte micro:bit n'est pas copiee : #microbit-board est
+// Le montage montre OU chaque module est branche, d'apres les blocs poses, et ce que font les
+// actionneurs pendant la simulation (moteurs, servos, LED, buzzer, relais, ecrans) : il recopie ce
+// qu'affiche la liste « Peripheriques » (majVivant), qui garde les curseurs des capteurs. La carte micro:bit n'est pas copiee : #microbit-board est
 // deplace dans le montage a l'ouverture et remis a sa place a la fermeture, avec ses
 // identifiants et ses ecouteurs (broches, logo, boutons A et B, LED).
 //
@@ -64,6 +64,13 @@ const MODULES = [
     { motif: /^grove_scd41_/,                 nom: 'Capteur CO₂ SCD41',     i2c: true, picto: 'puce' },
 ];
 const BLOC_EXTENSION = /^(grove_|servo_|dfr_)/;
+// Lecteur de l'etat en direct (majVivant) quand il differe du dessin : plusieurs capteurs partagent le dessin « puce ».
+const VIVANT = {
+    'Capteur de pression': 'pression', 'Capteur COV': 'cov', 'Capteur de gestes': 'gestes', 'Température, humidité': 'th',
+    'DHT11': 'th', 'DHT22': 'th', 'Capteur CO₂ SCD30': 'co2', 'Capteur CO₂ SCD41': 'co2', 'Horloge RTC': 'rtc',
+    'Capteur de couleur': 'couleur', 'Capteur de lumière': 'lumiere', 'Ultrason': 'ultrason', 'Potentiomètre': 'pot',
+    'Détecteur de mouvement': 'pir', 'Bouton poussoir': 'bouton', 'Joystick': 'joystick',
+};
 
 // ---------- Cartes d'extension ----------
 // Chaque point de branchement donne l'origine des fils (x, y), leur direction de sortie (d)
@@ -178,7 +185,7 @@ function lireMontage() {
             const n = b.getFieldValue('MOTEUR');
             if (!VIS_DFR[n]) continue;
             const [plus, moins] = VIS_DFR[n];
-            ajouter('M' + n, { nom: 'Moteur C.C.', picto: 'moteur', large: true, etiquette: 'M' + n, occupe: ['M' + n],
+            ajouter('M' + n, { nom: 'Moteur C.C.', picto: 'moteur', large: true, etiquette: 'M' + n, occupe: ['M' + n], cle: n,
                 fils: [{ x: dx(plus), y: dy(10), d: [0, 1], c: F.rouge }, { x: dx(moins), y: dy(10), d: [0, 1], c: F.noir }] });
             continue;
         }
@@ -188,12 +195,12 @@ function lireMontage() {
             const couleurs = modele === '42BYGH' ? [F.noir, F.vert, F.rouge, F.bleu] : [F.orange, F.rose, F.jaune, F.bleu];
             const fils = [];
             [a, c].forEach((n, i) => { VIS_DFR[n].forEach((vis, j) => fils.push({ x: dx(vis), y: dy(10), d: [0, 1], c: couleurs[i * 2 + j] })); });
-            ajouter('PAS' + paire, { nom: 'Pas à pas ' + modele, picto: 'pas', modele, etiquette: 'M' + a + ' + M' + c, occupe: ['M' + a, 'M' + c], fils });
+            ajouter('PAS' + paire, { nom: 'Pas à pas ' + modele, picto: 'pas', modele, cle: paire, etiquette: 'M' + a + ' + M' + c, occupe: ['M' + a, 'M' + c], fils });
             continue;
         }
         if (dfr && b.type === 'dfr_servo') {
             const n = Number(b.getFieldValue('SERVO'));
-            ajouter('S' + n, { nom: 'Servomoteur', picto: 'servo', etiquette: 'S' + n, occupe: ['S' + n],
+            ajouter('S' + n, { nom: 'Servomoteur', picto: 'servo', etiquette: 'S' + n, occupe: ['S' + n], cle: 'DFR S' + n,
                 fils: filsRangeeDfr(COLONNES_SERVO, yRangDfr(n - 1), [F.orange, F.rouge, F.marron]) });
             continue;
         }
@@ -214,7 +221,7 @@ function lireMontage() {
         }
         const cle = def.nom + '|' + pins.join(',');
         if (modules.has(cle)) continue;
-        ajouter(cle, Object.assign({ nom: def.nom, picto: def.picto, large: def.large, pins },
+        ajouter(cle, Object.assign({ nom: def.nom, picto: def.picto, large: def.large, pins, cle: 'P' + pins[0].slice(3) },
             dfr ? branchementDfr(pins, def.servo) : bitmaker ? branchementBitmaker(pins) : branchementGrove(pins)));
     }
 
@@ -291,7 +298,7 @@ function disposer(modules, basCarte) {
         cotes[c].sort((a, b) => a.ancre[1] - b.ancre[1]).forEach(m => {
             m.y = Math.max(y, m.ancre[1] - 60);
             m.x = c === 'g' ? 30 : LARGEUR - 30 - MODULE.l;
-            y = m.y + MODULE.h + 76;
+            y = m.y + MODULE.h + 96;
             bas = Math.max(bas, y);
         });
     }
@@ -306,8 +313,8 @@ function disposer(modules, basCarte) {
         const x0 = Math.max(xMin, Math.min(centre - largeur / 2, xMax - largeur));
         ligne.forEach((m, k) => {
             m.x = x0 + k * pas;
-            m.y = basCarte + 90 + (i / parLigne) * (MODULE.h + 90);
-            bas = Math.max(bas, m.y + MODULE.h + 76);
+            m.y = basCarte + 90 + (i / parLigne) * (MODULE.h + 110);
+            bas = Math.max(bas, m.y + MODULE.h + 96);
         });
     }
     return bas + 10;
@@ -465,8 +472,11 @@ function dessinModule(m, cx, cy) {
     if (m.picto === 'moteur' && dessins) return imbrique(dessins.tt, 150, 80);
     if (m.picto === 'pas' && dessins) return imbrique(dessins.pas[m.modele] || dessins.pas['28BYJ-48'], 80, 80);
     if (m.picto === 'servo') {
+        // Palonnier vers le haut a 90 degres, comme dans « Peripheriques » ; il tourne autour de l'axe (cx + 18, cy).
         return r(cx - 40, cy - 18, 80, 36, 'rx="4" fill="#2c64c4" stroke="#173f85"') + r(cx - 52, cy - 6, 104, 12, 'rx="3" fill="#2c64c4"') +
-               cercle(cx + 18, cy, 12, 'fill="#e6e6e6"') + r(cx + 14, cy - 34, 8, 40, 'rx="4" fill="#f5f5f5" stroke="#bbb"');
+               cercle(cx + 18, cy, 12, 'fill="#e6e6e6"') +
+               `<g class="mv-palonnier" style="transform-origin: ${cx + 18}px ${cy}px">` +
+               r(cx + 14, cy - 34, 8, 40, 'rx="4" fill="#f5f5f5" stroke="#bbb"') + '</g>' + cercle(cx + 18, cy, 4, 'fill="#bbb"');
     }
     const l = largeurPcb(m), h = 74;
     let s = r(cx - l / 2, cy - h / 2, l, h, 'rx="6" fill="#3d8f4a" stroke="#2a6534"');
@@ -476,27 +486,40 @@ function dessinModule(m, cx, cy) {
     else if (m.cote === 'd') s += r(cx - l / 2 - 8, cy - 14, 10, 28, 'rx="2" fill="#f2f2f2" stroke="#b9b9b9"');
     else s += r(cx - 14, cy - h / 2 - 8, 28, 10, 'rx="2" fill="#f2f2f2" stroke="#b9b9b9"');
     switch (m.picto) {
-        case 'led': s += cercle(cx, cy, 15, 'fill="#e53935" stroke="#8e1c1a"') + cercle(cx - 5, cy - 5, 4, 'fill="#ff9d9a"'); break;
-        case 'bouton': s += r(cx - 18, cy - 18, 36, 36, 'rx="3" fill="#202020"') + cercle(cx, cy, 11, 'fill="#3a3a3a" stroke="#555"'); break;
-        case 'pot': s += r(cx - 18, cy - 18, 36, 36, 'rx="3" fill="#2c64c4"') + cercle(cx, cy, 12, 'fill="#e6e6e6"') + r(cx - 2, cy - 12, 4, 10, 'fill="#555"'); break;
-        case 'joystick': s += cercle(cx, cy, 24, 'fill="#262626"') + cercle(cx, cy, 13, 'fill="#4a4a4a" stroke="#777"'); break;
+        case 'led': s += cercle(cx, cy, 24, 'class="mv-halo" fill="#ff3b30" opacity="0"') +
+                         cercle(cx, cy, 15, 'class="mv-led" fill="#8e2f2c" stroke="#5c1715"') + cercle(cx - 5, cy - 5, 4, 'fill="#ff9d9a" opacity="0.6"'); break;
+        case 'bouton': s += r(cx - 18, cy - 18, 36, 36, 'rx="3" fill="#202020"') + cercle(cx, cy, 11, 'class="mv-capuchon" fill="#3a3a3a" stroke="#555"'); break;
+        // Repere du potentiometre : il tourne autour de son centre, de -150 a +150 degres (comme dans « Peripheriques »).
+        case 'pot': s += r(cx - 18, cy - 18, 36, 36, 'rx="3" fill="#2c64c4"') + cercle(cx, cy, 12, 'fill="#e6e6e6"') +
+                         `<g class="mv-pot" style="transform-origin: ${cx}px ${cy}px">` + r(cx - 2, cy - 12, 4, 10, 'fill="#555"') + '</g>'; break;
+        // Manette du joystick : deplacee selon X et Y (512 au centre).
+        case 'joystick': s += cercle(cx, cy, 24, 'fill="#262626"') + cercle(cx, cy, 13, 'class="mv-manette" fill="#4a4a4a" stroke="#777"'); break;
         case 'lumiere': s += cercle(cx, cy, 13, 'fill="#e8913a" stroke="#a65d18"') + `<path d="M${cx - 8} ${cy - 3} h4 v6 h4 v-6 h4 v6 h4" stroke="#7a3f0a" stroke-width="2" fill="none"/>`; break;
-        case 'pir': s += cercle(cx, cy, 24, 'fill="#f4f4f4" stroke="#c9c9c9"') + cercle(cx, cy, 14, 'fill="none" stroke="#dcdcdc"'); break;
-        case 'buzzer': s += cercle(cx, cy, 20, 'fill="#1e1e1e"') + cercle(cx, cy, 4, 'fill="#555"'); break;
-        case 'relais': s += r(cx - 24, cy - 20, 48, 40, 'rx="3" fill="#2c64c4"') + texte(cx, cy + 5, 'RELAIS', 'class="montage-puce" text-anchor="middle"'); break;
+        case 'pir': s += cercle(cx, cy, 24, 'class="mv-pir" fill="#f4f4f4" stroke="#c9c9c9"') + cercle(cx, cy, 14, 'fill="none" stroke="#dcdcdc"'); break;
+        case 'buzzer': s += cercle(cx, cy, 20, 'fill="#1e1e1e"') + cercle(cx, cy, 4, 'fill="#555"') +
+                            cercle(cx, cy, 28, 'class="mv-onde" fill="none" stroke="#f2c230" stroke-width="3"'); break;
+        case 'relais': s += r(cx - 24, cy - 20, 48, 40, 'rx="3" fill="#2c64c4"') + texte(cx, cy + 5, 'RELAIS', 'class="montage-puce" text-anchor="middle"') +
+                            cercle(cx + 30, cy + 24, 5, 'class="mv-voyant" fill="#5a1d1d" stroke="#222"'); break;
         case 'dht': s += r(cx - 18, cy - 24, 36, 48, 'rx="3" fill="#7fb3e6"') + [0, 1, 2, 3].map(i => r(cx - 12, cy - 18 + i * 10, 24, 4, 'fill="#4a7fb8"')).join(''); break;
         case 'ultrason': s += cercle(cx - 32, cy, 24, 'fill="#c9cfd6" stroke="#7f8790"') + cercle(cx + 32, cy, 24, 'fill="#c9cfd6" stroke="#7f8790"') +
                               cercle(cx - 32, cy, 15, 'fill="#3a3f45"') + cercle(cx + 32, cy, 15, 'fill="#3a3f45"'); break;
         case 'ruban': s += r(cx - 66, cy - 10, 132, 20, 'fill="#151515"') +
-                           ['#ff3b30', '#ff9500', '#ffd60a', '#34c759', '#0a84ff'].map((c, i) => r(cx - 58 + i * 25, cy - 6, 16, 12, `fill="${c}"`)).join(''); break;
+                           [0, 1, 2, 3, 4].map(i => r(cx - 58 + i * 25, cy - 6, 16, 12, `class="mv-ruban" data-i="${i}" fill="#2a2a2a" stroke="#444"`)).join(''); break;
+        // Couleurs du module (comme dans « Peripheriques ») : LED 1 rouge, 2 orange, 3 a 10 vertes ; eteintes, en sombre.
         case 'barre': s += r(cx - 64, cy - 14, 128, 28, 'fill="#151515"') + Array.from({ length: 10 }, (_, i) =>
-                           r(cx - 58 + i * 12, cy - 9, 8, 18, `fill="${i < 8 ? '#e53935' : i < 9 ? '#ffb300' : '#43a047'}"`)).join(''); break;
-        case '4d': s += r(cx - 58, cy - 22, 116, 44, 'fill="#111"') + texte(cx, cy + 12, '88:88', 'class="montage-segments" text-anchor="middle"'); break;
-        case 'oled': s += r(cx - 50, cy - 26, 100, 52, 'fill="#05070a" stroke="#333"') + [0, 1, 2].map(i => r(cx - 40, cy - 16 + i * 12, 60 - i * 14, 5, 'fill="#5ab0ff"')).join(''); break;
-        case 'lcd': s += r(cx - 64, cy - 22, 128, 44, 'fill="#9ccc3c" stroke="#5e7d1f"') + r(cx - 56, cy - 12, 80, 8, 'fill="#3b4f12"'); break;
-        case 'lcdrgb': s += r(cx - 64, cy - 22, 128, 44, 'fill="#3c8de0" stroke="#1d5aa0"') + r(cx - 56, cy - 12, 80, 8, 'fill="#e8f1fb"'); break;
+                           r(cx - 58 + i * 12, cy - 9, 8, 18, `class="mv-barre" data-i="${i}" data-couleur="${i === 0 ? '#ff3b30' : i === 1 ? '#ff9500' : '#34c759'}" fill="#2e3a2e"`)).join(''); break;
+        case '4d': s += r(cx - 58, cy - 22, 116, 44, 'fill="#111"') + texte(cx, cy + 12, '88:88', 'class="montage-segments mv-4d-repos" text-anchor="middle"') +
+                        `<foreignObject class="mv-4d" x="${cx - 56}" y="${cy - 20}" width="112" height="40"></foreignObject>`; break;
+        // Ecran : image de l'OLED de « Peripheriques » (128 x 64, meme police que le pilote).
+        case 'oled': s += r(cx - 50, cy - 26, 100, 52, 'fill="#05070a" stroke="#333"') +
+                          `<image class="mv-oled" x="${cx - 48}" y="${cy - 24}" width="96" height="48" preserveAspectRatio="none"/>`; break;
+        // Deux lignes de 16 caracteres, recopiees de l'ecran de « Peripheriques ».
+        case 'lcd': s += r(cx - 64, cy - 22, 128, 44, 'fill="#9ccc3c" stroke="#5e7d1f"') +
+                         [0, 1].map(l => texte(cx - 58, cy - 4 + l * 16, '', `class="mv-lcd montage-lcd" data-l="${l}" fill="#22310a"`)).join(''); break;
+        case 'lcdrgb': s += r(cx - 64, cy - 22, 128, 44, 'class="mv-lcd-fond" fill="#3c8de0" stroke="#1d5aa0"') +
+                            [0, 1].map(l => texte(cx - 58, cy - 4 + l * 16, '', `class="mv-lcd montage-lcd" data-l="${l}" fill="#f2f6fb"`)).join(''); break;
         case 'rtc': s += cercle(cx + 14, cy, 20, 'fill="#c0c4c8" stroke="#6b7075"') + r(cx - 28, cy - 10, 20, 20, 'fill="#111"'); break;
-        case 'couleur': s += r(cx - 12, cy - 12, 24, 24, 'fill="#111"') + cercle(cx - 24, cy, 6, 'fill="#fffbe6" stroke="#ccc"') + cercle(cx + 24, cy, 6, 'fill="#fffbe6" stroke="#ccc"'); break;
+        case 'couleur': s += r(cx - 22, cy - 22, 44, 44, 'rx="4" class="mv-couleur" fill="none" stroke-width="4"') + r(cx - 12, cy - 12, 24, 24, 'fill="#111"') + cercle(cx - 24, cy, 6, 'fill="#fffbe6" stroke="#ccc"') + cercle(cx + 24, cy, 6, 'fill="#fffbe6" stroke="#ccc"'); break;
         case 'pca': s += r(cx - 14, cy - 14, 28, 28, 'fill="#111"') + Array.from({ length: 8 }, (_, i) => r(cx - 66 + i * 8, cy + 20, 6, 10, 'fill="#c9a54a"')).join(''); break;
         case 'pilote': s += r(cx - 16, cy - 16, 32, 32, 'fill="#111"') + r(cx - 30, cy - 30, 14, 14, 'fill="#2f9e5b"') + r(cx + 16, cy - 30, 14, 14, 'fill="#2f9e5b"'); break;
         default: s += r(cx - 14, cy - 14, 28, 28, 'fill="#111"') + r(cx - 10, cy - 10, 20, 20, 'fill="none" stroke="#444"');
@@ -544,11 +567,16 @@ function dessinerScene(etat) {
     for (const m of etat.modules) {
         if (m.x === undefined) continue;
         const cx = m.x + MODULE.l / 2, cy = m.y + MODULE.h / 2;
-        bas += `<g class="montage-module">${dessinModule(m, cx, cy)}` +
+        const vivant = VIVANT[m.nom] || m.picto;
+        // Bouton poussoir et joystick : on appuie directement dessus (meme effet que dans « Peripheriques »).
+        const appui = vivant === 'bouton' || vivant === 'joystick'
+            ? ` role="button" tabindex="0" aria-label="${echap(m.nom)} ${echap(m.etiquette)} : maintenir pour appuyer"` : '';
+        bas += `<g class="montage-module${appui ? ' montage-appui' : ''}" data-vivant="${vivant}" data-cle="${echap(m.cle || '')}"${appui}>${dessinModule(m, cx, cy)}` +
                texte(cx, m.y + MODULE.h + 22, echap(m.nom), 'class="montage-libelle" text-anchor="middle"') +
                texte(cx, m.y + MODULE.h + 42, echap(m.etiquette), 'class="montage-note" text-anchor="middle"');
+        bas += texte(cx, m.y + MODULE.h + 62, '', 'class="montage-valeur" text-anchor="middle"');
         const note = [m.alerte, m.note].filter(Boolean).join(' · ');
-        if (note) bas += texte(cx, m.y + MODULE.h + 62, echap(note), `class="montage-note${m.alerte ? ' alerte' : ''}" text-anchor="middle"`);
+        if (note) bas += texte(cx, m.y + MODULE.h + 82, echap(note), `class="montage-note${m.alerte ? ' alerte' : ''}" text-anchor="middle"`);
         bas += '</g>';
     }
     return { bas, hauteur };
@@ -614,6 +642,7 @@ function redessiner() {
         : '<li>Aucun module branché pour l\'instant.</li>';
     rubanSurCarte = !!etat.modules.find(m => m.surCarte);
     copierLedsCarte();
+    majVivant();
     ajusterEchelle();
 }
 
@@ -629,6 +658,209 @@ function copierLedsCarte() {
         pixel.style.fill = allumee ? fond : '';
         pixel.style.filter = allumee ? `drop-shadow(0 0 4px ${fond})` : '';
     });
+}
+
+// ---------- Actionneurs en direct ----------
+// Chaque module dessine reprend l'etat que « Peripheriques » affiche (un.js), sans autre source : les deux
+// affichages ne peuvent pas diverger. Lecture toutes les 200 ms tant que le montage est visible.
+const $$ = (sel, base) => [...(base || document).querySelectorAll(sel)];
+const apres = (texte, sep) => { const i = String(texte).lastIndexOf(sep); return i < 0 ? '' : texte.slice(i + sep.length).trim(); };
+let derniereImageOled = '';
+
+const LECTEURS = {
+    moteur(g, cle) {
+        const el = document.querySelector(`#dfr-moteurs [data-cle="${cle}"]`), roue = g.querySelector('.dfr-roue');
+        if (roue) {
+            const source = el && el.querySelector('.dfr-roue');
+            roue.classList.toggle('tourne', !!source && source.classList.contains('tourne'));
+            roue.classList.toggle('inverse', !!source && source.classList.contains('inverse'));
+            if (source) roue.style.setProperty('--duree', source.style.getPropertyValue('--duree') || '1s');
+        }
+        return el ? apres(el.querySelector('.dfr-nom').textContent, '·') : '';
+    },
+    pas(g, cle) {
+        const el = document.querySelector(`#dfr-pas [data-cle="${cle}"]`), axe = g.querySelector('.dfr-axe');
+        if (!el) return '';
+        const source = el.querySelector('.dfr-axe');
+        if (axe && source) { axe.style.transition = source.style.transition; axe.style.transform = source.style.transform; }
+        return apres(el.querySelector('.dfr-nom').textContent, '·');
+    },
+    servo(g, cle) {
+        const el = $$('#grove-servos .servo').find(x => x.querySelector('.servo-nom').textContent === cle);
+        const bras = g.querySelector('.mv-palonnier');
+        if (!el) { bras.classList.remove('mv-tourne', 'inverse'); return ''; }
+        const cadran = el.querySelector('.servo-cadran'), rotor = el.querySelector('.servo-rotor');
+        const continu = cadran.classList.contains('continu');
+        bras.classList.toggle('mv-tourne', continu);
+        bras.classList.toggle('inverse', cadran.classList.contains('inverse'));
+        bras.style.setProperty('--duree', rotor.style.getPropertyValue('--duree') || '2s');
+        bras.style.transform = continu ? '' : rotor.style.transform;
+        return el.querySelector('.servo-etat').textContent;
+    },
+    led(g, cle) {
+        const el = $$('#grove-leds .led-broche').find(x => x.querySelector('.led-nom').textContent === cle);
+        const eclat = el ? Number(el.querySelector('.led-pastille').style.opacity) || 0 : 0;
+        g.querySelector('.mv-led').setAttribute('fill', eclat ? '#ff3b30' : '#8e2f2c');
+        g.querySelector('.mv-halo').setAttribute('opacity', (eclat * 0.45).toFixed(2));
+        if (!el) return '';
+        const niveau = Number(el.querySelector('.led-val').textContent);
+        return niveau === 0 ? 'éteinte' : niveau >= 1023 ? 'allumée' : 'luminosité ' + niveau;
+    },
+    ruban(g) {
+        const leds = $$('#grove-ruban .grove-led');
+        $$('.mv-ruban', g).forEach(c => {
+            const fond = leds[Number(c.dataset.i)] ? leds[Number(c.dataset.i)].style.background : '';
+            c.style.fill = fond && !/42, 42, 42/.test(fond) ? fond : '';
+        });
+        if (!leds.length) return '';
+        const allumees = leds.filter(l => l.style.background && !/42, 42, 42/.test(l.style.background)).length;
+        return allumees + ' LED allumée' + (allumees > 1 ? 's' : '') + ' sur ' + leds.length;
+    },
+    barre(g) {
+        const leds = $$('#grove-barreled .barre-led');
+        $$('.mv-barre', g).forEach(c => {
+            const on = leds[Number(c.dataset.i)] && leds[Number(c.dataset.i)].classList.contains('on');
+            c.setAttribute('fill', on ? c.dataset.couleur : '#2e3a2e');
+        });
+        return leds.length ? 'niveau ' + leds.filter(l => l.classList.contains('on')).length + ' / 10' : '';
+    },
+    buzzer(g, cle) {
+        const ligne = $$('#grove-buzzer .grove-sortie').find(x => x.textContent.startsWith(cle + ' :'));
+        const sonne = !!ligne && /sonne/.test(ligne.textContent);
+        g.querySelector('.mv-onde').classList.toggle('actif', sonne);
+        return ligne ? (sonne ? 'sonne' : 'silencieux') : '';
+    },
+    relais(g, cle) {
+        // Le texte du dessin (« RELAY ») precede celui de l'etat : seule l'etiquette compte.
+        const el = $$('#grove-relais .relais-module').find(x => (x.querySelector('span') || x).textContent.startsWith(cle + ' :'));
+        const ferme = !!el && el.classList.contains('actif');
+        g.querySelector('.mv-voyant').setAttribute('fill', ferme ? '#ff3b30' : '#5a1d1d');
+        return el ? (ferme ? 'fermé (marche)' : 'ouvert (arrêt)') : '';
+    },
+    oled(g) {
+        const toile = $('grove-oled'), image = g.querySelector('.mv-oled');
+        if (!toile || !image) return '';
+        const donnees = toile.toDataURL();
+        if (donnees !== derniereImageOled || image.getAttribute('href') !== donnees) {
+            derniereImageOled = donnees;
+            image.setAttribute('href', donnees);
+        }
+        return '';
+    },
+    lcd(g) {
+        $$('.mv-lcd', g).forEach(t => {
+            const ligne = $('grove-lcd-l' + t.dataset.l);
+            t.textContent = ligne ? $$('.lcd-cell', ligne).map(c => c.textContent || ' ').join('') : '';
+        });
+        return '';
+    },
+    lcdrgb(g) {
+        const fond = g.querySelector('.mv-lcd-fond'), module = $('grove-lcd');
+        if (fond && module) { const c = getComputedStyle(module).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)') fond.setAttribute('fill', c); }
+        return LECTEURS.lcd(g);
+    },
+    '4d'(g) {
+        const ecran = $('grove-4digit-ecran'), cible = g.querySelector('.mv-4d');
+        if (!ecran || !cible) return '';
+        const allume = !!ecran.querySelector('svg');
+        g.querySelector('.mv-4d-repos').style.display = allume ? 'none' : '';
+        if (allume) {
+            const k = Math.min(112 / (ecran.scrollWidth || 112), 40 / (ecran.scrollHeight || 40));
+            cible.innerHTML = `<div xmlns="http://www.w3.org/1999/xhtml" class="montage-4d" style="transform: scale(${k.toFixed(3)});` +
+                              ` opacity: ${ecran.style.opacity || 1}">${ecran.innerHTML}</div>`;
+        }
+        return '';
+    },
+    pilote() { const z = $('grove-moteurs'); return z ? z.textContent.trim() : ''; },
+
+    // Capteurs : la valeur reglee dans « Peripheriques » (curseurs, cases), avec son unite.
+    ultrason: () => texteDe('grove-distance-val') + ' cm',
+    lumiere: () => texteDe('grove-lumiere-val'),
+    pot(g) {
+        const v = Number(($('grove-pot') || {}).value || 512), repere = g.querySelector('.mv-pot');
+        if (repere) repere.style.transform = `rotate(${(v / 1023 * 300 - 150).toFixed(1)}deg)`;
+        return texteDe('grove-pot-val');
+    },
+    pir(g) {
+        const vu = !!($('grove-pir') || {}).checked;
+        g.querySelector('.mv-pir').setAttribute('fill', vu ? '#ffe08a' : '#f4f4f4');
+        return vu ? 'mouvement détecté' : 'rien ne bouge';
+    },
+    th: () => texteDe('grove-temp-val') + ' °C · ' + texteDe('grove-humi-val') + ' %',
+    co2: () => texteDe('grove-co2-val') + ' ppm',
+    pression: () => texteDe('grove-pression-val') + ' hPa',
+    cov: () => texteDe('grove-cov-val') + ' ppb',
+    couleur(g) {
+        const c = ($('grove-couleur') || {}).value || '';
+        const cadre = g.querySelector('.mv-couleur');
+        if (cadre) cadre.setAttribute('stroke', c || 'none');
+        return c ? 'couleur ' + c.toUpperCase() : '';
+    },
+    gestes() { const l = $('grove-geste'); return l && l.selectedOptions[0] ? l.selectedOptions[0].textContent.trim() : ''; },
+    rtc() { const z = $('grove-rtc'); return z ? z.textContent.trim().replace(/(\d{2}:\d{2}:\d{2})(?=\d)/, '$1 · ') : ''; },
+    bouton(g) {
+        const enfonce = boutonEnfonce || !!($('grove-bouton-maintenu') || {}).checked;
+        g.querySelector('.mv-capuchon').setAttribute('fill', enfonce ? '#1a1a1a' : '#3a3a3a');
+        g.querySelector('.mv-capuchon').setAttribute('r', enfonce ? 9 : 11);
+        return enfonce ? 'appuyé' : 'relâché';
+    },
+    joystick(g) {
+        const x = Number(($('grove-jx') || {}).value || 512), y = Number(($('grove-jy') || {}).value || 512);
+        const enfonce = !!($('grove-jbtn') || {}).checked, manette = g.querySelector('.mv-manette');
+        manette.style.transform = `translate(${((x - 512) / 512 * 9).toFixed(1)}px, ${((512 - y) / 512 * 9).toFixed(1)}px)`;
+        manette.setAttribute('fill', enfonce ? '#2a2a2a' : '#4a4a4a');
+        return 'X ' + x + ' · Y ' + y + (enfonce ? ' · appuyé' : '');
+    },
+};
+const texteDe = id => { const e = $(id); return e ? e.textContent.trim() : ''; };
+
+// Appui dans le montage : relaye au bouton de « Peripheriques » (bouton poussoir) ou a sa case (joystick).
+let boutonEnfonce = false;
+function appuyerModule(g, enfonce) {
+    if (g.dataset.vivant === 'bouton') {
+        const source = $('grove-bouton-appui');
+        if (!source || boutonEnfonce === enfonce) return;
+        boutonEnfonce = enfonce;
+        source.dispatchEvent(new PointerEvent(enfonce ? 'pointerdown' : 'pointerup', { bubbles: true }));
+    } else if (g.dataset.vivant === 'joystick') {
+        const caseBouton = $('grove-jbtn');
+        if (!caseBouton || caseBouton.checked === enfonce) return;
+        caseBouton.checked = enfonce;
+        caseBouton.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    majVivant();
+}
+function installerAppuis() {
+    svgBas.addEventListener('pointerdown', e => {
+        const g = e.target.closest('.montage-appui');
+        if (!g) return;
+        e.preventDefault();
+        appuyerModule(g, true);
+        const relacher = () => { appuyerModule(g, false); document.removeEventListener('pointerup', relacher); document.removeEventListener('pointercancel', relacher); };
+        document.addEventListener('pointerup', relacher);
+        document.addEventListener('pointercancel', relacher);
+    });
+    // Clavier : Espace ou Entree maintenus, comme un vrai bouton.
+    svgBas.addEventListener('keydown', e => {
+        const g = e.target.closest && e.target.closest('.montage-appui');
+        if (g && (e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); appuyerModule(g, true); }
+    });
+    svgBas.addEventListener('keyup', e => {
+        const g = e.target.closest && e.target.closest('.montage-appui');
+        if (g && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); appuyerModule(g, false); }
+    });
+}
+
+function majVivant() {
+    if (mode === 'carte') return;
+    for (const g of $$('#montage-svg-bas .montage-module[data-vivant]')) {
+        const lire = LECTEURS[g.dataset.vivant];
+        if (!lire) continue;
+        let valeur = '';
+        try { valeur = lire(g, g.dataset.cle) || ''; } catch (erreur) { valeur = ''; }
+        const t = g.querySelector('.montage-valeur');
+        if (t && t.textContent !== valeur) t.textContent = valeur;
+    }
 }
 
 function colonneAssezLarge() {
@@ -713,6 +945,10 @@ function installer() {
     const ruban = $('grove-ruban');
     if (ruban) new MutationObserver(() => { if (mode !== 'carte' && rubanSurCarte) copierLedsCarte(); })
         .observe(ruban, { childList: true, subtree: true, attributes: true, attributeFilter: ['style'] });
+    // Actionneurs en direct : lecture periodique tant que le montage est visible (l'OLED est une toile, sans
+    // mutation a observer).
+    setInterval(() => { if (mode !== 'carte' && document.visibilityState === 'visible') majVivant(); }, 200);
+    installerAppuis();
     redessiner();
     return true;
 }

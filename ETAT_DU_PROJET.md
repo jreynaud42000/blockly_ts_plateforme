@@ -424,6 +424,14 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    `montage.js` repris ensuite de `blockly_ts_microbit` (commit 2d49aac, DFR0548
    redessinée d'après le schéma DFRobot) pour garder un fichier identique d'un
    éditeur à l'autre ; ce dessin sert depuis l'ajout de la catégorie DFR0548 (point 11).
+   **Montage en direct** (variante 1 choisie par l'utilisateur : valeur sous le
+   dessin), repris de `blockly_ts_microbit` (commit 192a4ff) : `majVivant()` recopie
+   toutes les 200 ms l'affichage de « Périphériques » (lecteurs par module dans
+   `LECTEURS`, clé du module dans `data-cle`), sans toucher à `un.js` ; bouton
+   poussoir et joystick manipulables dans le montage (souris, Espace ou Entrée).
+   Vérifié là-bas en simulation (moteur, servo DFR, LED, buzzer, OLED, ultrason,
+   potentiomètre, bouton, thèmes) ; pas vérifiés en mouvement : ruban, barre de LED,
+   LCD, 4 digits, pas à pas.
 11. **La carte moteurs DFR0548** (oct. 2026, readme §46), reprise de
    `blockly_ts_microbit` (commits f64fedf et 8132971). Canaux, impulsions, séquences
    et durées repris de la bibliothèque MakeCode officielle `DFRobot/pxt-motor`

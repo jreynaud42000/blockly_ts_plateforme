@@ -908,6 +908,29 @@
     .montage-etiquette.moyenne { font-size: 10px; }
     .montage-etiquette.petite { font-size: 9px; }
     .montage-serigraphie.micro { font-size: 6px; font-weight: 500; }   /* noms des fils, a l'echelle de la carte */
+    /* Actionneurs en direct (montage.js, majVivant) : valeur sous le module, animations comme dans « Peripheriques ». */
+    .montage-valeur { fill: #7fd3e6; font: 600 14px sans-serif; }
+    :root[data-theme="light"]:not([data-contrast="high"]) .montage-valeur { fill: #0b5f70; }
+    :root[data-contrast="high"]:not([data-theme="light"]) .montage-valeur { fill: #ffffff; }
+    :root[data-theme="light"][data-contrast="high"] .montage-valeur { fill: #000000; }
+    .montage-lcd { font: 600 12px monospace; white-space: pre; }
+    .montage-appui { cursor: pointer; touch-action: none; }
+    .montage-appui:focus { outline: none; }
+    .montage-appui:focus-visible > :first-child { stroke: #4fc3d9; stroke-width: 4; }
+    .mv-pot { transform-box: view-box; }
+    .mv-manette { transition: transform 0.15s ease-out; }
+    .montage-4d { transform-origin: 0 0; display: flex; align-items: center; }
+    .mv-palonnier { transform-box: view-box; transition: transform 0.25s ease-out; }
+    .mv-palonnier.mv-tourne { animation: servo-tour var(--duree, 2s) linear infinite; transition: none; }
+    .mv-palonnier.mv-tourne.inverse { animation-direction: reverse; }
+    .mv-onde { opacity: 0; }
+    .mv-onde.actif { animation: mv-onde 0.9s ease-out infinite; }
+    @keyframes mv-onde { 0% { opacity: 0.9; } 100% { opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) {
+        #montage-scene .dfr-roue.tourne, .mv-palonnier.mv-tourne { animation: none; }
+        .mv-onde.actif { animation: none; opacity: 0.9; }
+        .mv-palonnier, #montage-scene .dfr-axe { transition: none !important; }
+    }
     .montage-etiquette-claire { fill: #f2f2f2; font: 700 12px sans-serif; }
     .montage-pastille { fill: #4a3826; font: 600 10px sans-serif; }
     /* Choix de la carte d'extension : etiquettes visibles d'une ligne, cible de 44 px, fleches du clavier natives. */

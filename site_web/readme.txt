@@ -1671,8 +1671,16 @@ de l'un a l'autre se fait tout seul quand on redimensionne la colonne. Le montag
 "port partage" signale deux modules branches au meme endroit (possible dans le programme, pas sur la table) ;
 "bus I2C partage" rappelle que plusieurs modules I2C se suivent sur le meme bus (un hub I2C sur la table).
 La carte micro:bit est deplacee dans le montage (pas copiee) : boutons, broches, logo et LED y fonctionnent comme
-d'habitude, et la simulation continue. Le montage montre ou chaque module est branche ; l'etat des modules (valeurs,
-LED, moteurs) reste dans "Peripheriques". Fermer : bouton "Fermer", "Fermer le montage" ou touche Echap.
+d'habitude, et la simulation continue.
+Montage en direct (oct. 2026) : les modules dessines suivent la simulation, avec leur valeur sous le nom et le port
+(alertes dessous). Actionneurs : roue du moteur C.C. qui tourne (sens et vitesse), axe du pas a pas, palonnier du
+servo a l'angle demande (ou qui tourne en continu), LED allumee, ruban RGB et barre de LED dans leurs couleurs,
+ondes du buzzer, voyant du relais, texte de l'OLED, du LCD et de l'afficheur 4 digits. Capteurs : distance, lumiere,
+potentiometre (son repere tourne), PIR, temperature et humidite, CO2, pression, COV, couleur, geste, heure. Le
+bouton poussoir et le joystick se manipulent directement dans le montage (maintenir le clic, ou Espace / Entree) ;
+les curseurs et cases pour regler les capteurs restent dans "Peripheriques", dont le montage recopie l'affichage
+(lecture toutes les 200 ms) : les deux ne peuvent pas diverger. Avec "reduire les animations" demande par le
+systeme, roues et servos ne tournent plus, la valeur reste ecrite. Fermer : bouton "Fermer", "Fermer le montage" ou touche Echap.
 La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancrure, ports, pastilles, prise micro
 USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
 trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
