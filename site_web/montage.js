@@ -1099,7 +1099,9 @@ function installer() {
     return true;
 }
 
-// un.js cree l'espace de travail : on attend qu'il existe (quelques images au plus).
+// un.js cree l'espace de travail : on attend qu'il existe (une minute au plus, onglet visible). Minuterie et non
+// requestAnimationFrame : un onglet en arriere-plan (ouvert depuis le Lanceur, par exemple) suspend les images, et la
+// vue montage ne s'installait alors jamais ; une minuterie continue, ralentie, et rattrape des que l'onglet s'affiche.
 (function attendre(essais) {
-    if (!installer() && essais > 0) requestAnimationFrame(() => attendre(essais - 1));
-})(600);
+    if (!installer() && essais > 0) setTimeout(() => attendre(essais - 1), 50);
+})(1200);
