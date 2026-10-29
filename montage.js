@@ -1,5 +1,6 @@
 // montage.js — vue « montage » du simulateur : la micro:bit enfichee dans sa carte d'extension
-// (Grove Shield v2.0 ou BitMaker V2 de Seeed, au choix, ou carte moteurs DFRobot DFR0548), les modules du programme
+// (Grove Shield v2.0 ou BitMaker V2 de Seeed, au choix, ou carte moteurs DFRobot DFR0548 ou ELECFREAKS Motor:bit),
+// les modules du programme
 // disposes autour et relies par leurs cables.
 //
 // Ou s'affiche le montage : dans la colonne du simulateur, a la place de la carte seule, des qu'un bloc
@@ -63,7 +64,7 @@ const MODULES = [
     { motif: /^grove_scd30_/,                 nom: 'Capteur CO₂ SCD30',     i2c: true, picto: 'puce', large: true },
     { motif: /^grove_scd41_/,                 nom: 'Capteur CO₂ SCD41',     i2c: true, picto: 'puce' },
 ];
-const BLOC_EXTENSION = /^(grove_|servo_|dfr_)/;
+const BLOC_EXTENSION = /^(grove_|servo_|dfr_|motorbit_)/;
 // Lecteur de l'etat en direct (majVivant) quand il differe du dessin : plusieurs capteurs partagent le dessin « puce ».
 const VIVANT = {
     'Capteur de pression': 'pression', 'Capteur COV': 'cov', 'Capteur de gestes': 'gestes', 'Température, humidité': 'th',
@@ -160,6 +161,47 @@ function filsRangeeDfr(colonnes, y, couleurs) {
     return ['S', 'V', 'G'].map((c, i) => ({ x: dx(colonnes[c]), y: dy(y), d: [1, 0], c: couleurs[i] }));
 }
 
+// Motor:bit V1.6 relevee sur le dessin cote du wiki ELECFREAKS (carte blanche de 60 x 47,5 mm, de x 222 a 578 et
+// de y 148 a 432 sur le dessin) : connecteur de la micro:bit en haut (pas de demi-tour), bornier bleu des moteurs a
+// gauche (M1+, M1-, M2-, M2+), buzzer sur P0, broches G-3V3-S (P3 a P7, P9 a P11) et G-VCC-S (P13 a P16, P19 et P20,
+// I2C sur P19 = SCL et P20 = SDA), alimentation 6 a 12 V et interrupteur a droite.
+const MB = { x: 338.5, y: 228, k: 323 / 356, ox: 222, oy: 148 };
+const mx = px => MB.x + (px - MB.ox) * MB.k, my = py => MB.y + (py - MB.oy) * MB.k;
+const MB_BAS = my(432);
+const FENTE_MOTORBIT = { x: mx(230), y: my(148), l: 340 * MB.k, h: 37 * MB.k };
+const VIS_MOTORBIT = { 1: [222, 247], 2: [308, 283] };   // vis + puis - de chaque moteur (ordonnees sur le dessin)
+const GAUCHE_MOTORBIT = [3, 4, 5, 6, 7, 9, 10, 11], DROITE_MOTORBIT = [13, 14, 15, 16, 19, 20];
+const xBrocheMotorbit = n => GAUCHE_MOTORBIT.includes(n) ? 287 + GAUCHE_MOTORBIT.indexOf(n) * 15.2 : 487 + DROITE_MOTORBIT.indexOf(n) * 15;
+const RANGS_MOTORBIT = { S: 257, V: 271, G: 285 };
+const RESERVEES_MOTORBIT = { 1: 'M1', 8: 'M1', 2: 'M2', 12: 'M2' };
+
+/** Fils d'une broche de la Motor:bit : a gauche ils descendent vers les modules du bas, a droite ils partent a droite. */
+function filsBrocheMotorbit(n, couleurs) {
+    const x = xBrocheMotorbit(n), gauche = GAUCHE_MOTORBIT.includes(n);
+    return ['S', 'V', 'G'].map((r, i) => ({ x: mx(x) + (gauche ? (i - 1) * 3 : 0), y: my(RANGS_MOTORBIT[r]),
+                                            d: gauche ? [0, 1] : [1, 0], c: couleurs[i] }));
+}
+function filsI2cMotorbit() {
+    // P19 = SCL (fil jaune), P20 = SDA (blanc), alimentation prise sur la rangee VCC / GND de P19.
+    return [{ x: mx(xBrocheMotorbit(19)), y: my(RANGS_MOTORBIT.S), d: [1, 0], c: F.jaune },
+            { x: mx(xBrocheMotorbit(20)), y: my(RANGS_MOTORBIT.S), d: [1, 0], c: F.blanc },
+            { x: mx(xBrocheMotorbit(19)), y: my(RANGS_MOTORBIT.V), d: [1, 0], c: F.rouge },
+            { x: mx(xBrocheMotorbit(19)), y: my(RANGS_MOTORBIT.G), d: [1, 0], c: F.noir }];
+}
+function branchementMotorbit(pins, servo) {
+    const fils = [], noms = pins.map(p => 'P' + p.slice(3));
+    let alerte = '';
+    pins.forEach((p, i) => {
+        const n = Number(p.slice(3));
+        if (RESERVEES_MOTORBIT[n]) { alerte = '⚠ P' + n + ' : moteur ' + RESERVEES_MOTORBIT[n]; return; }
+        if (n === 0) { alerte = '⚠ P0 : buzzer de la carte'; return; }
+        if (!GAUCHE_MOTORBIT.includes(n) && !DROITE_MOTORBIT.includes(n)) { alerte = '⚠ P' + n + ' absente de la carte'; return; }
+        const rang = filsBrocheMotorbit(n, [servo ? F.orange : (fils.length ? F.blanc : F.jaune), F.rouge, servo ? F.marron : F.noir]);
+        fils.push(...(fils.length ? rang.slice(0, 1) : rang));
+    });
+    return { fils, etiquette: noms.join(' + '), occupe: noms, alerte };
+}
+
 // ---------- Lecture du programme ----------
 function broches(bloc, champs) {
     const res = [];
@@ -175,7 +217,10 @@ function lireMontage() {
     const blocs = window.workspace ? window.workspace.getAllBlocks(false) : [];
     const types = blocs.map(b => b.type);
     const dfr = types.some(t => /^dfr_/.test(t));
-    const bitmaker = !dfr && choixCarte() === 'bitmaker';
+    // Des blocs Motor:bit imposent cette carte, comme ceux de la DFR0548 (celle-ci l'emporte si les deux sont poses).
+    const motorbit = !dfr && (types.some(t => /^motorbit_/.test(t)) || choixCarte() === 'motorbit');
+    const imposee = dfr ? 'dfr' : types.some(t => /^motorbit_/.test(t)) ? 'motorbit' : '';
+    const bitmaker = !dfr && !motorbit && choixCarte() === 'bitmaker';
     const utile = types.some(t => BLOC_EXTENSION.test(t));
     const modules = new Map();
     const ajouter = (cle, m) => { if (!modules.has(cle)) modules.set(cle, m); };
@@ -187,6 +232,15 @@ function lireMontage() {
             const [plus, moins] = VIS_DFR[n];
             ajouter('M' + n, { nom: 'Moteur C.C.', picto: 'moteur', large: true, etiquette: 'M' + n, occupe: ['M' + n], cle: n,
                 fils: [{ x: dx(plus), y: dy(10), d: [0, 1], c: F.rouge }, { x: dx(moins), y: dy(10), d: [0, 1], c: F.noir }] });
+            continue;
+        }
+        if (motorbit && /^motorbit_moteur(_arreter)?$/.test(b.type)) {
+            const n = b.getFieldValue('MOTEUR');
+            if (!VIS_MOTORBIT[n]) continue;
+            const [plus, moins] = VIS_MOTORBIT[n];
+            ajouter('MB' + n, { nom: 'Moteur C.C.', picto: 'moteur', large: true, etiquette: 'M' + n, occupe: ['M' + n], cle: n,
+                zone: 'motorbit-moteurs',
+                fils: [{ x: mx(222), y: my(plus), d: [-1, 0], c: F.rouge }, { x: mx(222), y: my(moins), d: [-1, 0], c: F.noir }] });
             continue;
         }
         if (dfr && b.type === 'dfr_pas_a_pas') {
@@ -208,7 +262,7 @@ function lireMontage() {
         if (!def) continue;
         if (def.i2c) {
             ajouter(def.nom, { nom: def.nom, picto: def.picto, large: def.large, etiquette: 'I2C', i2c: true,
-                fils: dfr ? filsI2cDfr() : bitmaker ? filsPortBitmaker('I2C') : filsPort(PORTS_GROVE.I2C) });
+                fils: dfr ? filsI2cDfr() : motorbit ? filsI2cMotorbit() : bitmaker ? filsPortBitmaker('I2C') : filsPort(PORTS_GROVE.I2C) });
             continue;
         }
         const pins = broches(b, def.champs);
@@ -222,7 +276,8 @@ function lireMontage() {
         const cle = def.nom + '|' + pins.join(',');
         if (modules.has(cle)) continue;
         ajouter(cle, Object.assign({ nom: def.nom, picto: def.picto, large: def.large, pins, cle: 'P' + pins[0].slice(3) },
-            dfr ? branchementDfr(pins, def.servo) : bitmaker ? branchementBitmaker(pins) : branchementGrove(pins)));
+            dfr ? branchementDfr(pins, def.servo) : motorbit ? branchementMotorbit(pins, def.servo) :
+            bitmaker ? branchementBitmaker(pins) : branchementGrove(pins)));
     }
 
     // Deux modules sur le meme port (ou la meme broche) : possible dans le programme, pas sur la table.
@@ -232,7 +287,7 @@ function lireMontage() {
     const i2c = [...modules.values()].filter(m => m.i2c);
     if (i2c.length > 1) i2c.forEach(m => { m.note = 'bus I2C partagé'; });
 
-    return { utile, carte: dfr ? 'dfr' : bitmaker ? 'bitmaker' : 'grove', modules: [...modules.values()] };
+    return { utile, imposee, carte: dfr ? 'dfr' : motorbit ? 'motorbit' : bitmaker ? 'bitmaker' : 'grove', modules: [...modules.values()] };
 }
 
 function filsPort(p) {
@@ -419,6 +474,53 @@ function dessinCarteBitmaker() {
     return s;
 }
 
+function dessinCarteMotorbit() {
+    // Rectangle (x1, y1) - (x2, y2) et texte, en pixels du dessin cote. Serigraphie noire sur la carte blanche.
+    const rp = (x1, y1, x2, y2, att) => r(mx(x1), my(y1), (x2 - x1) * MB.k, (y2 - y1) * MB.k, att);
+    const tp = (x, y, t, att) => texte(mx(x), my(y), t, att);
+    const ser = (x, y, t, ancre) => tp(x, y, t, `class="montage-serigraphie-noire" text-anchor="${ancre || 'middle'}"`);
+    let s = rp(222, 148, 578, 432, 'rx="9" fill="#f7f7f5" stroke="#8d939a" stroke-width="2"');
+    for (const [x, y] of [[300, 218], [493, 218], [300, 410], [493, 410]]) {
+        s += cercle(mx(x), my(y), 13 * MB.k, 'fill="#e0b84a"') + cercle(mx(x), my(y), 7 * MB.k, 'style="fill: var(--fond-chrome)"');
+    }
+    // Bornier bleu des moteurs et noms des bornes.
+    s += rp(222, 210, 268, 322, 'rx="3" fill="#2f7fc4" stroke="#1d5b91"');
+    [[222, 'M1+'], [247, 'M1-'], [283, 'M2-'], [308, 'M2+']].forEach(([y, nom]) => {
+        s += cercle(mx(242), my(y), 9 * MB.k, 'fill="#d8dde2" stroke="#6b7075"') +
+             `<path d="M${mx(242) - 5} ${my(y)} H${mx(242) + 5} M${mx(242)} ${my(y) - 5} V${my(y) + 5}" stroke="#6b7075" stroke-width="1.2"/>`;
+        // Noms des bornes ecrits a la verticale, comme sur la carte : a l'horizontale ils mordraient sur les broches.
+        s += tp(276, y, nom, `class="montage-serigraphie-noire" text-anchor="middle" dominant-baseline="central" transform="rotate(90 ${mx(276)} ${my(y)})"`);
+    });
+    // Buzzer passif (P0), voyant PWR, puce TB6612, regulateurs.
+    s += rp(225, 340, 280, 395, 'rx="4" fill="#222"') + cercle(mx(252), my(367), 14 * MB.k, 'class="mv-buzzer-carte" fill="#3a3a3a"');
+    s += ser(252, 404, 'P0');
+    s += rp(326, 372, 340, 384, 'fill="#e65a4a"') + ser(318, 381, 'PWR', 'end');
+    s += rp(318, 300, 352, 352, 'fill="#222"') + tp(335, 330, 'TB6612', 'class="montage-cartouche" text-anchor="middle"');
+    s += rp(420, 330, 452, 356, 'fill="#2b2b2b"') + rp(372, 388, 404, 412, 'fill="#2b2b2b"') + cercle(mx(440), my(398), 13 * MB.k, 'fill="#3a3a3a"');
+    // Broches G-3V3-S (gauche, signal jaune) et G-VCC-S (droite, signal bleu), numeros dessus, noms des rangees.
+    const rangee = (n, signal) => [['S', signal], ['V', '#d63a2f'], ['G', '#1b1b1b']].map(([rg, c]) =>
+        rp(xBrocheMotorbit(n) - 6.5, RANGS_MOTORBIT[rg] - 6.5, xBrocheMotorbit(n) + 6.5, RANGS_MOTORBIT[rg] + 6.5, `fill="${c}" stroke="#111"`) +
+        rp(xBrocheMotorbit(n) - 2, RANGS_MOTORBIT[rg] - 2, xBrocheMotorbit(n) + 2, RANGS_MOTORBIT[rg] + 2, 'fill="#c9a54a"')).join('');
+    GAUCHE_MOTORBIT.forEach(n => { s += rangee(n, '#f2c230') + ser(xBrocheMotorbit(n), 245, String(n)); });
+    DROITE_MOTORBIT.forEach(n => { s += rangee(n, '#2f7fc4') + ser(xBrocheMotorbit(n), 245, String(n)); });
+    const cartouche = (x, y, t) => rp(x - 10, y - 6.5, x + 10, y + 6.5, 'fill="#111"') + tp(x, y + 3, t, 'class="montage-cartouche" text-anchor="middle"');
+    [['S', 'SIG'], ['V', '3V3'], ['G', 'GND']].forEach(([rg, t]) => { s += cartouche(412, RANGS_MOTORBIT[rg], t); });
+    [['S', 'SIG'], ['V', 'VCC'], ['G', 'GND']].forEach(([rg, t]) => { s += cartouche(468, RANGS_MOTORBIT[rg], t); });
+    s += ser(524, 230, 'I2C : 19 SCL · 20 SDA', 'end');
+    // Selecteur VCC 5 V / 3,3 V, alimentation 6 a 12 V, interrupteur OFF/ON.
+    s += rp(530, 205, 570, 222, 'rx="2" fill="#1b1b1b"') + rp(533, 208, 548, 219, 'fill="#d8dde2"');
+    s += tp(536, 200, '5V', 'class="montage-serigraphie-noire mini" text-anchor="middle"') +
+         tp(551, 200, 'VCC', 'class="montage-serigraphie-noire mini" text-anchor="middle"') +
+         tp(566, 200, '3V3', 'class="montage-serigraphie-noire mini" text-anchor="middle"');
+    s += rp(533, 313, 575, 365, 'rx="3" fill="#2f7fc4" stroke="#1d5b91"');
+    for (const y of [326, 352]) s += cercle(mx(554), my(y), 9 * MB.k, 'fill="#d8dde2" stroke="#6b7075"');
+    s += ser(527, 330, 'GND', 'end') + ser(527, 356, 'VIN', 'end') + ser(500, 343, 'DC 6-12V', 'end');
+    s += ser(500, 386, 'MOTOR:BIT', 'end') + rp(512, 375, 574, 390, 'fill="#111"');
+    s += tp(528, 386, 'OFF', 'class="montage-cartouche" text-anchor="middle"') + tp(558, 386, 'ON', 'class="montage-cartouche" text-anchor="middle"');
+    s += rp(532, 403, 568, 418, 'rx="2" fill="#1b1b1b"') + rp(552, 406, 565, 415, 'fill="#d8dde2"');
+    return s;
+}
+
 function dessinCarteDfr() {
     // Rectangle (x1, y1) - (x2, y2) du schema, retourne ; texte a l'endroit.
     const rp = (x1, y1, x2, y2, att) => r(dx(x2), dy(y2), (x2 - x1) * DFR.k, (y2 - y1) * DFR.k, att);
@@ -551,9 +653,9 @@ function dessinFil(f, fin, o) {
 }
 
 function dessinerScene(etat) {
-    const basCarte = etat.carte === 'dfr' ? DFR_BAS + 18 : etat.carte === 'bitmaker' ? BM_BAS : GROVE_PCB.y + GROVE_PCB.l;
+    const basCarte = etat.carte === 'dfr' ? DFR_BAS + 18 : etat.carte === 'motorbit' ? MB_BAS : etat.carte === 'bitmaker' ? BM_BAS : GROVE_PCB.y + GROVE_PCB.l;
     let hauteur = disposer(etat.modules, basCarte);
-    let bas = etat.carte === 'dfr' ? dessinCarteDfr() : etat.carte === 'bitmaker' ? dessinCarteBitmaker() : dessinCarteGrove();
+    let bas = { dfr: dessinCarteDfr, motorbit: dessinCarteMotorbit, bitmaker: dessinCarteBitmaker, grove: dessinCarteGrove }[etat.carte]();
     // Ruban sur les LED de la BitMaker : legende sous la carte, a la place du module et de son cable.
     const surCarte = etat.modules.find(m => m.surCarte);
     if (surCarte) hauteur = Math.max(hauteur, basCarte + 50);
@@ -571,7 +673,7 @@ function dessinerScene(etat) {
         // Bouton poussoir et joystick : on appuie directement dessus (meme effet que dans « Peripheriques »).
         const appui = vivant === 'bouton' || vivant === 'joystick'
             ? ` role="button" tabindex="0" aria-label="${echap(m.nom)} ${echap(m.etiquette)} : maintenir pour appuyer"` : '';
-        bas += `<g class="montage-module${appui ? ' montage-appui' : ''}" data-vivant="${vivant}" data-cle="${echap(m.cle || '')}"${appui}>${dessinModule(m, cx, cy)}` +
+        bas += `<g class="montage-module${appui ? ' montage-appui' : ''}" data-vivant="${vivant}" data-cle="${echap(m.cle || '')}" data-zone="${m.zone || ''}"${appui}>${dessinModule(m, cx, cy)}` +
                texte(cx, m.y + MODULE.h + 22, echap(m.nom), 'class="montage-libelle" text-anchor="middle"') +
                texte(cx, m.y + MODULE.h + 42, echap(m.etiquette), 'class="montage-note" text-anchor="middle"');
         bas += texte(cx, m.y + MODULE.h + 62, '', 'class="montage-valeur" text-anchor="middle"');
@@ -598,7 +700,7 @@ const LARGEUR_COLONNE = 480, MARGE_COLONNE = 24;   // hysteresis : la barre de d
 // Carte Grove ou BitMaker, memorisee dans le navigateur (Grove par defaut, ou si le stockage est indisponible).
 const CLE_CARTE = 'montageCarte';
 function choixCarte() {
-    try { return localStorage.getItem(CLE_CARTE) === 'bitmaker' ? 'bitmaker' : 'grove'; } catch (erreur) { return 'grove'; }
+    try { const c = localStorage.getItem(CLE_CARTE); return c === 'bitmaker' || c === 'motorbit' ? c : 'grove'; } catch (erreur) { return 'grove'; }
 }
 
 function ajusterEchelle() {
@@ -623,19 +725,22 @@ function redessiner() {
     scene.style.height = hauteur + 'px';
     for (const svg of [svgBas, svgHaut]) svg.setAttribute('viewBox', `0 0 ${LARGEUR} ${hauteur}`);
     svgBas.innerHTML = bas;
-    const fente = etat.carte === 'dfr' ? FENTE : etat.carte === 'bitmaker' ? FENTE_BITMAKER : FENTE_GROVE;
-    // Le connecteur de la BitMaker est en plastique gris fonce, celui des deux autres cartes noir.
-    const plastique = etat.carte === 'bitmaker' ? 'fill="#3a3c42" stroke="#55585f"' : 'fill="#0b0b0b" stroke="#2b2b2b"';
+    const fente = { dfr: FENTE, motorbit: FENTE_MOTORBIT, bitmaker: FENTE_BITMAKER, grove: FENTE_GROVE }[etat.carte];
+    // Connecteur en plastique gris fonce sur la BitMaker et la Motor:bit, noir sur les deux autres cartes.
+    const plastique = etat.carte === 'bitmaker' || etat.carte === 'motorbit' ? 'fill="#3a3c42" stroke="#55585f"' : 'fill="#0b0b0b" stroke="#2b2b2b"';
     svgHaut.innerHTML = r(fente.x, fente.y, fente.l, fente.h, `rx="4" ${plastique} stroke-width="2"`) +
                         r(fente.x + 6, fente.y + 4, fente.l - 12, 3, 'fill="#2a2a2a"') +
                         // Pattes cuivrees du connecteur, visibles sous le boitier sur la Grove v2.0.
                         (etat.carte === 'dfr' ? '' : Array.from({ length: 40 }, (_, i) =>
                             r(fente.x + 10 + i * 7.3, fente.y + fente.h - 2, 3, 7, 'fill="#b87333"')).join(''));
-    titre.textContent = { dfr: 'Carte moteurs DFRobot DFR0548', bitmaker: 'Carte BitMaker V2 (Seeed)',
-                          grove: 'Carte Grove Shield for micro:bit v2.0 (Seeed)' }[etat.carte];
-    // Choix de la carte : sans objet quand le programme impose la DFR0548.
-    if (choix) choix.hidden = etat.carte === 'dfr';
-    if (choixAuto) choixAuto.hidden = etat.carte !== 'dfr';
+    titre.textContent = { dfr: 'Carte moteurs DFRobot DFR0548', motorbit: 'Carte moteurs ELECFREAKS Motor:bit V1.6',
+                          bitmaker: 'Carte BitMaker V2 (Seeed)', grove: 'Carte Grove Shield for micro:bit v2.0 (Seeed)' }[etat.carte];
+    // Choix de la carte : sans objet quand les blocs du programme imposent la DFR0548 ou la Motor:bit.
+    if (choix) choix.hidden = !!etat.imposee;
+    if (choixAuto) {
+        choixAuto.hidden = !etat.imposee;
+        choixAuto.textContent = (etat.imposee === 'motorbit' ? 'Carte Motor:bit' : 'Carte DFR0548') + ' : choisie car le programme utilise ses blocs.';
+    }
     resume.innerHTML = etat.modules.length
         ? etat.modules.map(m => '<li>' + echap(m.nom) + ' : ' + echap(m.etiquette) + (m.note ? ' (' + echap(m.note) + ')' : '') +
                                 (m.alerte ? ' — ' + echap(m.alerte.replace('⚠ ', '')) : '') + '</li>').join('')
@@ -670,7 +775,7 @@ let derniereImageOled = '';
 
 const LECTEURS = {
     moteur(g, cle) {
-        const el = document.querySelector(`#dfr-moteurs [data-cle="${cle}"]`), roue = g.querySelector('.dfr-roue');
+        const el = document.querySelector(`#${g.dataset.zone || 'dfr-moteurs'} [data-cle="${cle}"]`), roue = g.querySelector('.dfr-roue');
         if (roue) {
             const source = el && el.querySelector('.dfr-roue');
             roue.classList.toggle('tourne', !!source && source.classList.contains('tourne'));

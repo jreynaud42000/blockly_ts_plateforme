@@ -446,6 +446,12 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    disponible : vérifier le sens « horaire » de chaque moteur, et surtout l'angle réel
    des pas à pas — la bibliothèque obtient l'angle par une durée (1 s par tour pour
    le 28BYJ-48), ce qui paraît très rapide pour ce moteur et doit être mesuré.
+12. **La carte Motor:bit V1.6** (oct. 2026, readme §47), reprise de
+   `blockly_ts_microbit` (commit 6363b5e). Brochage repris de la documentation
+   ELECFREAKS et du paquet MakeCode pxt-motorbit (M1 : P1 vitesse, P8 sens ; M2 : P2
+   vitesse, P12 sens), jamais exécuté sur une vraie carte. Carte du montage dessinée
+   d'après le dessin coté du wiki ELECFREAKS. Si une carte est disponible : vérifier
+   le sens « horaire » de chaque moteur et le niveau de P8 / P12.
 
 ## Écarté volontairement
 

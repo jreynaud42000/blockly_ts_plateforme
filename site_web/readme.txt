@@ -1728,3 +1728,22 @@ par "Carte DFR0548 : choisie car le programme utilise ses blocs"), dessinee d'ap
 wiki DFRobot (bornier de 8 vis M1 a M4 en bas, servos S1 a S8, broches et IIC a droite).
 Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte. Pas de reconstruction des blocs a l'import
 d'un .py (ils deviennent des blocs "code").
+
+47. CARTE MOTEURS ELECFREAKS MOTOR:BIT V1.6 (oct. 2026)
+Nouvelle categorie "Carte moteurs Motor:bit", apres "Carte moteurs DFR0548", pour la carte ELECFREAKS Motor:bit
+(EF03406, puce TB6612, deux moteurs a courant continu, 1,2 A par voie). Deux blocs :
+- "Motor:bit : moteur M1 / M2 sens horaire / antihoraire vitesse ... (0 a 255)" : le moteur tourne jusqu'a un autre ordre ;
+- "Motor:bit : arreter le moteur M1 / M2 / les deux moteurs".
+Brochage de la documentation ELECFREAKS et du paquet MakeCode pxt-motorbit : M1 vitesse sur P1 (MLI) et sens sur P8,
+M2 vitesse sur P2 et sens sur P12 (niveau haut = sens horaire). Ces quatre broches sont donc prises par les moteurs.
+Le buzzer passif de la carte est sur P0. Broches G-3V3-S : P3 a P7, P9 a P11 ; broches G-VCC-S (3,3 V ou 5 V selon le
+selecteur VCC) : P13 a P16, P19 et P20 (I2C : P19 = SCL, P20 = SDA). Alimentation 6 a 12 V, interrupteur OFF/ON.
+Simulateur : les moteurs apparaissent dans la section "Carte moteurs Motor:bit" (meme motoreducteur "TT" que la
+DFR0548). Vue montage : "Motor:bit V1.6" s'ajoute au choix de la carte, et des blocs Motor:bit l'imposent ; carte
+blanche de 60 x 47,5 mm dessinee d'apres le dessin cote du wiki ELECFREAKS (bornier bleu M1+ M1- M2- M2+ a gauche,
+buzzer, broches et alimentation a droite) ; moteurs branches par 2 fils, modules par 3 fils depuis leur broche, modules
+I2C sur P19 / P20. Un module sur P1, P2, P8 ou P12 affiche "P8 : moteur M1" (par exemple), un module sur P0
+"P0 : buzzer de la carte". Les menus de broches des blocs Grove ne proposent pas P3 a P7, P9 a P11, P19 et P20 : ces
+broches de la carte servent aux blocs Entrees/Sorties.
+Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte (sens des moteurs, rapport cyclique a
+vitesse 255).

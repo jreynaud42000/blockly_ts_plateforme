@@ -1482,6 +1482,65 @@ try {
         ]);
     }
 
+    // Carte moteurs ELECFREAKS Motor:bit V1.6 : puce TB6612, deux moteurs a courant continu. Brochage de la
+    // documentation ELECFREAKS et du paquet MakeCode pxt-motorbit : M1 vitesse P1 (MLI) et sens P8, M2 vitesse
+    // P2 et sens P12 (niveau haut = sens horaire). Pas verifie sur une vraie carte.
+    const MENU_MOTEURS_MOTORBIT = [['M1', '1'], ['M2', '2']];
+    function piloteMotorbit() {
+        importerMicrobit();
+        piloteRegistre();
+        pilote('motorbit', [
+            'class _CarteMotorbit:',
+            '    def _broches(self, numero):',
+            '        return (pin1, pin8) if int(numero) == 1 else (pin2, pin12)',
+            '',
+            '    def moteur(self, numero, sens, vitesse):',
+            '        vit, sens_broche = self._broches(numero)',
+            '        sens_broche.write_digital(1 if sens > 0 else 0)',
+            '        vit.write_analog(max(0, min(255, int(vitesse))) * 1023 // 255)',
+            '',
+            '    def arreter(self, numero):',
+            '        self._broches(numero)[0].write_analog(0)',
+            '',
+            '    def arreter_tout(self):',
+            '        self.arreter(1)',
+            '        self.arreter(2)',
+            '',
+            'def _motorbit():',
+            '    return _grove_obj("motorbit", _CarteMotorbit)',
+        ]);
+    }
+
+    Blockly.Blocks['motorbit_moteur'] = { init: function() {
+        this.appendDummyInput().appendField("Motor:bit : moteur").appendField(new Blockly.FieldDropdown(MENU_MOTEURS_MOTORBIT), "MOTEUR")
+            .appendField("sens").appendField(new Blockly.FieldDropdown(MENU_SENS_DFR), "SENS").appendField("vitesse");
+        this.appendValueInput("VITESSE").setCheck("Number");
+        this.appendDummyInput().appendField("(0 à 255)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Fait tourner le moteur à courant continu branché sur M1 ou M2 de la carte Motor:bit, dans le sens choisi, " +
+                        "à la vitesse voulue (0 à 255). Le moteur tourne jusqu'à un autre ordre.");
+    }};
+    P.forBlock['motorbit_moteur'] = function(block) {
+        piloteMotorbit();
+        return '_motorbit().moteur(' + block.getFieldValue('MOTEUR') + ', ' + block.getFieldValue('SENS') + ', ' +
+               (P.valueToCode(block, 'VITESSE', P.ORDER_NONE) || '0') + ')\n';
+    };
+
+    Blockly.Blocks['motorbit_moteur_arreter'] = { init: function() {
+        this.appendDummyInput().appendField("Motor:bit : arrêter")
+            .appendField(new Blockly.FieldDropdown([["le moteur M1", "1"], ["le moteur M2", "2"], ["les deux moteurs", "tous"]]), "MOTEUR");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Arrête un moteur de la carte Motor:bit, ou les deux.");
+    }};
+    P.forBlock['motorbit_moteur_arreter'] = function(block) {
+        piloteMotorbit();
+        const m = block.getFieldValue('MOTEUR');
+        return m === 'tous' ? '_motorbit().arreter_tout()\n' : '_motorbit().arreter(' + m + ')\n';
+    };
+
     Blockly.Blocks['dfr_servo'] = { init: function() {
         this.appendDummyInput().appendField("DFR0548 : servo").appendField(new Blockly.FieldDropdown(MENU_SERVOS_DFR), "SERVO")
             .appendField("à");
@@ -5430,6 +5489,7 @@ try {
         'Actionneurs (Audio)': '#622d86',
         'Servos': '#25f478',
         'Carte moteurs DFR0548': '#0b7285',
+        'Carte moteurs Motor:bit': '#1971c2',
         'Radio': '#1864ab',
         'IA': '#9c6644',
         'Grove': '#2b8a3e',
@@ -5469,7 +5529,7 @@ try {
     // Ordre voulu par l'utilisateur (la table sert aussi d'ordre « par defaut » du panneau administrateur, qui part de
     // TOOLBOX_ORIGINAL). Les categories qui n'y figurent pas (robots, LiDAR) restent
     // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ». « Graphique » n'existe pas encore.
-    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Carte moteurs DFR0548', 'Radio', 'IA', 'Grove',
+    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Carte moteurs DFR0548', 'Carte moteurs Motor:bit', 'Radio', 'IA', 'Grove',
                               'Logique', 'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes'];
     const NOMS_ROBOTS = ['Maqueen Plus', 'Maqueen Lite', 'Kitrobot v2', 'LiDAR'];   // regroupes dans « Robots »
     const CATEGORIE_LISTES = {
@@ -5710,6 +5770,14 @@ try {
               { "kind": "block", "type": "dfr_moteur_arreter" },
               { "kind": "label", "text": "Moteurs pas à pas", "web-class": "groupe-flyout" },
               { "kind": "block", "type": "dfr_pas_a_pas", "inputs": { "QUANTITE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } }
+            ]
+          },
+          {
+            "kind": "category", "name": "Carte moteurs Motor:bit", "colour": "210",
+            "contents": [
+              { "kind": "label", "text": "Moteurs (M1 et M2)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "motorbit_moteur", "inputs": { "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "150" } } } } },
+              { "kind": "block", "type": "motorbit_moteur_arreter" }
             ]
           },
           {
@@ -8129,6 +8197,10 @@ try {
         dfr_moteur: "Fait tourner le moteur à courant continu branché sur l'une des 4 sorties moteur (M1 à M4) de la carte " +
             "DFR0548, dans le sens horaire ou antihoraire, à une vitesse de 0 à 255. Il tourne jusqu'à un autre ordre.",
         dfr_moteur_arreter: "Arrête un moteur à courant continu de la carte DFR0548, ou les quatre à la fois.",
+        motorbit_moteur: "Fait tourner le moteur à courant continu branché sur M1 ou M2 de la carte ELECFREAKS Motor:bit, dans le " +
+            "sens horaire ou antihoraire, à une vitesse de 0 à 255. Il tourne jusqu'à un autre ordre. Les broches P1, P2, P8 et P12 " +
+            "pilotent les moteurs : n'y branche pas d'autre module.",
+        motorbit_moteur_arreter: "Arrête un moteur de la carte Motor:bit (M1 ou M2), ou les deux à la fois.",
         dfr_pas_a_pas: "Fait tourner un moteur pas à pas (28BYJ-48 ou 42BYGH) branché sur deux sorties moteur de la carte DFR0548 " +
             "(M1-M2 ou M3-M4), d'un nombre de degrés ou de tours, puis l'arrête. Le programme attend la fin du mouvement.",
         grove_bouton_appuye: "Vrai tant que le bouton poussoir Grove branché sur la broche choisie est enfoncé. À poser " +
@@ -8660,6 +8732,12 @@ try {
         "sens horaire à la vitesse 150, puis s'arrête.",
         [exStart(exB('dfr_moteur', { MOTEUR: '1', SENS: '1' }, { VITESSE: exN(150) }), exWait(2),
                  exB('dfr_moteur_arreter', { MOTEUR: '1' }))]);
+    exemple(['motorbit_moteur', 'motorbit_moteur_arreter'], 'Deux moteurs à tour de rôle (Motor:bit)', "Les moteurs M1 et M2 " +
+        "de la carte Motor:bit tournent chacun deux secondes à la vitesse 150, l'un après l'autre.",
+        [exLoop(exB('motorbit_moteur', { MOTEUR: '1', SENS: '1' }, { VITESSE: exN(150) }), exWait(2),
+                exB('motorbit_moteur_arreter', { MOTEUR: '1' }),
+                exB('motorbit_moteur', { MOTEUR: '2', SENS: '1' }, { VITESSE: exN(150) }), exWait(2),
+                exB('motorbit_moteur_arreter', { MOTEUR: '2' }))]);
     exemple(['dfr_pas_a_pas'], 'Un tour de pas à pas (DFR0548)', "Le moteur pas à pas 28BYJ-48 branché sur M1-M2 fait un " +
         "tour dans le sens horaire, puis un demi-tour dans l'autre sens.",
         [exStart(exB('dfr_pas_a_pas', { MODELE: '28', PAIRE: '1', SENS: '1', UNITE: 'tours' }, { QUANTITE: exN(1) }),
@@ -11152,6 +11230,26 @@ try {
         }
         return el;
     }
+    // Carte Motor:bit : memes vignettes de moteur que la DFR0548, dans sa propre section.
+    let etatMotorbit = {};
+    const zoneMotorbit = document.getElementById('motorbit-moteurs');
+    function dessinerMotorbit() {
+        if (!zoneMotorbit) return;
+        const numeros = Object.keys(etatMotorbit).sort();
+        zoneMotorbit.hidden = !numeros.length;
+        for (const n of numeros) {
+            const v = etatMotorbit[n];
+            const el = vignetteDfr(zoneMotorbit, n, 'tt', SVG_MOTEUR_TT);
+            const roue = el.querySelector('.dfr-roue');
+            el.classList.toggle('arret', v === 0);
+            roue.classList.toggle('tourne', v !== 0);
+            roue.classList.toggle('inverse', v < 0);
+            if (v !== 0) roue.style.setProperty('--duree', Math.min(10, 255 / Math.abs(v)).toFixed(2) + 's');
+            el.querySelector('.dfr-jauge div').style.width = Math.round(Math.abs(v) / 255 * 100) + '%';
+            el.querySelector('.dfr-nom').textContent = 'M' + n + ' · ' + (v === 0 ? 'arrêt' : (v > 0 ? '↻ ' : '↺ ') + Math.abs(v));
+        }
+        for (const el of [...zoneMotorbit.children]) if (!(el.dataset.cle in etatMotorbit)) el.remove();
+    }
     function dessinerDfr() {
         if (zoneDfrMoteurs) {
             const numeros = Object.keys(etatDfrMoteurs).sort();
@@ -11252,6 +11350,7 @@ try {
         ['grove-sec-moteurs',  /^grove_moteur_/],
         ['grove-sec-servos',   /^(servo_|grove_pca_|dfr_servo$)/],
         ['grove-sec-dfr',      /^dfr_(moteur|moteur_arreter|pas_a_pas)$/],
+        ['grove-sec-motorbit', /^motorbit_/],
         ['grove-sec-radio',    /^radio_quand_recu$/],
     ];
 
@@ -11375,6 +11474,8 @@ try {
         etatDfrMoteurs = {};
         etatDfrPas = {};
         dessinerDfr();
+        etatMotorbit = {};
+        dessinerMotorbit();
         etatLeds = {};
         dessinerLeds();
         etatServos = {};
@@ -11408,6 +11509,9 @@ try {
     window.simu_lcd = function(action, texte, x, y) {
         window.simuQueue.push({ type: 'lcd', action: String(action),
                                 texte: String(texte), x: Number(x), y: Number(y) });
+    };
+    window.simu_motorbitMoteur = function(numero, vitesse) {
+        window.simuQueue.push({ type: 'motorbitMoteur', numero: Number(numero), vitesse: Number(vitesse) });
     };
     window.simu_dfrMoteur = function(numero, vitesse) {
         window.simuQueue.push({ type: 'dfrMoteur', numero: Number(numero), vitesse: Number(vitesse) });
@@ -13231,6 +13335,11 @@ try {
             // Un arret ne fait pas apparaitre un moteur jamais mis en marche (« arreter tous les moteurs »).
             if (action.vitesse !== 0 || action.numero in etatDfrMoteurs) etatDfrMoteurs[action.numero] = action.vitesse;
             dessinerDfr();
+            window.simu_playQueue();
+        }
+        else if (action.type === 'motorbitMoteur') {
+            if (action.vitesse !== 0 || action.numero in etatMotorbit) etatMotorbit[action.numero] = action.vitesse;
+            dessinerMotorbit();
             window.simu_playQueue();
         }
         else if (action.type === 'dfrPas') {

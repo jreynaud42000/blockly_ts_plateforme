@@ -943,6 +943,10 @@
         .mv-onde.actif { animation: none; opacity: 0.9; }
         .mv-palonnier, #montage-scene .dfr-axe { transition: none !important; }
     }
+    /* Motor:bit : serigraphie noire sur carte blanche, cartouches blancs sur fond noir (montage.js). */
+    .montage-serigraphie-noire { fill: #111; font: 700 7px sans-serif; }
+    .montage-serigraphie-noire.mini { font-size: 5px; }
+    .montage-cartouche { fill: #fff; font: 700 6px sans-serif; }
     .montage-etiquette-claire { fill: #f2f2f2; font: 700 12px sans-serif; }
     .montage-pastille { fill: #4a3826; font: 600 10px sans-serif; }
     /* Choix de la carte d'extension : etiquettes visibles d'une ligne, cible de 44 px, fleches du clavier natives. */
@@ -1296,12 +1300,12 @@
     #grove-servos { display: flex; flex-wrap: wrap; gap: 4px; }
     /* Carte moteurs DFR0548 (un.js, dessinerDfr) : une vignette par moteur pilote (motoreducteur jaune « TT » et sa
        roue qui tourne, jauge de vitesse) et par moteur pas a pas (dessin selon le modele, repere sur l'axe). */
-    #dfr-moteurs, #dfr-pas { display: flex; flex-wrap: wrap; gap: 6px; }
+    #dfr-moteurs, #dfr-pas, #motorbit-moteurs { display: flex; flex-wrap: wrap; gap: 6px; }
     #dfr-pas { margin-top: 6px; }
-    #dfr-moteurs[hidden], #dfr-pas[hidden] { display: none; }
+    #dfr-moteurs[hidden], #dfr-pas[hidden], #motorbit-moteurs[hidden] { display: none; }
     .dfr-vignette { background: var(--fond-saisie); border-radius: 4px; padding: 6px 8px; font-size: 11px;
                     display: flex; flex-direction: column; align-items: center; gap: 4px; }
-    #dfr-moteurs .dfr-vignette svg { width: 85px; height: 45px; }
+    #dfr-moteurs .dfr-vignette svg, #motorbit-moteurs .dfr-vignette svg { width: 85px; height: 45px; }
     #dfr-pas .dfr-vignette svg { width: 56px; height: 56px; }
     #dfr-pas .dfr-jauge { display: none; }
     .dfr-vignette.arret svg { filter: grayscale(1); opacity: 0.6; }
@@ -1916,6 +1920,7 @@
             <legend>Carte d'extension</legend>
             <label><input type="radio" name="montage-carte" value="grove" checked> Grove Shield v2.0</label>
             <label><input type="radio" name="montage-carte" value="bitmaker"> BitMaker V2</label>
+            <label><input type="radio" name="montage-carte" value="motorbit"> Motor:bit V1.6</label>
           </fieldset>
           <p id="montage-choix-auto" class="montage-choix-auto" hidden>Carte DFR0548 : choisie car le programme utilise ses blocs.</p>
           <button id="montage-fermer">✕ Fermer</button>
@@ -2227,6 +2232,12 @@
           <span class="grove-titre">Carte moteurs DFR0548</span>
           <div id="dfr-moteurs"></div>
           <div id="dfr-pas"></div>
+        </div>
+
+        <!-- Carte moteurs ELECFREAKS Motor:bit (un.js, dessinerMotorbit) : moteurs M1 et M2. -->
+        <div class="grove-bloc" id="grove-sec-motorbit">
+          <span class="grove-titre">Carte moteurs Motor:bit</span>
+          <div id="motorbit-moteurs"></div>
         </div>
       </div>
 
@@ -3121,6 +3132,15 @@
             window.simu_dfrPas(int(paire), int(modele), degres * (1 if sens > 0 else -1), duree)
             sleep(duree)
     def _dfr0548(): return _grove_obj('dfr0548', _CarteDFR0548Mock)
+    # Carte Motor:bit : ses deux moteurs dans sa section du panneau, a la place des broches P1/P8 et P2/P12.
+    class _CarteMotorbitMock:
+        def moteur(self, numero, sens, vitesse):
+            window.simu_motorbitMoteur(int(numero), int(max(0, min(255, vitesse))) * (1 if sens > 0 else -1))
+        def arreter(self, numero): window.simu_motorbitMoteur(int(numero), 0)
+        def arreter_tout(self):
+            window.simu_motorbitMoteur(1, 0)
+            window.simu_motorbitMoteur(2, 0)
+    def _motorbit(): return _grove_obj('motorbit', _CarteMotorbitMock)
     # Premier lot Grove : commandes du panneau a la place des broches.
     _grove_bouton_avant = {}
     def _grove_bouton(broche): return bool(window.simu_groveEntree('bouton'))
@@ -3682,6 +3702,7 @@
             '_HorlogeRTC': _HorlogeRTCMock, '_grove_rtc': _grove_rtc,
             '_PiloteServos': _PiloteServosMock, '_grove_servos': _grove_servos,
             '_CarteDFR0548': _CarteDFR0548Mock, '_dfr0548': _dfr0548,
+            '_CarteMotorbit': _CarteMotorbitMock, '_motorbit': _motorbit,
             '_CapteurGestes': _CapteurGestesMock,
             '_CapteurTH': _CapteurTHMock, '_EcranLCD': _EcranLCDMock, '_EcranLCDRGB': _EcranLCDRGBMock,
             '_CapteurCouleur': _CapteurCouleurMock,
