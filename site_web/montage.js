@@ -514,8 +514,8 @@ function dessinModule(m, cx, cy) {
         case 'oled': s += r(cx - 50, cy - 26, 100, 52, 'fill="#05070a" stroke="#333"') +
                           `<image class="mv-oled" x="${cx - 48}" y="${cy - 24}" width="96" height="48" preserveAspectRatio="none"/>`; break;
         // Deux lignes de 16 caracteres, recopiees de l'ecran de « Peripheriques ».
-        case 'lcd': s += r(cx - 64, cy - 22, 128, 44, 'fill="#9ccc3c" stroke="#5e7d1f"') +
-                         [0, 1].map(l => texte(cx - 58, cy - 4 + l * 16, '', `class="mv-lcd montage-lcd" data-l="${l}" fill="#22310a"`)).join(''); break;
+        case 'lcd': s += r(cx - 64, cy - 22, 128, 44, 'class="mv-lcd-fond" fill="#2747c9" stroke="#13246b"') +
+                         [0, 1].map(l => texte(cx - 58, cy - 4 + l * 16, '', `class="mv-lcd montage-lcd" data-l="${l}" fill="#f2f6fb"`)).join(''); break;
         case 'lcdrgb': s += r(cx - 64, cy - 22, 128, 44, 'class="mv-lcd-fond" fill="#3c8de0" stroke="#1d5aa0"') +
                             [0, 1].map(l => texte(cx - 58, cy - 4 + l * 16, '', `class="mv-lcd montage-lcd" data-l="${l}" fill="#f2f6fb"`)).join(''); break;
         case 'rtc': s += cercle(cx + 14, cy, 20, 'fill="#c0c4c8" stroke="#6b7075"') + r(cx - 28, cy - 10, 20, 20, 'fill="#111"'); break;
@@ -640,6 +640,7 @@ function redessiner() {
         ? etat.modules.map(m => '<li>' + echap(m.nom) + ' : ' + echap(m.etiquette) + (m.note ? ' (' + echap(m.note) + ')' : '') +
                                 (m.alerte ? ' — ' + echap(m.alerte.replace('⚠ ', '')) : '') + '</li>').join('')
         : '<li>Aucun module branché pour l\'instant.</li>';
+    majReglages();
     rubanSurCarte = !!etat.modules.find(m => m.surCarte);
     copierLedsCarte();
     majVivant();
@@ -748,17 +749,19 @@ const LECTEURS = {
         return '';
     },
     lcd(g) {
+        // Fond et caracteres repris de l'ecran de « Peripheriques » (bleu, retroeclairage RGB, ou eteint).
+        const ecran = $('grove-lcd'), cellule = document.querySelector('#grove-lcd .lcd-cell'), fond = g.querySelector('.mv-lcd-fond');
+        if (ecran && fond) { const c = getComputedStyle(ecran).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)') fond.setAttribute('fill', c); }
+        const eteint = !!ecran && ecran.classList.contains('eteint');
+        const encre = cellule ? getComputedStyle(cellule).color : '';
         $$('.mv-lcd', g).forEach(t => {
+            t.setAttribute('fill', eteint ? 'transparent' : encre || '#f2f6fb');
             const ligne = $('grove-lcd-l' + t.dataset.l);
             t.textContent = ligne ? $$('.lcd-cell', ligne).map(c => c.textContent || ' ').join('') : '';
         });
         return '';
     },
-    lcdrgb(g) {
-        const fond = g.querySelector('.mv-lcd-fond'), module = $('grove-lcd');
-        if (fond && module) { const c = getComputedStyle(module).backgroundColor; if (c && c !== 'rgba(0, 0, 0, 0)') fond.setAttribute('fill', c); }
-        return LECTEURS.lcd(g);
-    },
+    lcdrgb: g => LECTEURS.lcd(g),
     '4d'(g) {
         const ecran = $('grove-4digit-ecran'), cible = g.querySelector('.mv-4d');
         if (!ecran || !cible) return '';
@@ -863,6 +866,43 @@ function majVivant() {
     }
 }
 
+// ---------- « Peripheriques » pendant le montage dans la colonne ----------
+// Les actionneurs ne s'affichent plus que dans le montage ; la liste garde les reglages des capteurs, sous le
+// titre « Reglages des capteurs », qui la replie ou la deplie (memorise, depliee par defaut). Les sections
+// cachees restent a jour (un.js) : le montage les recopie.
+const SECTIONS_REGLAGES = ['grove-sec-ultrason', 'grove-sec-joystick', 'grove-sec-potentiometre', 'grove-sec-bouton',
+    'grove-sec-lumiere', 'grove-sec-pir', 'grove-sec-pression', 'grove-sec-cov', 'grove-sec-gestes', 'grove-sec-th',
+    'grove-sec-co2', 'grove-sec-couleur', 'grove-sec-radio'];
+const CLE_REGLAGES = 'montageReglagesReplies';
+let basculeReglages = null;
+function reglagesReplies() { try { return localStorage.getItem(CLE_REGLAGES) === '1'; } catch (erreur) { return false; } }
+function majReglages() {
+    const liste = $('grove-panneau');
+    if (!liste) return;
+    const actif = mode === 'colonne';
+    if (actif && !basculeReglages) {
+        basculeReglages = document.createElement('button');
+        basculeReglages.type = 'button';
+        basculeReglages.id = 'montage-reglages-bascule';
+        basculeReglages.className = 'montage-reglages-bascule';
+        basculeReglages.addEventListener('click', () => {
+            try { localStorage.setItem(CLE_REGLAGES, reglagesReplies() ? '0' : '1'); } catch (erreur) { /* oublie au rechargement */ }
+            majReglages();
+        });
+        liste.insertBefore(basculeReglages, liste.firstChild);
+    }
+    liste.classList.toggle('montage-reglages', actif);
+    if (!basculeReglages) return;
+    const replie = reglagesReplies();
+    liste.classList.toggle('reglages-replies', actif && replie);
+    // Aucun capteur a regler (seulement des actionneurs) : la liste disparait.
+    const visibles = SECTIONS_REGLAGES.filter(id => { const e = $(id); return e && !e.classList.contains('replie'); });
+    liste.classList.toggle('reglages-vides', actif && !visibles.length);
+    basculeReglages.hidden = !actif;
+    basculeReglages.setAttribute('aria-expanded', String(!replie));
+    basculeReglages.textContent = (replie ? '▸ ' : '▾ ') + 'Réglages des capteurs';
+}
+
 function colonneAssezLarge() {
     if (!conteneur) return false;
     const st = getComputedStyle(conteneur);
@@ -907,6 +947,7 @@ function appliquerMode() {
     bouton.setAttribute('aria-expanded', String(mode === 'grand'));
     bouton.textContent = mode === 'grand' ? '🔌 Fermer le montage' : '🔌 Voir le montage';
     agrandir.setAttribute('aria-expanded', String(mode === 'grand'));
+    majReglages();
     if (voulu !== ancien) {
         if (voulu === 'grand') fermer.focus();
         else if (ancien === 'grand') (voulu === 'colonne' ? agrandir : bouton).focus();

@@ -432,6 +432,12 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    Vérifié là-bas en simulation (moteur, servo DFR, LED, buzzer, OLED, ultrason,
    potentiomètre, bouton, thèmes) ; pas vérifiés en mouvement : ruban, barre de LED,
    LCD, 4 digits, pas à pas.
+   **Réglages des capteurs** (liste réduite aux réglages + titre repliable, déplié
+   par défaut, mémorisé sous `montageReglagesReplies`), repris de
+   `blockly_ts_microbit` (commit 7c7e11a) : `majReglages()` pose `montage-reglages`
+   sur `#grove-panneau` en mode colonne ; les sections masquées restent mises à jour
+   par `un.js`. Ici, `#grove-panneau` a les mêmes sections que dans microbit (rien de
+   propre à la séance) ; LCD du montage aux couleurs de celui de la liste.
 11. **La carte moteurs DFR0548** (oct. 2026, readme §46), reprise de
    `blockly_ts_microbit` (commits f64fedf et 8132971). Canaux, impulsions, séquences
    et durées repris de la bibliothèque MakeCode officielle `DFRobot/pxt-motor`

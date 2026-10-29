@@ -914,6 +914,18 @@
     :root[data-contrast="high"]:not([data-theme="light"]) .montage-valeur { fill: #ffffff; }
     :root[data-theme="light"][data-contrast="high"] .montage-valeur { fill: #000000; }
     .montage-lcd { font: 600 12px monospace; white-space: pre; }
+    /* « Peripheriques » pendant le montage dans la colonne (montage.js, majReglages) : reglages des capteurs seulement. */
+    .montage-reglages-bascule { grid-column: 1 / -1; justify-self: start; min-height: 44px; margin: 0 0 10px; padding: 8px 12px;
+        background: transparent; border: 1px solid var(--bordure-chrome); color: #b39ddb; font-size: 13px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; }
+    .montage-reglages-bascule[hidden] { display: none; }
+    .montage-reglages-bascule:focus-visible { outline: 3px solid #4fc3d9; outline-offset: 2px; }
+    #grove-panneau.montage-reglages > h4 { display: none; }
+    #grove-panneau.montage-reglages > .grove-bloc:not(#grove-sec-ultrason):not(#grove-sec-joystick):not(#grove-sec-potentiometre):not(#grove-sec-bouton):not(#grove-sec-lumiere):not(#grove-sec-pir):not(#grove-sec-pression):not(#grove-sec-cov):not(#grove-sec-gestes):not(#grove-sec-th):not(#grove-sec-co2):not(#grove-sec-couleur):not(#grove-sec-radio) { display: none !important; }
+    /* Bouton poussoir : il s'actionne dans le montage ; seule la case « maintenu enfonce » reste a regler. */
+    #grove-panneau.montage-reglages #grove-bouton-appui { display: none; }
+    #grove-panneau.montage-reglages.reglages-replies > .grove-bloc { display: none !important; }
+    #grove-panneau.montage-reglages.reglages-vides { display: none !important; }
     .montage-appui { cursor: pointer; touch-action: none; }
     .montage-appui:focus { outline: none; }
     .montage-appui:focus-visible > :first-child { stroke: #4fc3d9; stroke-width: 4; }

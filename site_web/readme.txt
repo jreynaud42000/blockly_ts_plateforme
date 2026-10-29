@@ -1680,7 +1680,13 @@ potentiometre (son repere tourne), PIR, temperature et humidite, CO2, pression, 
 bouton poussoir et le joystick se manipulent directement dans le montage (maintenir le clic, ou Espace / Entree) ;
 les curseurs et cases pour regler les capteurs restent dans "Peripheriques", dont le montage recopie l'affichage
 (lecture toutes les 200 ms) : les deux ne peuvent pas diverger. Avec "reduire les animations" demande par le
-systeme, roues et servos ne tournent plus, la valeur reste ecrite. Fermer : bouton "Fermer", "Fermer le montage" ou touche Echap.
+systeme, roues et servos ne tournent plus, la valeur reste ecrite.
+Pas de doublon (oct. 2026) : quand le montage est dans la colonne, la liste "Peripheriques" ne garde que les reglages
+des capteurs (distance, joystick, potentiometre, case "maintenu enfonce" du bouton, lumiere, PIR, pression, COV,
+gestes, temperature et humidite, CO2, couleur, radio) sous le titre "Reglages des capteurs", qui la replie ou la
+deplie d'un clic (choix memorise, depliee par defaut). Ecrans, LED, moteurs, servos, buzzer et relais ne s'affichent
+plus que dans le montage ; sans capteur a regler, la liste disparait. Carte seule ou montage agrandi : liste
+complete, comme avant. L'ecran LCD du montage reprend les couleurs de celui de la liste (fond bleu, texte blanc). Fermer : bouton "Fermer", "Fermer le montage" ou touche Echap.
 La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancrure, ports, pastilles, prise micro
 USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
 trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
