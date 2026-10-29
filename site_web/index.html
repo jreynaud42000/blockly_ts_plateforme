@@ -1259,6 +1259,26 @@
     #grove-couleur { width: 100%; height: 30px; padding: 0; border: 0; background: none; cursor: pointer; }
     #grove-moteurs, #grove-servos { background: var(--fond-saisie); border-radius: 4px; padding: 6px 8px; font-size: 11px; }
     #grove-servos { display: flex; flex-wrap: wrap; gap: 4px; }
+    /* Carte moteurs DFR0548 (un.js, dessinerDfr) : une vignette par moteur pilote (motoreducteur jaune « TT » et sa
+       roue qui tourne, jauge de vitesse) et par moteur pas a pas (dessin selon le modele, repere sur l'axe). */
+    #dfr-moteurs, #dfr-pas { display: flex; flex-wrap: wrap; gap: 6px; }
+    #dfr-pas { margin-top: 6px; }
+    #dfr-moteurs[hidden], #dfr-pas[hidden] { display: none; }
+    .dfr-vignette { background: var(--fond-saisie); border-radius: 4px; padding: 6px 8px; font-size: 11px;
+                    display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    #dfr-moteurs .dfr-vignette svg { width: 85px; height: 45px; }
+    #dfr-pas .dfr-vignette svg { width: 56px; height: 56px; }
+    #dfr-pas .dfr-jauge { display: none; }
+    .dfr-vignette.arret svg { filter: grayscale(1); opacity: 0.6; }
+    .dfr-roue { transform-box: fill-box; transform-origin: center; }
+    .dfr-roue.tourne { animation: dfr-tourne var(--duree, 1s) linear infinite; }
+    .dfr-roue.tourne.inverse { animation-direction: reverse; }
+    @keyframes dfr-tourne { to { transform: rotate(360deg); } }
+    .dfr-axe { transform-box: view-box; }
+    .dfr-trou { fill: var(--fond-saisie); }
+    .dfr-jauge { width: 100%; height: 4px; border-radius: 2px; background: var(--bordure-chrome); }
+    .dfr-jauge div { height: 100%; border-radius: 2px; background: #0b7285; width: 0; transition: width 0.2s; }
+    .dfr-nom { white-space: nowrap; }
 
     /* Un servo positionnel se place a un angle : rotation animee par une
        transition. Un servo a rotation continue tourne sans fin : rotation
@@ -2166,6 +2186,13 @@
           <span class="grove-titre">Servomoteurs</span>
           <div id="grove-servos">aucun</div>
         </div>
+
+        <!-- Carte moteurs DFR0548 (un.js) : moteurs M1 a M4 et moteurs pas a pas ; ses servos sont dans « Servomoteurs ». -->
+        <div class="grove-bloc" id="grove-sec-dfr">
+          <span class="grove-titre">Carte moteurs DFR0548</span>
+          <div id="dfr-moteurs"></div>
+          <div id="dfr-pas"></div>
+        </div>
       </div>
 
       <div id="piste-panneau">
@@ -3038,6 +3065,27 @@
             vitesse = max(-100, min(100, int(vitesse)))
             window.simu_servo('S' + str(voie), 'continu', vitesse, 90)
     def _grove_servos(): return _grove_obj('pca9685', _PiloteServosMock)
+    # Carte moteurs DFR0548 : servos dans le panneau des servos (« DFR S1 »...), moteurs et pas a pas dans
+    # sa section du panneau. Le pas a pas occupe le programme le meme temps que sur la carte (sleep).
+    class _CarteDFR0548Mock:
+        def __init__(self, adresse=0x40): pass
+        def servo(self, numero, angle):
+            numero = max(1, min(8, int(numero)))
+            angle = max(0, min(180, int(angle)))
+            window.simu_servo('DFR S' + str(numero), 'angle', angle, angle)
+        def moteur(self, numero, sens, vitesse):
+            numero = max(1, min(4, int(numero)))
+            window.simu_dfrMoteur(numero, int(max(0, min(255, vitesse))) * (1 if sens > 0 else -1))
+        def arreter(self, numero): window.simu_dfrMoteur(int(numero), 0)
+        def arreter_tout(self):
+            for numero in range(1, 5): window.simu_dfrMoteur(numero, 0)
+        def pas_a_pas(self, modele, paire, sens, degres):
+            degres = abs(degres)
+            if degres == 0: return
+            duree = int(1000 * degres / 360) if modele == 28 else int(50000 * degres / 36000)
+            window.simu_dfrPas(int(paire), int(modele), degres * (1 if sens > 0 else -1), duree)
+            sleep(duree)
+    def _dfr0548(): return _grove_obj('dfr0548', _CarteDFR0548Mock)
     # Premier lot Grove : commandes du panneau a la place des broches.
     _grove_bouton_avant = {}
     def _grove_bouton(broche): return bool(window.simu_groveEntree('bouton'))
@@ -3598,6 +3646,7 @@
             '_CapteurSGP30': _CapteurSGP30Mock, '_grove_sgp30': _grove_sgp30,
             '_HorlogeRTC': _HorlogeRTCMock, '_grove_rtc': _grove_rtc,
             '_PiloteServos': _PiloteServosMock, '_grove_servos': _grove_servos,
+            '_CarteDFR0548': _CarteDFR0548Mock, '_dfr0548': _dfr0548,
             '_CapteurGestes': _CapteurGestesMock,
             '_CapteurTH': _CapteurTHMock, '_EcranLCD': _EcranLCDMock, '_EcranLCDRGB': _EcranLCDRGBMock,
             '_CapteurCouleur': _CapteurCouleurMock,

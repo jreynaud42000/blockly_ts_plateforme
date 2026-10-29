@@ -396,8 +396,7 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
 10. **La vue montage** (oct. 2026, `montage.js`, readme §45), reprise de
    `blockly_ts_microbit` (commit c7244e5). Vérifiée là-bas dans le navigateur intégré
    (carte Grove, « port partagé », « bus I2C partagé », « hors port Grove », clics
-   dans le montage, Échap, thèmes) ; ici, cet éditeur n'a pas les blocs DFR0548 :
-   seule la carte Grove apparaît. Carte Grove redessinée dans Mode classe (oct. 2026)
+   dans le montage, Échap, thèmes). Carte Grove redessinée dans Mode classe (oct. 2026)
    d'après les photos du produit (The Pi Hut, vue de dessus avec règle) : ports en bas,
    8 pastilles pour pinces crocodile, micro:bit couchée dans le connecteur central ;
    modules en rangée sous leurs ports. Vérifié dans le navigateur intégré de Mode
@@ -424,7 +423,15 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    À revoir sur un vrai poste en faisant glisser la poignée de la colonne.
    `montage.js` repris ensuite de `blockly_ts_microbit` (commit 2d49aac, DFR0548
    redessinée d'après le schéma DFRobot) pour garder un fichier identique d'un
-   éditeur à l'autre ; sans blocs DFR0548 ici, ce dessin n'apparaît jamais.
+   éditeur à l'autre ; ce dessin sert depuis l'ajout de la catégorie DFR0548 (point 11).
+11. **La carte moteurs DFR0548** (oct. 2026, readme §46), reprise de
+   `blockly_ts_microbit` (commits f64fedf et 8132971). Canaux, impulsions, séquences
+   et durées repris de la bibliothèque MakeCode officielle `DFRobot/pxt-motor`
+   (`main.ts`) ; dans microbit, le pilote généré, exécuté avec un faux bus I²C, écrit
+   les mêmes registres que cette bibliothèque. Jamais exécuté sur une vraie carte. Si
+   disponible : vérifier le sens « horaire » de chaque moteur, et surtout l'angle réel
+   des pas à pas — la bibliothèque obtient l'angle par une durée (1 s par tour pour
+   le 28BYJ-48), ce qui paraît très rapide pour ce moteur et doit être mesuré.
 
 ## Écarté volontairement
 

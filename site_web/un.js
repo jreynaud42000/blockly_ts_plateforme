@@ -1381,6 +1381,175 @@ try {
                ', "' + nomBroche(block) + '")\n';
     };
 
+    // ---------- Carte moteurs DFRobot DFR0548 (micro:bit Driver Expansion Board) ----------
+    //
+    // Une PCA9685 a l'adresse I2C 0x40, a 50 Hz, pilote 8 servos (S1 a S8) et 4 moteurs a courant continu
+    // (M1 a M4), ou 2 moteurs pas a pas (M1-M2, M3-M4). Canaux, impulsions, sequences des pas a pas et durees
+    // repris tels quels de la bibliotheque MakeCode officielle (DFRobot/pxt-motor, main.ts) :
+    //  - servo Sn sur le canal 16 - n, impulsion de 600 a 2400 us pour 0 a 180 degres ;
+    //  - moteur Mn sur les canaux (4 - n) x 2 (sens antihoraire) et (4 - n) x 2 + 1 (sens horaire), vitesse 0 a 255 x 16 ;
+    //  - pas a pas : la PCA9685 produit la sequence elle-meme (4 canaux decales en phase) ; l'angle n'est
+    //    obtenu que par la duree avant l'arret (42BYGH : 50000 x degres / 36000 ms ; 28BYJ-48 : 1000 x degres / 360 ms).
+    // Pas verifie sur une vraie carte.
+
+    const MENU_SERVOS_DFR = [1, 2, 3, 4, 5, 6, 7, 8].map(n => ['S' + n, String(n)]);
+    const MENU_MOTEURS_DFR = [1, 2, 3, 4].map(n => ['M' + n, String(n)]);
+    const MENU_SENS_DFR = [["↻ horaire", "1"], ["↺ antihoraire", "-1"]];
+
+    function piloteDfr0548() {
+        importerMicrobit();
+        piloteRegistre();
+        pilote('dfr0548', [
+            'class _CarteDFR0548:',
+            '    # Sequences des pas a pas (valeurs ON/OFF de la PCA9685), bibliotheque DFRobot pxt-motor',
+            '    STP = ((2047, 4095), (1, 2047), (1023, 3071), (3071, 1023))     # 28BYJ-48',
+            '    BYG = ((3071, 1023), (1023, 3071), (4095, 2047), (2047, 4095))  # 42BYGH',
+            '',
+            '    def __init__(self, adresse=0x40):',
+            '        self.adr = adresse',
+            '        i2c.init()',
+            '        self._ecrire(0x00, 0x00)',
+            '        ancien = self._lire(0x00)',
+            '        self._ecrire(0x00, (ancien & 0x7F) | 0x10)   # veille, pour changer la frequence',
+            '        self._ecrire(0xFE, 121)                      # 50 Hz : 25 MHz / (4096 x 50) - 1',
+            '        self._ecrire(0x00, ancien)',
+            '        sleep(5)',
+            '        self._ecrire(0x00, ancien | 0xA1)            # redemarrage, auto-increment',
+            '',
+            '    def _ecrire(self, registre, valeur):',
+            '        i2c.write(self.adr, bytes([registre, valeur]))',
+            '',
+            '    def _lire(self, registre):',
+            '        i2c.write(self.adr, bytes([registre]))',
+            '        return i2c.read(self.adr, 1)[0]',
+            '',
+            '    def _pwm(self, canal, debut, fin):',
+            '        i2c.write(self.adr, bytes([0x06 + 4 * canal, debut & 0xFF, (debut >> 8) & 0xFF, fin & 0xFF, (fin >> 8) & 0xFF]))',
+            '',
+            '    def servo(self, numero, angle):',
+            '        numero = max(1, min(8, int(numero)))',
+            '        angle = max(0, min(180, angle))',
+            '        self._pwm(16 - numero, 0, int((angle * 1800 / 180 + 600) * 4096 / 20000))',
+            '',
+            '    def moteur(self, numero, sens, vitesse):',
+            '        numero = max(1, min(4, int(numero)))',
+            '        v = max(-4095, min(4095, int(max(0, min(255, vitesse)) * 16 * sens)))',
+            '        voie = (4 - numero) * 2',
+            '        if v >= 0:',
+            '            self._pwm(voie + 1, 0, v)',
+            '            self._pwm(voie, 0, 0)',
+            '        else:',
+            '            self._pwm(voie + 1, 0, 0)',
+            '            self._pwm(voie, 0, -v)',
+            '',
+            '    def arreter(self, numero):',
+            '        voie = (4 - int(numero)) * 2',
+            '        self._pwm(voie, 0, 0)',
+            '        self._pwm(voie + 1, 0, 0)',
+            '',
+            '    def arreter_tout(self):',
+            '        for numero in range(1, 5):',
+            '            self.arreter(numero)',
+            '',
+            '    def pas_a_pas(self, modele, paire, sens, degres):',
+            '        # paire 1 = M1-M2 (canaux 4 a 7), paire 2 = M3-M4 (canaux 0 a 3)',
+            '        degres = abs(degres)',
+            '        if degres == 0:',
+            '            return',
+            '        b = 4 if paire == 1 else 0',
+            '        if modele == 28:',
+            '            ordre = (b, b + 2, b + 1, b + 3) if sens > 0 else (b + 3, b + 1, b + 2, b)',
+            '            for canal, (debut, fin) in zip(ordre, self.STP):',
+            '                self._pwm(canal, debut, fin)',
+            '            sleep(int(1000 * degres / 360))',
+            '        else:',
+            '            if sens > 0:',
+            '                ordre = ((b + 3, 0), (b + 2, 1), (b + 1, 2), (b, 3))',
+            '            else:',
+            '                ordre = ((b + 3, 2), (b + 2, 3), (b + 1, 0), (b, 1))',
+            '            for canal, i in ordre:',
+            '                self._pwm(canal, self.BYG[i][0], self.BYG[i][1])',
+            '            sleep(int(50000 * degres / 36000))',
+            '        if paire == 1:',
+            '            self.arreter(1)',
+            '            self.arreter(2)',
+            '        else:',
+            '            self.arreter(3)',
+            '            self.arreter(4)',
+            '',
+            'def _dfr0548():',
+            '    return _grove_obj("dfr0548", _CarteDFR0548)',
+        ]);
+    }
+
+    Blockly.Blocks['dfr_servo'] = { init: function() {
+        this.appendDummyInput().appendField("DFR0548 : servo").appendField(new Blockly.FieldDropdown(MENU_SERVOS_DFR), "SERVO")
+            .appendField("à");
+        this.appendValueInput("ANGLE").setCheck("Number");
+        this.appendDummyInput().appendField("°");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Place le servomoteur branché sur la sortie choisie (S1 à S8) de la carte DFR0548 à l'angle voulu (0 à 180°).");
+    }};
+    P.forBlock['dfr_servo'] = function(block) {
+        piloteDfr0548();
+        return '_dfr0548().servo(' + block.getFieldValue('SERVO') + ', ' + (P.valueToCode(block, 'ANGLE', P.ORDER_NONE) || '90') + ')\n';
+    };
+
+    Blockly.Blocks['dfr_moteur'] = { init: function() {
+        this.appendDummyInput().appendField("DFR0548 : moteur").appendField(new Blockly.FieldDropdown(MENU_MOTEURS_DFR), "MOTEUR")
+            .appendField("sens").appendField(new Blockly.FieldDropdown(MENU_SENS_DFR), "SENS").appendField("vitesse");
+        this.appendValueInput("VITESSE").setCheck("Number");
+        this.appendDummyInput().appendField("(0 à 255)");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Fait tourner le moteur à courant continu branché sur la sortie choisie (M1 à M4), dans le sens choisi, " +
+                        "à la vitesse voulue (0 à 255). Le moteur tourne jusqu'à un autre ordre.");
+    }};
+    P.forBlock['dfr_moteur'] = function(block) {
+        piloteDfr0548();
+        return '_dfr0548().moteur(' + block.getFieldValue('MOTEUR') + ', ' + block.getFieldValue('SENS') + ', ' +
+               (P.valueToCode(block, 'VITESSE', P.ORDER_NONE) || '0') + ')\n';
+    };
+
+    Blockly.Blocks['dfr_moteur_arreter'] = { init: function() {
+        this.appendDummyInput().appendField("DFR0548 : arrêter")
+            .appendField(new Blockly.FieldDropdown([["le moteur M1", "1"], ["le moteur M2", "2"], ["le moteur M3", "3"],
+                                                    ["le moteur M4", "4"], ["tous les moteurs", "tous"]]), "MOTEUR");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Arrête un moteur de la carte DFR0548, ou les quatre.");
+    }};
+    P.forBlock['dfr_moteur_arreter'] = function(block) {
+        piloteDfr0548();
+        const m = block.getFieldValue('MOTEUR');
+        return m === 'tous' ? '_dfr0548().arreter_tout()\n' : '_dfr0548().arreter(' + m + ')\n';
+    };
+
+    Blockly.Blocks['dfr_pas_a_pas'] = { init: function() {
+        this.appendDummyInput().appendField("DFR0548 : moteur pas à pas")
+            .appendField(new Blockly.FieldDropdown([["28BYJ-48", "28"], ["42BYGH", "42"]]), "MODELE")
+            .appendField("sur").appendField(new Blockly.FieldDropdown([["M1-M2", "1"], ["M3-M4", "2"]]), "PAIRE")
+            .appendField("sens").appendField(new Blockly.FieldDropdown(MENU_SENS_DFR), "SENS").appendField("de");
+        this.appendValueInput("QUANTITE").setCheck("Number");
+        this.appendDummyInput().appendField(new Blockly.FieldDropdown([["degrés", "degres"], ["tours", "tours"]]), "UNITE");
+        this.setInputsInline(true);
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setTooltip("Fait tourner un moteur pas à pas (28BYJ-48 ou 42BYGH) branché sur deux sorties moteur de la carte DFR0548, " +
+                        "puis l'arrête. Le programme attend la fin du mouvement. L'angle est obtenu par une durée (bibliothèque " +
+                        "DFRobot) : à vérifier sur le vrai moteur.");
+    }};
+    P.forBlock['dfr_pas_a_pas'] = function(block) {
+        piloteDfr0548();
+        let quantite = P.valueToCode(block, 'QUANTITE', P.ORDER_MULTIPLICATIVE) || '90';
+        if (block.getFieldValue('UNITE') === 'tours') quantite = quantite + ' * 360';
+        return '_dfr0548().pas_a_pas(' + block.getFieldValue('MODELE') + ', ' + block.getFieldValue('PAIRE') + ', ' +
+               block.getFieldValue('SENS') + ', ' + quantite + ')\n';
+    };
+
     // ---------- Grove ----------
     //
     // Les pilotes de ces modules ne sont pas dans le firmware : ils sont écrits
@@ -5260,6 +5429,7 @@ try {
         'Capteurs': '#d2cc79',
         'Actionneurs (Audio)': '#622d86',
         'Servos': '#25f478',
+        'Carte moteurs DFR0548': '#0b7285',
         'Radio': '#1864ab',
         'IA': '#9c6644',
         'Grove': '#2b8a3e',
@@ -5299,7 +5469,7 @@ try {
     // Ordre voulu par l'utilisateur (la table sert aussi d'ordre « par defaut » du panneau administrateur, qui part de
     // TOOLBOX_ORIGINAL). Les categories qui n'y figurent pas (robots, LiDAR) restent
     // a la suite, dans leur ordre d'origine. « Communication » est renommee « Radio ». « Graphique » n'existe pas encore.
-    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Radio', 'IA', 'Grove',
+    const ORDRE_CATEGORIES = ['Boucles', 'Temps', 'Matrice LED', 'Entrées/Sorties', 'Capteurs', 'Actionneurs (Audio)', 'Servos', 'Carte moteurs DFR0548', 'Radio', 'IA', 'Grove',
                               'Logique', 'Variables', 'Maths', 'Texte', 'Fonctions', 'Listes'];
     const NOMS_ROBOTS = ['Maqueen Plus', 'Maqueen Lite', 'Kitrobot v2', 'LiDAR'];   // regroupes dans « Robots »
     const CATEGORIE_LISTES = {
@@ -5528,6 +5698,18 @@ try {
               { "kind": "block", "type": "servo_arret_neutre" },
               { "kind": "block", "type": "servo_intervalle", "inputs": { "MINI": { "shadow": { "type": "math_number", "fields": { "NUM": "0" } } }, "MAXI": { "shadow": { "type": "math_number", "fields": { "NUM": "180" } } } } },
               { "kind": "block", "type": "servo_impulsion", "inputs": { "MICROS": { "shadow": { "type": "math_number", "fields": { "NUM": "1500" } } } } }
+            ]
+          },
+          {
+            "kind": "category", "name": "Carte moteurs DFR0548", "colour": "190",
+            "contents": [
+              { "kind": "label", "text": "Servomoteurs (S1 à S8)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "dfr_servo", "inputs": { "ANGLE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } },
+              { "kind": "label", "text": "Moteurs (M1 à M4)", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "dfr_moteur", "inputs": { "VITESSE": { "shadow": { "type": "math_number", "fields": { "NUM": "150" } } } } },
+              { "kind": "block", "type": "dfr_moteur_arreter" },
+              { "kind": "label", "text": "Moteurs pas à pas", "web-class": "groupe-flyout" },
+              { "kind": "block", "type": "dfr_pas_a_pas", "inputs": { "QUANTITE": { "shadow": { "type": "math_number", "fields": { "NUM": "90" } } } } }
             ]
           },
           {
@@ -7942,6 +8124,13 @@ try {
             "Dans le simulateur, il apparaît dans la zone « Servomoteurs » sous le nom S0 à S15.",
         grove_pca_continu: "Fait tourner le servomoteur à rotation continue branché sur la voie indiquée (0 à 15), de -100 à 100 % ; " +
             "0 l'arrête (au réglage près du servo).",
+        dfr_servo: "Place le servomoteur branché sur l'une des 8 sorties servo (S1 à S8) de la carte moteurs DFRobot DFR0548 " +
+            "à l'angle voulu, de 0 à 180°.",
+        dfr_moteur: "Fait tourner le moteur à courant continu branché sur l'une des 4 sorties moteur (M1 à M4) de la carte " +
+            "DFR0548, dans le sens horaire ou antihoraire, à une vitesse de 0 à 255. Il tourne jusqu'à un autre ordre.",
+        dfr_moteur_arreter: "Arrête un moteur à courant continu de la carte DFR0548, ou les quatre à la fois.",
+        dfr_pas_a_pas: "Fait tourner un moteur pas à pas (28BYJ-48 ou 42BYGH) branché sur deux sorties moteur de la carte DFR0548 " +
+            "(M1-M2 ou M3-M4), d'un nombre de degrés ou de tours, puis l'arrête. Le programme attend la fin du mouvement.",
         grove_bouton_appuye: "Vrai tant que le bouton poussoir Grove branché sur la broche choisie est enfoncé. À poser " +
             "dans un « si » d'une boucle. Dans le simulateur : bouton rouge « Appuyer » du panneau Grove (maintenir) ou case " +
             "« maintenu enfoncé ».",
@@ -8463,6 +8652,18 @@ try {
     exemple(['grove_pca_continu'], 'Servo continu', "Le servo continu de la voie 1 tourne 2 secondes dans un sens, puis dans l'autre.",
         [exLoop(exB('grove_pca_continu', null, { VOIE: exN(1), VITESSE: exN(60) }), exWait(2),
                 exB('grove_pca_continu', null, { VOIE: exN(1), VITESSE: exN(-60) }), exWait(2))]);
+    exemple(['dfr_servo'], 'Balayage d\'un servo (DFR0548)', "Le servo branché sur S1 de la carte DFR0548 passe de 0° à 180° " +
+        "chaque seconde.",
+        [exLoop(exB('dfr_servo', { SERVO: '1' }, { ANGLE: exN(0) }), exWait(1),
+                exB('dfr_servo', { SERVO: '1' }, { ANGLE: exN(180) }), exWait(1))]);
+    exemple(['dfr_moteur', 'dfr_moteur_arreter'], 'Moteur 2 secondes (DFR0548)', "Le moteur M1 tourne deux secondes dans le " +
+        "sens horaire à la vitesse 150, puis s'arrête.",
+        [exStart(exB('dfr_moteur', { MOTEUR: '1', SENS: '1' }, { VITESSE: exN(150) }), exWait(2),
+                 exB('dfr_moteur_arreter', { MOTEUR: '1' }))]);
+    exemple(['dfr_pas_a_pas'], 'Un tour de pas à pas (DFR0548)', "Le moteur pas à pas 28BYJ-48 branché sur M1-M2 fait un " +
+        "tour dans le sens horaire, puis un demi-tour dans l'autre sens.",
+        [exStart(exB('dfr_pas_a_pas', { MODELE: '28', PAIRE: '1', SENS: '1', UNITE: 'tours' }, { QUANTITE: exN(1) }),
+                 exB('dfr_pas_a_pas', { MODELE: '28', PAIRE: '1', SENS: '-1', UNITE: 'degres' }, { QUANTITE: exN(180) }))]);
     exemple(['grove_bouton_lorsque'], 'Compter les appuis', "Chaque appui sur le bouton poussoir (P0) ajoute 1 au compteur affiché.",
         [exStart(exB('variables_set', { VAR: { name: 'compteur' } }, { VALUE: exN(0) })),
          exWhen('grove_bouton_lorsque', { BROCHE: 'pin0' },
@@ -10892,6 +11093,98 @@ try {
         });
     }
 
+    // Carte moteurs DFR0548 : vitesse signee de chaque moteur pilote (-255 a 255, negatif = antihoraire) et position
+    // cumulee de chaque moteur pas a pas (degres), avec la duree du dernier mouvement pour animer l'axe.
+    // Dessins (choix de l'utilisateur, modele A) : motoreducteur jaune « TT » et sa roue ; pas a pas dessine selon
+    // le modele du bloc (28BYJ-48 rond argente, 42BYGH carre noir) avec un repere sur l'axe. Chaque vignette est
+    // creee une fois puis seulement mise a jour : la reconstruire relancerait l'animation de la roue.
+    let etatDfrMoteurs = {};
+    let etatDfrPas = {};
+    const zoneDfrMoteurs = document.getElementById('dfr-moteurs');
+    const zoneDfrPas = document.getElementById('dfr-pas');
+    const SVG_MOTEUR_TT =
+        '<svg viewBox="0 0 170 90" aria-hidden="true">' +
+        '<rect x="6" y="30" width="92" height="30" rx="5" fill="#f2c230" stroke="#8a6d10" stroke-width="1.5"/>' +
+        '<rect x="98" y="35" width="10" height="20" fill="#f2c230" stroke="#8a6d10" stroke-width="1.5"/>' +
+        '<rect x="20" y="38" width="44" height="14" rx="3" fill="#e2b020"/>' +
+        '<circle cx="14" cy="45" r="3" fill="#8a6d10"/><rect x="0" y="40" width="6" height="10" fill="#9e9e9e"/>' +
+        '<g class="dfr-roue">' +
+        '<circle cx="130" cy="45" r="34" fill="#2b2b2b"/><circle cx="130" cy="45" r="24" fill="#fafafa" stroke="#9e9e9e"/>' +
+        '<path d="M130 23 L130 67 M108 45 L152 45 M114.4 29.4 L145.6 60.6 M145.6 29.4 L114.4 60.6" stroke="#9e9e9e" stroke-width="3"/>' +
+        '<circle cx="130" cy="45" r="6" fill="#f2c230" stroke="#8a6d10"/></g></svg>';
+    const SVG_PAS = {
+        '28BYJ-48': '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+            '<rect x="2" y="44" width="96" height="12" rx="3" fill="#c0c4c8" stroke="#6b7075"/>' +
+            '<circle cx="8" cy="50" r="3" class="dfr-trou"/><circle cx="92" cy="50" r="3" class="dfr-trou"/>' +
+            '<circle cx="50" cy="50" r="40" fill="#cfd4d8" stroke="#6b7075" stroke-width="1.5"/>' +
+            '<rect x="34" y="84" width="32" height="12" rx="2" fill="#1e5fbf"/>' +
+            '<circle cx="50" cy="36" r="13" fill="#e9eef2" stroke="#6b7075"/>' +
+            '<g class="dfr-axe" style="transform-origin: 50px 36px">' +
+            '<circle cx="50" cy="36" r="6" fill="#f2c230" stroke="#8a6d10"/><rect x="48" y="22" width="4" height="12" rx="1" fill="#c62828"/></g></svg>',
+        '42BYGH': '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+            '<rect x="8" y="8" width="84" height="84" rx="8" fill="#2e2e2e" stroke="#111" stroke-width="1.5"/>' +
+            '<circle cx="20" cy="20" r="4" fill="#9e9e9e"/><circle cx="80" cy="20" r="4" fill="#9e9e9e"/>' +
+            '<circle cx="20" cy="80" r="4" fill="#9e9e9e"/><circle cx="80" cy="80" r="4" fill="#9e9e9e"/>' +
+            '<circle cx="50" cy="50" r="20" fill="#3d3d3d" stroke="#6b7075"/>' +
+            '<g class="dfr-axe" style="transform-origin: 50px 50px">' +
+            '<circle cx="50" cy="50" r="7" fill="#c0c4c8"/><rect x="48" y="33" width="4" height="15" rx="1" fill="#f2c230"/></g></svg>',
+    };
+    // Memes dessins dans la vue montage (montage.js) : une seule source pour les moteurs.
+    window.dessinsMoteursDfr = { tt: SVG_MOTEUR_TT, pas: SVG_PAS };
+    /** « 1 tour + 90° », « 3 tours », « 45° » : plus lisible qu'un angle cumule de plusieurs milliers de degres. */
+    function texteTours(degres) {
+        const d = Math.round(Math.abs(degres)), tours = Math.floor(d / 360), reste = d % 360;
+        const t = tours ? tours + (tours > 1 ? ' tours' : ' tour') : '';
+        return (degres < 0 ? '↺ ' : '↻ ') + (t && reste ? t + ' + ' + reste + '°' : t || reste + '°');
+    }
+    /** Vignette d'un moteur (cle), creee au premier appel puis reutilisee. */
+    function vignetteDfr(zone, cle, modele, svg) {
+        let el = zone.querySelector('[data-cle="' + cle + '"]');
+        if (el && el.dataset.modele !== modele) { el.remove(); el = null; }
+        if (!el) {
+            el = document.createElement('div');
+            el.className = 'dfr-vignette';
+            el.dataset.cle = cle;
+            el.dataset.modele = modele;
+            el.innerHTML = svg + '<div class="dfr-jauge"><div></div></div><div class="dfr-nom"></div>';
+            const suivant = [...zone.children].find(x => x.dataset.cle > cle);
+            zone.insertBefore(el, suivant || null);
+        }
+        return el;
+    }
+    function dessinerDfr() {
+        if (zoneDfrMoteurs) {
+            const numeros = Object.keys(etatDfrMoteurs).sort();
+            zoneDfrMoteurs.hidden = !numeros.length;
+            for (const n of numeros) {
+                const v = etatDfrMoteurs[n];
+                const el = vignetteDfr(zoneDfrMoteurs, n, 'tt', SVG_MOTEUR_TT);
+                const roue = el.querySelector('.dfr-roue');
+                el.classList.toggle('arret', v === 0);
+                roue.classList.toggle('tourne', v !== 0);
+                roue.classList.toggle('inverse', v < 0);
+                // Un tour en 1 s a pleine vitesse, plus lent en dessous ; le sens suit le signe.
+                if (v !== 0) roue.style.setProperty('--duree', Math.min(10, 255 / Math.abs(v)).toFixed(2) + 's');
+                el.querySelector('.dfr-jauge div').style.width = Math.round(Math.abs(v) / 255 * 100) + '%';
+                el.querySelector('.dfr-nom').textContent = 'M' + n + ' · ' + (v === 0 ? 'arrêt' : (v > 0 ? '↻ ' : '↺ ') + Math.abs(v));
+            }
+            for (const el of [...zoneDfrMoteurs.children]) if (!(el.dataset.cle in etatDfrMoteurs)) el.remove();
+        }
+        if (zoneDfrPas) {
+            const paires = Object.keys(etatDfrPas).sort();
+            zoneDfrPas.hidden = !paires.length;
+            for (const paire of paires) {
+                const p = etatDfrPas[paire];
+                const el = vignetteDfr(zoneDfrPas, paire, p.modele, SVG_PAS[p.modele] || SVG_PAS['28BYJ-48']);
+                const axe = el.querySelector('.dfr-axe');
+                axe.style.transition = 'transform ' + (p.duree / 1000).toFixed(2) + 's linear';
+                axe.style.transform = 'rotate(' + p.position + 'deg)';
+                el.querySelector('.dfr-nom').textContent = (paire === '1' ? 'M1-M2' : 'M3-M4') + ' · ' + p.modele + ' · ' + texteTours(p.position);
+            }
+            for (const el of [...zoneDfrPas.children]) if (!etatDfrPas[el.dataset.cle]) el.remove();
+        }
+    }
+
     function dessinerMoteurs() {
         if (zoneMoteurs) {
             zoneMoteurs.textContent = 'canal 1 : ' + etatMoteurs[1] + ' · canal 2 : ' + etatMoteurs[2];
@@ -10957,7 +11250,8 @@ try {
         ['grove-sec-barreled', /^grove_barre_/],
         ['grove-sec-couleur',  /^grove_couleur_/],
         ['grove-sec-moteurs',  /^grove_moteur_/],
-        ['grove-sec-servos',   /^(servo_|grove_pca_)/],
+        ['grove-sec-servos',   /^(servo_|grove_pca_|dfr_servo$)/],
+        ['grove-sec-dfr',      /^dfr_(moteur|moteur_arreter|pas_a_pas)$/],
         ['grove-sec-radio',    /^radio_quand_recu$/],
     ];
 
@@ -11078,6 +11372,9 @@ try {
         dessinerLcd();
         etatMoteurs = { 1: 'arrêt', 2: 'arrêt' };
         dessinerMoteurs();
+        etatDfrMoteurs = {};
+        etatDfrPas = {};
+        dessinerDfr();
         etatLeds = {};
         dessinerLeds();
         etatServos = {};
@@ -11111,6 +11408,13 @@ try {
     window.simu_lcd = function(action, texte, x, y) {
         window.simuQueue.push({ type: 'lcd', action: String(action),
                                 texte: String(texte), x: Number(x), y: Number(y) });
+    };
+    window.simu_dfrMoteur = function(numero, vitesse) {
+        window.simuQueue.push({ type: 'dfrMoteur', numero: Number(numero), vitesse: Number(vitesse) });
+    };
+    window.simu_dfrPas = function(paire, modele, degres, duree) {
+        window.simuQueue.push({ type: 'dfrPas', paire: String(paire), modele: modele === 28 ? '28BYJ-48' : '42BYGH',
+                                degres: Number(degres), duree: Number(duree) });
     };
     window.simu_moteur = function(canal, vitesse) {
         window.simuQueue.push({ type: 'moteur', canal: Number(canal), vitesse: vitesse });
@@ -12721,6 +13025,7 @@ try {
     });
     dessinerLcd();
     dessinerMoteurs();
+    dessinerDfr();
     dessinerServos();
 
     window.simu_jouerMelodie = function(nom) {
@@ -12920,6 +13225,20 @@ try {
             if (action.index === 4) MQ.rgb = [[r, v, b], [r, v, b], [r, v, b], [r, v, b]];
             else if (MQ.rgb[action.index]) MQ.rgb[action.index] = [r, v, b];
             dessinerDelsMaqueen();
+            window.simu_playQueue();
+        }
+        else if (action.type === 'dfrMoteur') {
+            // Un arret ne fait pas apparaitre un moteur jamais mis en marche (« arreter tous les moteurs »).
+            if (action.vitesse !== 0 || action.numero in etatDfrMoteurs) etatDfrMoteurs[action.numero] = action.vitesse;
+            dessinerDfr();
+            window.simu_playQueue();
+        }
+        else if (action.type === 'dfrPas') {
+            // L'aiguille tourne pendant la duree du mouvement ; la pause qui suit dans la file (sleep du
+            // substitut Brython) occupe le programme ce meme temps, comme sur la carte.
+            const p = etatDfrPas[action.paire] || { position: 0 };
+            etatDfrPas[action.paire] = { position: p.position + action.degres, modele: action.modele, duree: action.duree };
+            dessinerDfr();
             window.simu_playQueue();
         }
         else if (action.type === 'afficheurLum') {

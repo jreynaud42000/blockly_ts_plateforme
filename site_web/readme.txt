@@ -1656,7 +1656,7 @@ la page arrete aussitot ses signes de vie.
 A verifier : installation reelle (Docker ou systemd, non essayes ici), charge avec plusieurs classes, audit de securite.
 
 45. VUE MONTAGE : LA CARTE D'EXTENSION ET SES CABLES (oct. 2026)
-Des qu'un bloc Grove ou Servos est pose, le montage remplace la carte seule dans la colonne du simulateur
+Des qu'un bloc Grove, Servos ou Carte moteurs DFR0548 est pose, le montage remplace la carte seule dans la colonne du simulateur
 (oct. 2026), si elle fait au moins 480 px de large ; les boutons Secouer et Reinitialiser passent en ligne dessous, et
 "Agrandir" ouvre le meme montage par-dessus la zone de blocs. Colonne plus etroite (modules et etiquettes
 illisibles) : la carte seule reste, avec le bouton "Voir le montage" sous "Reinitialiser la simulation". Le passage
@@ -1676,7 +1676,7 @@ LED, moteurs) reste dans "Peripheriques". Fermer : bouton "Fermer", "Fermer le m
 La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancrure, ports, pastilles, prise micro
 USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
 trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
-blockly_ts_microbit, ou la vue montage dessine aussi la carte moteurs DFR0548.
+blockly_ts_microbit. Avec des blocs DFR0548, la micro:bit est dessinee sur la DFR0548 (voir la section 46).
 Choix de la carte (oct. 2026) : en tete du montage, "Carte d'extension" propose Grove Shield v2.0 ou BitMaker V2
 (boutons radio, choix memorise dans le navigateur, Grove par defaut).
 BitMaker V2 (Seeed, 57 x 70 mm), dessinee d'apres la photo de dessus du fabricant : 3 ports Grove a gauche (P8 :
@@ -1691,3 +1691,26 @@ Ruban RGB sur P13 avec la BitMaker : ce sont les 4 LED de la carte. Pas de modul
 ruban de "Peripheriques" (LED n° 0 a 3 = Pixel 0 a 3), eteintes a la reinitialisation. Au-dela de 4 LED dans le bloc,
 la legende ajoute "la carte n'a que 4 LED". Pour un autre module, choisir une broche qui a un port (P8, P14, P15, P16
 sont les plus sures pour un module numerique ; P0, P1, P2 pour un capteur analogique).
+
+46. CARTE MOTEURS DFRobot DFR0548 (oct. 2026)
+Nouvelle categorie "Carte moteurs DFR0548", apres Servos, pour la carte d'extension DFRobot micro:bit Driver Expansion
+Board (DFR0548) : une puce PCA9685 a l'adresse I2C 0x40, a 50 Hz. Quatre blocs :
+- "servo S1 a S8 a ... degres" (0 a 180 degres, impulsion de 600 a 2400 us) ;
+- "moteur M1 a M4 sens horaire / antihoraire vitesse ... (0 a 255)" : le moteur tourne jusqu'a un autre ordre ;
+- "arreter le moteur M1 a M4 / tous les moteurs" ;
+- "moteur pas a pas 28BYJ-48 ou 42BYGH sur M1-M2 ou M3-M4, sens, de ... degres / tours" : le programme attend la fin.
+Canaux, impulsions, sequences des pas a pas et durees sont repris tels quels de la bibliotheque MakeCode officielle
+(DFRobot/pxt-motor, main.ts) : servo Sn sur le canal 16 - n, moteur Mn sur les canaux (4 - n) x 2 et (4 - n) x 2 + 1.
+Pour les pas a pas, la PCA9685 produit elle-meme la sequence ; l'angle n'est obtenu que par une duree avant l'arret
+(28BYJ-48 : 1 s par tour ; 42BYGH : 1,39 s par tour). Ces durees viennent de la bibliotheque DFRobot et n'ont pas ete
+mesurees : un tour demande peut ne pas faire exactement un tour.
+Simulateur : les servos apparaissent dans "Servomoteurs" (DFR S1 a DFR S8), les moteurs et les pas a pas dans la section
+"Carte moteurs DFR0548" du panneau : un motoreducteur jaune "TT" par moteur pilote, dont la roue tourne dans le
+bon sens et d'autant plus vite que la vitesse est grande (jauge 0 a 255 dessous, grise a l'arret) ; un dessin par
+moteur pas a pas selon son modele (28BYJ-48 rond argente, 42BYGH carre noir), repere qui tourne sur l'axe, et la
+position cumulee depuis la derniere reinitialisation en tours + degres (ex. "1 tour + 90"). Le pas a pas occupe le programme le meme temps que sur la carte.
+Vue montage : des qu'un bloc DFR0548 est pose, la micro:bit est enfichee dans la DFR0548 (choix de la carte remplace
+par "Carte DFR0548 : choisie car le programme utilise ses blocs"), dessinee d'apres le schema "Board Overview" du
+wiki DFRobot (bornier de 8 vis M1 a M4 en bas, servos S1 a S8, broches et IIC a droite).
+Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte. Pas de reconstruction des blocs a l'import
+d'un .py (ils deviennent des blocs "code").
