@@ -690,7 +690,9 @@ const svgBas = $('montage-svg-bas'), svgHaut = $('montage-svg-haut'), place = $(
 const titre = $('montage-sous-titre'), resume = $('montage-resume'), fermer = $('montage-fermer');
 const choix = $('montage-choix'), choixAuto = $('montage-choix-auto');
 const colonne = $('montage-colonne'), zoneColonne = $('montage-colonne-zone'), outilsColonne = $('montage-colonne-outils');
-const agrandir = $('montage-agrandir'), console_ = $('simulateur-console'), conteneur = $('simulator-container');
+// « Agrandir » : case a cocher dans son etiquette ; l'etiquette sert de repere pour ranger le choix de la carte.
+const caseAgrandir = $('montage-agrandir'), agrandir = caseAgrandir ? caseAgrandir.closest('label') || caseAgrandir : null;
+const console_ = $('simulateur-console'), conteneur = $('simulator-container');
 const zoneGrand = panneau ? panneau.querySelector('.montage-zone') : null;
 const enteteGrand = panneau ? panneau.querySelector('.montage-entete') : null;
 // mode : 'carte' (carte seule), 'colonne' (montage dans la colonne) ou 'grand' (par-dessus les blocs).
@@ -703,12 +705,50 @@ function choixCarte() {
     try { const c = localStorage.getItem(CLE_CARTE); return c === 'bitmaker' || c === 'motorbit' ? c : 'grove'; } catch (erreur) { return 'grove'; }
 }
 
+// Zoom de la simulation (demande de l'utilisateur) : Ctrl + molette sur la carte ou le montage, comme la molette dans
+// la zone de blocs ; la molette seule fait toujours defiler la colonne. Le bouton « 100 % » remet l'echelle d'origine.
+const ZOOM_MIN = 0.5, ZOOM_MAX = 3;
+let zoomSim = 1, boutonZoom = null;
+function appliquerZoom() {
+    const cadreCarte = $('carte-cadre');
+    if (cadreCarte) cadreCarte.style.zoom = zoomSim === 1 ? '' : String(zoomSim);
+    // Montage agrandi au-dela de la place : on le fait defiler depuis son bord gauche.
+    for (const zone of [zoneColonne, zoneGrand]) if (zone) {
+        zone.style.overflow = zoomSim > 1 ? 'auto' : '';
+        zone.style.justifyContent = zoomSim > 1 ? 'flex-start' : '';
+    }
+    if (boutonZoom) {
+        boutonZoom.hidden = zoomSim === 1;
+        boutonZoom.textContent = 'Zoom ' + Math.round(zoomSim * 100) + ' % · revenir à 100 %';
+    }
+    ajusterEchelle();
+}
+function installerZoom() {
+    boutonZoom = document.createElement('button');
+    boutonZoom.type = 'button';
+    boutonZoom.className = 'sim-zoom';
+    boutonZoom.hidden = true;
+    boutonZoom.title = 'Ctrl + molette pour zoomer sur la simulation';
+    boutonZoom.addEventListener('click', () => { zoomSim = 1; appliquerZoom(); });
+    console_.insertBefore(boutonZoom, console_.firstChild);
+    const molette = e => {
+        if (!e.ctrlKey || !e.deltaY) return;   // molette seule : defilement normal ; Ctrl : zoom (et pas celui du navigateur)
+        e.preventDefault();
+        zoomSim = Math.round(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, zoomSim * (e.deltaY < 0 ? 1.1 : 1 / 1.1))) * 100) / 100;
+        if (Math.abs(zoomSim - 1) < 0.05) zoomSim = 1;
+        appliquerZoom();
+    };
+    console_.addEventListener('wheel', molette, { passive: false });
+    if (zoneGrand) zoneGrand.addEventListener('wheel', molette, { passive: false });
+}
+
 function ajusterEchelle() {
     if (mode === 'carte') return;
     // La scene garde ses unites (1000 de large) ; le cadre porte la place reellement occupee.
     const cadre = scene.parentElement, zone = cadre.parentElement;
     // Ajuste a la largeur (defilement vertical si besoin) : ajuster aussi a la hauteur rendait tout illisible.
-    const k = Math.max(0.35, Math.min(1.1, (zone.clientWidth - 24) / LARGEUR));
+    // Le zoom de l'utilisateur s'applique ensuite (Ctrl + molette).
+    const k = Math.max(0.35, Math.min(1.1, (zone.clientWidth - 24) / LARGEUR)) * zoomSim;
     scene.style.transform = 'scale(' + k + ')';
     cadre.style.width = Math.round(LARGEUR * k) + 'px';
     cadre.style.height = Math.round(hauteurScene * k) + 'px';
@@ -1051,11 +1091,11 @@ function appliquerMode() {
     bouton.hidden = !(utile && !enColonne);
     bouton.setAttribute('aria-expanded', String(mode === 'grand'));
     bouton.textContent = mode === 'grand' ? '🔌 Fermer le montage' : '🔌 Voir le montage';
-    agrandir.setAttribute('aria-expanded', String(mode === 'grand'));
+    caseAgrandir.checked = mode === 'grand';
     majReglages();
     if (voulu !== ancien) {
         if (voulu === 'grand') fermer.focus();
-        else if (ancien === 'grand') (voulu === 'colonne' ? agrandir : bouton).focus();
+        else if (ancien === 'grand') (voulu === 'colonne' ? caseAgrandir : bouton).focus();
         if (voulu !== 'carte') { Blockly.svgResize(window.workspace); requestAnimationFrame(() => redessiner()); }
         else Blockly.svgResize(window.workspace);
     }
@@ -1067,10 +1107,11 @@ function ouvrirGrand(ouvrir) {
 }
 
 function installer() {
-    if (!panneau || !bouton || !colonne || !window.workspace) return false;
+    if (!panneau || !bouton || !colonne || !caseAgrandir || !window.workspace) return false;
     bouton.addEventListener('click', () => ouvrirGrand(mode !== 'grand'));
     fermer.addEventListener('click', () => ouvrirGrand(false));
-    agrandir.addEventListener('click', () => ouvrirGrand(true));
+    caseAgrandir.addEventListener('change', () => ouvrirGrand(caseAgrandir.checked));
+    installerZoom();
     if (choix) {
         const radio = choix.querySelector(`input[value="${choixCarte()}"]`);
         if (radio) radio.checked = true;

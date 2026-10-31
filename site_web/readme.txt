@@ -1752,3 +1752,18 @@ et "Carte moteurs Motor:bit" sont reunies dans une seule categorie, apres Servos
 carte (DFR0548, Motor:bit), comme Grove, Radio et Robots. Les blocs, leur couleur, la simulation et le montage ne
 changent pas. Un reglage du panneau administrateur fait sur une ancienne categorie (masquee, renommee, recoloree) ne
 s'applique plus : a refaire sur "Cartes d'extension" ou ses sous-categories.
+
+48. AFFICHAGE : CHARTE EDUCATECH, LOGO, ZOOM ET CASE "AGRANDIR" (oct. 2026)
+Demandes de l'utilisateur :
+- Theme sombre par defaut aux couleurs du theme Educatech (celui du salon) : bandeau en degrade vert d'eau vers violet,
+  filet magenta, fonds bleu nuit, zone de blocs et colonne des categories assorties. Sans les decors du salon (badge du
+  stand, banniere, pistes), qui restent reserves au theme de saison "Salon Educatech Expo". Theme clair, contraste eleve,
+  Halloween et Noel inchanges.
+- Logo Technologie Services directement sur le bandeau, sans pastille blanche, dans ses couleurs d'origine. En contraste
+  eleve (bandeau noir), la pastille blanche reste : le texte noir du logo y disparaitrait. En theme clair, l'icone
+  orange du logo se voit peu sur le bandeau orange.
+- Montage dans la colonne : "Agrandir" est une case a cocher discrete (cocher = montage par-dessus les blocs, Echap ou
+  "Fermer" pour revenir, la case se decoche).
+- Zoom de la simulation : Ctrl + molette sur la carte micro:bit ou le montage (de 50 % a 300 %), comme la molette dans la
+  zone de blocs ; la molette seule fait toujours defiler la colonne. Le bouton "Zoom ... % - revenir a 100 %" apparait
+  des que le zoom n'est plus a 100 %. Un pave tactile (pincement) zoome de la meme facon.

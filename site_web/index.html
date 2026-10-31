@@ -190,8 +190,10 @@
     #btn-radio-multi[hidden] { display: none; }   /* .tb-btn impose display: flex (bouton cache dans le multi-editeur) */
 
     /* Logo (accessoire : le fichier logo.png actuel est conserve) */
-    #tb-logo { display: flex; align-items: center; padding: 3px 6px; margin-right: 2px; flex-shrink: 0;
-      background: #fff; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0,0,0,.12); }
+    /* Logo directement sur le bandeau, sans pastille blanche, dans ses couleurs d'origine (choix de l'utilisateur). */
+    #tb-logo { display: flex; align-items: center; padding: 3px 6px; margin-right: 2px; flex-shrink: 0; }
+    /* Contraste eleve : bandeau noir, le texte noir du logo y disparaitrait ; la pastille blanche reste dans ce mode seul. */
+    :root[data-contrast="high"] #tb-logo { background: #fff; border-radius: 5px; }
     #tb-logo img { height: 24px; width: auto; display: block; }
     /* Multi-editeur radio : numero de la carte (bandeau.js) */
     #tb-carte { flex-shrink: 0; margin: 0 4px; padding: 3px 9px; border-radius: 999px; background: #fff; color: var(--couleur-bandeau);
@@ -974,7 +976,17 @@
     #montage-colonne[hidden] { display: none; }
     .montage-colonne-outils { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 12px; }
     .montage-colonne-outils .montage-choix, .montage-colonne-outils .montage-choix-auto { margin: 0; color: var(--texte-chrome); }
-    .montage-agrandir { min-height: 44px; padding: 8px 14px; margin: 0 0 0 auto; }
+    /* « Agrandir » : case a cocher discrete (demande de l'utilisateur), cible de 44 px. */
+    .montage-agrandir { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin: 0 0 0 auto;
+        font-size: 13px; color: var(--texte-chrome); opacity: 0.85; cursor: pointer; white-space: nowrap; }
+    .montage-agrandir:hover { opacity: 1; }
+    .montage-agrandir input { width: 16px; height: 16px; margin: 0; accent-color: #2bb3a0; cursor: pointer; }
+    .montage-agrandir input:focus-visible { outline: 3px solid #4fc3d9; outline-offset: 2px; }
+    /* Zoom de la simulation (Ctrl + molette, montage.js) : rappel du niveau et retour a 100 %. */
+    .sim-zoom { align-self: flex-end; min-height: 32px; padding: 4px 10px; font-size: 12px; background: transparent;
+        color: var(--texte-chrome); border: 1px solid var(--bordure-chrome); border-radius: 6px; cursor: pointer; }
+    .sim-zoom[hidden] { display: none; }
+    .sim-zoom:focus-visible { outline: 3px solid #4fc3d9; outline-offset: 2px; }
     .montage-colonne-zone { display: flex; justify-content: center; overflow: hidden; border-radius: 8px;
         background: var(--fond-chrome-profond); padding: 8px; }
     .montage-colonne-agrandi { display: none; margin: 0; padding: 16px; text-align: center; font-size: 13px;
@@ -1481,7 +1493,8 @@
       --ec-sim: #0d1b2a; --ec-bord: #22405f; --ec-code: #0b1826; --ec-code-bord: #22405f;
       --ec-pan: #13263a; --ec-pan-bord: #22405f; --ec-sep: #22405f;
     }
-    :root[data-saison="salon"]:not([data-theme="light"]):not([data-contrast="high"]) {
+    /* Charte Educatech : theme sombre par defaut (demande de l'utilisateur, 31 oct. 2026), et theme du salon. */
+    :root:is([data-saison="salon"], :not([data-saison])):not([data-theme="light"]):not([data-contrast="high"]) {
       --bandeau-sombre: #4b3a9e; --accent-fonce: #e0218a;
       --fond-saisie: #0c1030; --texte-saisie: #e6e9ff; --fond-code: #0f1438; --bordure-chrome: #2f3a7a;
       --ec-page: #0c1030; --ec-cat-hover: #222a63; --ec-cat-sel: #2c3577; --ec-cat-lisere: #2bb3a0;
@@ -1489,7 +1502,8 @@
       --ec-sim: #12163a; --ec-bord: #2c3577; --ec-code: #0f1438; --ec-code-bord: #2c3577;
       --ec-pan: #171c47; --ec-pan-bord: #2c3577; --ec-sep: #2c3577;
     }
-    :root[data-saison="salon"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { background: linear-gradient(90deg, #1f9e8f, #6a2c91); }
+    :root:is([data-saison="salon"], :not([data-saison])):not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
+      background: linear-gradient(90deg, #1f9e8f, #6a2c91); border-bottom-color: #e0218a; }
     /* Filet du bandeau : neige (Noel) ; rayures « bonbon » orange, jaune, blanc (Halloween) ; magenta (salon). */
     :root[data-saison]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar { border-bottom-color: var(--accent-fonce); }
     :root[data-saison="halloween"]:not([data-theme="light"]):not([data-contrast="high"]) #toolbar {
@@ -1749,8 +1763,8 @@
 <body onload="brython()">
   
   <div id="toolbar">
-    <!-- 1. Logo Technologie Services (logo_ts.png, telecharge de technologieservices.fr), sur une pastille blanche :
-         texte noir et icone orange, illisibles directement sur le bandeau orange. -->
+    <!-- 1. Logo Technologie Services (logo_ts.png, telecharge de technologieservices.fr), directement sur le bandeau,
+         sans pastille blanche (choix de l'utilisateur, 31 oct. 2026). -->
     <div id="tb-logo"><img src="logo_ts.png" alt="Technologie Services" title="Technologie Services"></div>
     <!-- 2. Affichage : theme clair / sombre, contraste normal / eleve (bandeau.js ; les boutons d'origine #btn-theme et #btn-contraste, caches, restent le moteur) -->
     <div id="menu-affichage-conteneur" class="tb-dropdown menu-deroulant">
@@ -1962,7 +1976,7 @@
       <!-- Montage dans la colonne (montage.js) : remplace la carte seule des qu'un bloc d'extension est pose -->
       <div id="montage-colonne" hidden>
         <div class="montage-colonne-outils" id="montage-colonne-outils">
-          <button id="montage-agrandir" class="montage-agrandir" aria-controls="montage-panneau" aria-expanded="false">⤢ Agrandir</button>
+          <label class="montage-agrandir" title="Afficher le montage en grand, par-dessus les blocs (Échap pour revenir)"><input type="checkbox" id="montage-agrandir" aria-controls="montage-panneau"> Agrandir</label>
         </div>
         <div class="montage-colonne-zone" id="montage-colonne-zone"></div>
         <p class="montage-colonne-agrandi">Le montage est affiché en grand, par-dessus les blocs.</p>

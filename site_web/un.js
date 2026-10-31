@@ -7143,7 +7143,8 @@ try {
         const saison = { halloween: THEME_HALLOWEEN, noel: THEME_NOEL, salon: THEME_SALON }[document.documentElement.dataset.saison];
         const theme = clair
             ? (eleve ? THEME_CLAIR_ELEVE : THEME_CLAIR_NORMAL)
-            : (eleve ? THEME_SOMBRE_ELEVE : (saison || THEME_SOMBRE_NORMAL));
+            // Sombre sans theme de saison : charte Educatech (demande de l'utilisateur, 31 oct. 2026), comme le salon.
+            : (eleve ? THEME_SOMBRE_ELEVE : (saison || THEME_SALON));
         if (window.workspace.getTheme() !== theme) window.workspace.setTheme(theme);
     }
     new MutationObserver(appliquerThemeBlockly).observe(document.documentElement, { attributes: true, attributeFilter: ['data-saison'] });

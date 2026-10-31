@@ -459,6 +459,13 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    catégories, tiroir Motor:bit (2 blocs, bleu), panneau administrateur (catégorie et
    ses deux sous-menus), aucune erreur console. Un réglage administrateur déjà fait
    sur une ancienne catégorie ne s'applique plus.
+14. **Affichage du 31 oct. 2026** (readme §48) : charte Educatech pour le thème sombre
+   par défaut (variables du salon appliquées aussi sans saison, thème Blockly `THEME_SALON`),
+   logo sans pastille blanche (gardée en contraste élevé, bandeau noir), case « Agrandir »,
+   zoom Ctrl + molette de la simulation (`zoomSim` dans `montage.js`, propriété CSS `zoom`
+   sur `#carte-cadre`, échelle de la scène multipliée). Vérifié dans Mode classe : bandeau
+   en dégradé, fonds bleu nuit, case cochée puis décochée par Échap, zoom 146 % puis
+   retour à 100 % dans le montage, 121 % sur la carte seule, aucune erreur console.
 
 ## Écarté volontairement
 
