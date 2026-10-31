@@ -725,7 +725,7 @@ Apres toute modification des fichiers du projet :
 
    python -m PyInstaller app.spec --noconfirm
 
-Le fichier produit est dist/MicrobitBlockly_V2.0E.exe (un seul fichier, ~16 Mo,
+Le fichier produit est dist/MicrobitEasybloc_V2.0E.exe (un seul fichier, ~16 Mo,
 sans installation). NUMERO DE VERSION (actuellement V2.0E) : a changer aux
 QUATRE endroits suivants, sinon ils divergent : VERSION dans app.py (affichee
 dans la fenetre console de l'exe), version_info.txt (proprietes du fichier,

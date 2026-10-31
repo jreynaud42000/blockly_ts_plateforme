@@ -4,7 +4,7 @@ Dossier de travail d'origine : `C:\Users\jreyn\OneDrive\Bureau\blockly_ts` (V2.0
 Dossier de travail actuel (copie d'essai, V2.0E) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain`
 Variante « mode classe » (solution 2, séance servie par le PC du professeur) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_mode_classe` (copie Git de la précédente + `classe.py`)
 Variante « plateforme en ligne » (solution 3, comptes élèves, classe et maison) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_plateforme` (copie Git du mode classe + `plateforme/`, `plateforme.js`) — **non déployée**
-Lancement : double-clic sur `lancer_projet.bat`, puis <http://localhost:8000> — ou l'exe `dist\MicrobitBlockly_V2.0E.exe`
+Lancement : double-clic sur `lancer_projet.bat`, puis <http://localhost:8000> — ou l'exe `dist\MicrobitEasybloc_V2.0E.exe`
 Hébergement : dossier `site_web` (site statique, voir `PROMPT_RECREATION.md` §26)
 Fichiers ajoutés depuis la V2.0C : `bandeau.js`, `montage.js`, `exercices.js`, `exercices.json`, `ia-immediat.js`, `ia-son-immediat.js`, `seances.js`, `lib/mediapipe`, `lib/zxing`, `site_web/` (voir la section « Évolutions de la copie »)
 

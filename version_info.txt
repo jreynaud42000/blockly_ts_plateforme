@@ -21,10 +21,10 @@ VSVersionInfo(
         StringTable(
           '040C04B0',
           [StringStruct('CompanyName', 'RAJ Editions'),
-           StringStruct('FileDescription', 'Programmation Micro:bit V2 (Blockly)'),
+           StringStruct('FileDescription', 'Programmation Micro:bit V2 (Easybloc)'),
            StringStruct('FileVersion', 'V2.0E'),
-           StringStruct('InternalName', 'MicrobitBlockly'),
-           StringStruct('OriginalFilename', 'MicrobitBlockly_V2.0E.exe'),
+           StringStruct('InternalName', 'MicrobitEasybloc'),
+           StringStruct('OriginalFilename', 'MicrobitEasybloc_V2.0E.exe'),
            StringStruct('ProductName', 'Programmation Micro:bit V2'),
            StringStruct('ProductVersion', 'V2.0E')])
       ]),

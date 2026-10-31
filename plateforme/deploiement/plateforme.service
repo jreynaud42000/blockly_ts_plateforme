@@ -1,7 +1,7 @@
 # Service systemd (Debian / Ubuntu) : la plateforme demarre avec le serveur et redemarre en cas d'arret.
 # Installation : voir plateforme/LISEZMOI.md, « Installation sur un serveur ».
 [Unit]
-Description=Plateforme micro:bit (Blockly)
+Description=Plateforme micro:bit (Easybloc)
 After=network.target
 
 [Service]

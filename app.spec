@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='MicrobitBlockly_V2.0E',
+    name='MicrobitEasybloc_V2.0E',
     version='version_info.txt',
     debug=False,
     bootloader_ignore_signals=False,
