@@ -7090,10 +7090,10 @@ try {
         base: Blockly.Themes.Classic,
         fontStyle: POLICE_BLOCS,
         componentStyles: {
-            workspaceBackgroundColour: '#ffffff',
+            workspaceBackgroundColour: '#f2f2ef',   // gris doux plutot que blanc (essai B, 31 oct. 2026)
             toolboxBackgroundColour: '#2e2e2e',     // colonne de categories sombre meme en clair (version Arduino R4)
             toolboxForegroundColour: '#dddddd',
-            flyoutBackgroundColour: '#d9d9d9',
+            flyoutBackgroundColour: '#dcdcd7',
             flyoutForegroundColour: '#555555',
             flyoutOpacity: 1
         }

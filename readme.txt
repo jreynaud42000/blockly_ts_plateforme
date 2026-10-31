@@ -1767,3 +1767,5 @@ Demandes de l'utilisateur :
 - Zoom de la simulation : Ctrl + molette sur la carte micro:bit ou le montage (de 50 % a 300 %), comme la molette dans la
   zone de blocs ; la molette seule fait toujours defiler la colonne. Le bouton "Zoom ... % - revenir a 100 %" apparait
   des que le zoom n'est plus a 100 %. Un pave tactile (pincement) zoome de la meme facon.
+- Theme clair (essai B choisi par l'utilisateur) : meme bandeau Educatech qu'en sombre, et fonds gris doux au lieu
+  du blanc (zone de blocs #f2f2ef, colonne du simulateur #ececea, cadre du montage #dadad5).

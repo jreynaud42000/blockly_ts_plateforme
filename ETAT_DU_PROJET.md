@@ -466,6 +466,8 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    sur `#carte-cadre`, échelle de la scène multipliée). Vérifié dans Mode classe : bandeau
    en dégradé, fonds bleu nuit, case cochée puis décochée par Échap, zoom 146 % puis
    retour à 100 % dans le montage, 121 % sur la carte seule, aucune erreur console.
+   Thème clair ensuite (essai B montré avant modification) : bandeau Educatech et fonds
+   gris doux (zone de blocs `#f2f2ef` dans le thème Blockly clair) ; contraste élevé inchangé.
 
 ## Écarté volontairement
 

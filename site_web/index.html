@@ -1450,6 +1450,14 @@
       --ec-label: #555;
       --ec-sim: #f7f7f7; --ec-bord: #aaa; --ec-code: var(--fond-code); --ec-code-bord: var(--fond-chrome); --ec-sep: #ccc;
     }
+    /* Clair, contraste normal : fonds gris doux plutot que blancs (essai B choisi par l'utilisateur, 31 oct. 2026) et
+       bandeau Educatech, le meme qu'en sombre. Le fond de la zone de blocs est dans le theme Blockly (un.js). */
+    :root[data-theme="light"]:not([data-contrast="high"]) {
+      --ec-page: #e4e4e0; --ec-sim: #ececea; --fond-chrome-profond: #dadad5; --fond-chrome: #e7e7e3;
+      --ec-grille: #d6d6d1; --ec-flyout: #dcdcd7; --bordure-chrome: #c6c6c0;
+    }
+    :root[data-theme="light"]:not([data-contrast="high"]) #toolbar {
+      background: linear-gradient(90deg, #1f9e8f, #6a2c91); border-bottom-color: #e0218a; }
     :root[data-contrast="high"] {   /* SOMBRE + CONTRASTE ELEVE : noir, bord et texte blancs */
       --ec-page: #000;
       --ec-cat-txt: #fff; --ec-cat-hover: #333; --ec-cat-sel: #fff; --ec-cat-sel-txt: #000; --ec-cat-lisere: transparent;
