@@ -1,9 +1,9 @@
 # État du projet — éditeur Blockly micro:bit V2
 
 Dossier de travail d'origine : `C:\Users\jreyn\OneDrive\Bureau\blockly_ts` (V2.0C)
-Dossier de travail actuel (copie d'essai, V2.0E) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain`
-Variante « mode classe » (solution 2, séance servie par le PC du professeur) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_mode_classe` (copie Git de la précédente + `classe.py`)
-Variante « plateforme en ligne » (solution 3, comptes élèves, classe et maison) : `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_plateforme` (copie Git du mode classe + `plateforme/`, `plateforme.js`) — **non déployée**
+Dossier de travail actuel (copie d'essai, V2.0E) : `C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_adacraft_vilain`
+Variante « mode classe » (solution 2, séance servie par le PC du professeur) : `C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_mode_classe` (copie Git de la précédente + `classe.py`)
+Variante « plateforme en ligne » (solution 3, comptes élèves, classe et maison) : `C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_plateforme` (copie Git du mode classe + `plateforme/`, `plateforme.js`) — **non déployée**
 Lancement : double-clic sur `lancer_projet.bat`, puis <http://localhost:8000> — ou l'exe `dist\MicrobitEasybloc_V2.0E.exe`
 Hébergement : dossier `site_web` (site statique, voir `PROMPT_RECREATION.md` §26)
 Fichiers ajoutés depuis la V2.0C : `bandeau.js`, `montage.js`, `exercices.js`, `exercices.json`, `ia-immediat.js`, `ia-son-immediat.js`, `seances.js`, `lib/mediapipe`, `lib/zxing`, `site_web/` (voir la section « Évolutions de la copie »)
@@ -70,9 +70,9 @@ Passe suivante, avec une image de référence de l'utilisateur (« je veux que l
 | Piste partagée entre les trois robots | Demande explicite de l'utilisateur : « je veux que la partie simulation piste soit la même et disponible pour tous les robots ». Un seul panneau/canevas (`#piste-panneau`, 300×220) pour Maqueen Plus, Kitrobot v2 et Maqueen Lite — un seul robot affiché à la fois, déterminé par `robotActifDetecte()` (quels blocs sont posés). Le tracé « Ligne droite (départ/arrivée) », auparavant la piste dédiée et séparée de Kitrobot (choix explicite antérieur de NE PAS réutiliser celle de Maqueen), est désormais un 4ᵉ choix dans le même sélecteur que les tracés Maqueen, utilisable par n'importe quel robot. Les couleurs de la piste (vert/blanc ou blanc/noir) suivent le **robot actif**, pas le tracé choisi (`couleursPisteRobotActif()`) — Kitrobot lit un pixel sombre comme « sur la ligne », l'inverse des deux autres, donc la piste doit s'inverser avec lui quel que soit le tracé. Largeur de piste et échelle du robot (curseurs déjà existants pour Maqueen Plus) désormais partagés par les trois. Vérifié : changement de robot actif change le titre du panneau, montre le bon sprite, cache les deux autres, redessine la piste dans les bonnes couleurs ; capteurs de ligne testés sur la piste partagée pour les trois robots ; fanions Départ/Arrivée affichés uniquement sur ce tracé, quel que soit le robot ; curseur d'échelle confirmé agir sur le robot réellement affiché (bug trouvé et corrigé : ne mettait à jour que le sprite Maqueen Plus au premier essai). Glisser-déposer du robot (souris/tactile via Pointer Events) également manquant pour Kitrobot v2 et Maqueen Lite après la fusion — signalé par l'utilisateur, pas trouvé par les tests — corrigé en factorisant l'écouteur (`activerGlisserDeposerRobot`) et en l'attachant aux trois robots au lieu du seul `#maqueen-robot` d'origine ; vérifié par `PointerEvent` synthétiques sur les trois |
 | Kitrobot v2 | Module séparé de Maqueen : broches **facultatives et configurables** par des blocs « définir » (pas de câblage réel vérifié pour ce kit), piste dédiée départ/arrivée (droite, noir sur blanc — inversée de Maqueen exprès pour les distinguer d'un coup d'œil). Génération de code vérifiée (tous les blocs, y compris ceux à l'intérieur du pilote retiré côté simulateur). Les 16 fonctions `_kb_*` du pilote — entièrement à l'intérieur du bloc `# >>> pilote kitrobot`, donc retirées avant exécution — ont chacune leur substitut dans le simulateur ; vérifié en exécutant un programme qui les appelle toutes (`_kb_avancer`, `_kb_pivoter`, `_kb_moteur`, `_kb_case`, `_kb_virage`, `_kb_buzzer`, `_kb_del_couleur`, `_kb_del_rgb`, `_kb_clignoter`, `_kb_arcenciel`…) sans aucune erreur. Cinématique et capteurs de ligne réutilisent le modèle de Maqueen (même formule différentielle), avec seulement deux capteurs (gauche/droit) et une détection **inversée** (ligne sombre sur fond clair). Panneau affiché/masqué selon les blocs posés, vérifié via `window.kitrobotTest` (même limite déjà connue : `workspace.clear()` synthétique ne déclenche pas l'écouteur de changement, la fonction de rafraîchissement appelée directement si). Non-régression sur Maqueen confirmée (les deux panneaux réagissent indépendamment) |
 
-## Évolutions de la copie `blockly_ts_adacraft_vilain` (V2.0C → V2.0E, oct. 2026)
+## Évolutions de la copie `easybloc_ts_adacraft_vilain` (V2.0C → V2.0E, oct. 2026)
 
-Toutes les évolutions ci-dessous ont été faites dans la **copie** `C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain`
+Toutes les évolutions ci-dessous ont été faites dans la **copie** `C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_adacraft_vilain`
 (le projet principal `blockly_ts` reste à la V2.0C, exe compris). Principe de travail : **ne modifier aucune fonction existante** quand un
 nouveau fichier suffit — d'où `bandeau.js` et `exercices.js`, qui s'appuient sur les identifiants et les classes existants (`.inactif`,
 `#btn-vue-*`, `window.workspace`, `window.simuEnCours`…). Détails de réalisation : `PROMPT_RECREATION.md` §22 à §26 (pièges nº 59 à nº 70) et
@@ -99,8 +99,8 @@ nouveau fichier suffit — d'où `bandeau.js` et `exercices.js`, qui s'appuient 
 | Grove : potentiomètre et premier lot (oct. 2026) | Potentiomètre (module dessiné, bouton tourné à la souris), puis **bouton poussoir** (état et « lorsque … appuyé »), **capteur de lumière**, **détecteur de mouvement PIR**, **buzzer** (marche/arrêt, bip), **relais**, **écran OLED 0,96" SSD1306** (texte 21 × 8, police 5 × 7 commune au pilote et au simulateur). **Vérifié** dans le simulateur : 18 sous-catégories Grove, les 10 nouveaux blocs génèrent leur code, aide et exemple pour chacun ; programme complet (relais selon le PIR, buzzer selon le bouton, lumière sur l'OLED) ; deux appuis = deux déclenchements ; buzzer coupé à l'arrêt ; les 95 caractères de la police lisibles ; reconstruction des blocs depuis un `.py` avec code régénéré identique. **Non vérifié** : modules réels sur une vraie carte (OLED en particulier) |
 | Grove : deuxième lot (oct. 2026) | **Barre de LED** MY9221, **BMP280** (pression, température, altitude), **SGP30** (eCO₂, COV), **horloge temps réel** DS1307/DS3231, **pilote 16 servos** PCA9685. **Vérifié** dans le simulateur : 23 sous-catégories Grove, les 10 nouveaux blocs génèrent leur code, aide et exemple pour chacun ; programme complet (barre à 6 + LED 10, 1000 hPa → altitude 110,9 m, eCO₂ et COV, horloge réglée au 14/07/2026 9 h 05, servos S3 à 45° et S7 continu) ; reconstruction des blocs depuis un `.py`. **Non vérifié** : aucun des cinq pilotes sur une vraie carte |
 | Séances pour groupes d'élèves (oct. 2026) | Solution « fichiers par l'ENT » : l'enseignant prépare une séance (groupes, exercices de la banque ou créés depuis son programme, entraînement ou évaluation) et la télécharge ; l'élève l'ouvre, choisit groupe et prénom(s), travaille, « Rendre mon travail » ; l'enseignant ramasse tous les fichiers rendus (tableau, programme de chaque élève ouvrable, CSV). **Vérifié** dans le navigateur : séance créée (2 exercices de la banque + 1 créé avec contrôle automatique), élève : bandeau du groupe, validation automatique, programme mémorisé et repris, rendu nommé « 4e-B_Groupe-1_Lea-Tom_Premiers-pas.rendu.json », reprise après rechargement, quitter ; évaluation avec exercice « à corriger » (note provisoire) ; ramassage : doublon gardé une fois, fichier étranger signalé, tableau, CSV une ligne par élève, programme ouvert dans l'éditeur. **Non vérifié** : en classe, avec l'ENT réel (dépôt et téléchargement des fichiers) |
-| Mode classe (oct. 2026, dossier `blockly_ts_mode_classe`) | Le PC du professeur diffuse une séance aux postes de la salle : adresse, code, QR code, suivi en direct, travaux enregistrés automatiquement dans `Documents\MicrobitBlockly\travaux`. **Vérifié** : serveur seul (mauvais code, autre séance, travail invalide refusés ; fonctions enseignant refusées depuis l'adresse réseau ; fichiers écrits ; plus rien accepté après l'arrêt ; 80 téléchargements simultanés sans échec) ; navigateur : onglet Mode classe, diffusion (http://192.168.50.72:8000, code, QR), poste élève par l'adresse réseau (fenêtre Rejoindre automatique, code refusé puis accepté en minuscules, groupe, travail, envoi, « Travail envoyé ✔ »), suivi en direct, programme ouvert par le professeur, fonctions enseignant refusées au poste élève (403). **Non vérifié** : vrais postes de la salle, pare-feu et réseau de l'établissement, exe reconstruit |
-| Plateforme en ligne (oct. 2026, dossier `blockly_ts_plateforme`) | Comptes enseignants et élèves, classes, séances publiées, travail enregistré en ligne et repris depuis un autre poste, suivi, export CSV et JSON, suppression de fin d'année ; déploiement (Caddy, systemd, Docker, sauvegarde) et modèles RGPD. **Vérifié** : API seule, 42 contrôles (inscription et code, doublons, cloisonnement entre enseignants, élève refusé côté enseignant, en-tête exigé, identité imposée, séance fermée, final conservé, nouveau mot de passe qui coupe la session, export sans hash, 3 Mo, fichiers protégés, limite d'essais, suppression complète) ; navigateur : connexion, classe, comptes et fiche, publication, élève (séance, envoi, rendu), déconnexion qui vide le poste, reprise du programme après reconnexion, suivi, programme ouvert, CSV. **Non vérifié** : installation sur un vrai serveur (Docker absent de ce PC), HTTPS, charge réelle, audit de sécurité, validation RGPD |
+| Mode classe (oct. 2026, dossier `easybloc_ts_mode_classe`) | Le PC du professeur diffuse une séance aux postes de la salle : adresse, code, QR code, suivi en direct, travaux enregistrés automatiquement dans `Documents\MicrobitEasybloc\travaux`. **Vérifié** : serveur seul (mauvais code, autre séance, travail invalide refusés ; fonctions enseignant refusées depuis l'adresse réseau ; fichiers écrits ; plus rien accepté après l'arrêt ; 80 téléchargements simultanés sans échec) ; navigateur : onglet Mode classe, diffusion (http://192.168.50.72:8000, code, QR), poste élève par l'adresse réseau (fenêtre Rejoindre automatique, code refusé puis accepté en minuscules, groupe, travail, envoi, « Travail envoyé ✔ »), suivi en direct, programme ouvert par le professeur, fonctions enseignant refusées au poste élève (403). **Non vérifié** : vrais postes de la salle, pare-feu et réseau de l'établissement, exe reconstruit |
+| Plateforme en ligne (oct. 2026, dossier `easybloc_ts_plateforme`) | Comptes enseignants et élèves, classes, séances publiées, travail enregistré en ligne et repris depuis un autre poste, suivi, export CSV et JSON, suppression de fin d'année ; déploiement (Caddy, systemd, Docker, sauvegarde) et modèles RGPD. **Vérifié** : API seule, 42 contrôles (inscription et code, doublons, cloisonnement entre enseignants, élève refusé côté enseignant, en-tête exigé, identité imposée, séance fermée, final conservé, nouveau mot de passe qui coupe la session, export sans hash, 3 Mo, fichiers protégés, limite d'essais, suppression complète) ; navigateur : connexion, classe, comptes et fiche, publication, élève (séance, envoi, rendu), déconnexion qui vide le poste, reprise du programme après reconnexion, suivi, programme ouvert, CSV. **Non vérifié** : installation sur un vrai serveur (Docker absent de ce PC), HTTPS, charge réelle, audit de sécurité, validation RGPD |
 | Plateforme : Espace enseignant protégé et évaluations sans solutions (oct. 2026, comme le mode classe) | Élève connecté : bouton « Espace enseignant » masqué, fenêtre refusée ; professeur et visiteur le gardent. Évaluation : `/api/mes-seances` envoie la séance sans `solution` ni `indices` (`seance_pour_eleve`) ; `/exercices.json` (GET et HEAD) refusé en 403 aux élèves d'une classe dont une évaluation est ouverte (servi aux autres classes, au professeur, aux visiteurs, et de nouveau après fermeture) ; message clair dans le panneau Exercices. Défaut corrigé au passage : la règle `.tb-dropdown-menu button { display: block }` affichait les boutons `hidden` du menu Fichier (« Plateforme : mes classes », « Rejoindre », « Espace enseignant ») ; ajout de `button[hidden] { display: none }`. **Vérifié** : API seule, 25 contrôles (serveur dans le processus, base temporaire) ; navigateur : visiteur (bouton visible, banque servie), élève (bouton absent du menu, fenêtre refusée, séance d'évaluation sans solution ni indice, banque 403, évaluation démarrée par « Commencer » : panneau sans Indice ni Solution, « Valider » compte l'essai), professeur (bouton visible, Espace enseignant ouvert, export avec solutions). **Non vérifié** : en ligne derrière HTTPS  (la reprise après rechargement est traitée à la ligne suivante) |
 | Séance d'évaluation : reprise après rechargement (oct. 2026, `exercices.js`, `seances.js`) | Cause : l'évaluation en cours (exercice, essais, résultats, chronomètre) n'existait qu'en mémoire ; au rechargement la séance était rouverte sans l'évaluation, et l'élève pouvait alors s'entraîner sur les exercices notés ou relancer une évaluation à sa façon (durée illimitée). Correctif : l'état est gardé avec la progression de la séance (`donnees.evalEnCours`) à chaque changement, l'évaluation reprend au démarrage (`reprendreEvaluation`, chronomètre d'origine, programme commencé retrouvé, limite de temps appliquée) ; en séance d'évaluation, plus d'onglet Exercices ni d'évaluation libre : seulement « Commencer l'évaluation » (celle de la séance, une fois) et les résultats ; « Se déconnecter » / changement d'élève sur la plateforme ferme une évaluation en cours (`quitter(true)`). **Vérifié** (plateforme, navigateur, élève d'essai) : reprise à l'exercice 2/3, essai 2/3, chronomètre d'origine, bloc retrouvé ; délai dépassé pendant le rechargement : évaluation terminée « Temps écoulé » ; fenêtre sans Exercices, exercice libre refusé ; « Commencer l'évaluation » ; sortie forcée. **Non vérifié** : mode classe et fichier de séance (même code) ; reprise sur un autre poste (l'état reste dans le navigateur) |
 | Panneau IA en cartes (oct. 2026, modèle A choisi parmi 3 maquettes) | Une carte par mode (icône SVG, titre, sous-titre, badge d'état déduit du bouton Démarrer par MutationObserver, carte en marche encadrée), pastilles du type (pilotent le menu d'origine masqué, recalées après annulation ou importation), interrupteur « Envoyer à la carte », boutons arrondis, barres pleines ; couleurs par `color-mix` sur `--texte-code`. Habillage en fin d'`ia.js` ; `ia-immediat.js` ne change plus que le sous-titre ; visite guidée pointée sur les pastilles. **Vérifié** à 1536 px (4 cartes sur une ligne), pastilles Sons/Objets, badge « en marche », thèmes sombre et clair, contraste élevé sombre et clair. **Non vérifié** : caméra et micro réels |
@@ -304,7 +304,7 @@ nouveau retour de l'utilisateur :
     cliquables conservés ; vérifié : `pin0` à `pin2`, logo et bouton A s'activent et
     se mettent en surbrillance, aucune erreur console.
 
-    Reprise de blockly_ts_microbit (3f09efa) dans Mode classe, Adacraft minimal et
+    Reprise de easybloc_ts_microbit (3f09efa) dans Mode classe, Adacraft minimal et
     Plateforme ; vérifié dans Mode classe : thèmes sombre et clair, contraste élevé
     clair et sombre, les deux cartes de `multi.html` (masque et ombre), `pin0`, `pin2`,
     bouton A et logo par de vrais clics.
@@ -394,7 +394,7 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
     l'état de repos de la broche écho avant de choisir le front à mesurer —
     fidèlement reproduite, mais jamais vue fonctionner sur une vraie carte).
 10. **La vue montage** (oct. 2026, `montage.js`, readme §45), reprise de
-   `blockly_ts_microbit` (commit c7244e5). Vérifiée là-bas dans le navigateur intégré
+   `easybloc_ts_microbit` (commit c7244e5). Vérifiée là-bas dans le navigateur intégré
    (carte Grove, « port partagé », « bus I2C partagé », « hors port Grove », clics
    dans le montage, Échap, thèmes). Carte Grove redessinée dans Mode classe (oct. 2026)
    d'après les photos du produit (The Pi Hut, vue de dessus avec règle) : ports en bas,
@@ -404,28 +404,28 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    contrastes dans les quatre thèmes ; ici, ajouts identiques, non ouverts dans le
    navigateur. Positions mesurées sur photo, à quelques millimètres près.
    **BitMaker V2** et choix de la carte (boutons radio « Carte d'extension »,
-   mémorisés dans `localStorage` sous `montageCarte`), repris de `blockly_ts_microbit`
+   mémorisés dans `localStorage` sous `montageCarte`), repris de `easybloc_ts_microbit`
    (commit ffbb986) : carte dessinée d'après la photo de dessus Seeed (57 × 70 mm,
    cotes converties depuis les pixels), vérifiée là-bas dans le navigateur (7 modules,
    P13 « réservée aux LED de la carte », bascule mémorisée, thèmes). À comparer avec
    une vraie carte : sens des fils de chaque port (lu sur la sérigraphie).
    Ruban sur P13 avec la BitMaker = les 4 LED de la carte, repris de
-   `blockly_ts_microbit` (commit 768788c, vérifié là-bas en simulation : couleurs
+   `easybloc_ts_microbit` (commit 768788c, vérifié là-bas en simulation : couleurs
    recopiées en direct, « la carte n'a que 4 LED » au-delà de 4, extinction à la
    réinitialisation). Les couleurs sont recopiées de `#grove-ruban`
    (MutationObserver), sans toucher à `un.js`.
    **Montage dans la colonne** (maquette B choisie par l'utilisateur), repris de
-   `blockly_ts_microbit` (commit d8a5ce8) : une seule scène, déplacée entre
+   `easybloc_ts_microbit` (commit d8a5ce8) : une seule scène, déplacée entre
    `#montage-colonne-zone` et la vue agrandie ; trois modes (carte seule, colonne,
    agrandi), seuil de 480 px avec 24 px d'hystérésis (ResizeObserver sur
    `#simulator-container`). Vérifié là-bas (538 px : montage ; 303 px : carte seule
    et « Voir le montage » ; retour automatique ; Agrandir, Échap, Fermer ; thèmes).
    À revoir sur un vrai poste en faisant glisser la poignée de la colonne.
-   `montage.js` repris ensuite de `blockly_ts_microbit` (commit 2d49aac, DFR0548
+   `montage.js` repris ensuite de `easybloc_ts_microbit` (commit 2d49aac, DFR0548
    redessinée d'après le schéma DFRobot) pour garder un fichier identique d'un
    éditeur à l'autre ; ce dessin sert depuis l'ajout de la catégorie DFR0548 (point 11).
    **Montage en direct** (variante 1 choisie par l'utilisateur : valeur sous le
-   dessin), repris de `blockly_ts_microbit` (commit 192a4ff) : `majVivant()` recopie
+   dessin), repris de `easybloc_ts_microbit` (commit 192a4ff) : `majVivant()` recopie
    toutes les 200 ms l'affichage de « Périphériques » (lecteurs par module dans
    `LECTEURS`, clé du module dans `data-cle`), sans toucher à `un.js` ; bouton
    poussoir et joystick manipulables dans le montage (souris, Espace ou Entrée).
@@ -434,12 +434,12 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    LCD, 4 digits, pas à pas.
    **Réglages des capteurs** (liste réduite aux réglages + titre repliable, déplié
    par défaut, mémorisé sous `montageReglagesReplies`), repris de
-   `blockly_ts_microbit` (commit 7c7e11a) : `majReglages()` pose `montage-reglages`
+   `easybloc_ts_microbit` (commit 7c7e11a) : `majReglages()` pose `montage-reglages`
    sur `#grove-panneau` en mode colonne ; les sections masquées restent mises à jour
    par `un.js`. Ici, `#grove-panneau` a les mêmes sections que dans microbit (rien de
    propre à la séance) ; LCD du montage aux couleurs de celui de la liste.
 11. **La carte moteurs DFR0548** (oct. 2026, readme §46), reprise de
-   `blockly_ts_microbit` (commits f64fedf et 8132971). Canaux, impulsions, séquences
+   `easybloc_ts_microbit` (commits f64fedf et 8132971). Canaux, impulsions, séquences
    et durées repris de la bibliothèque MakeCode officielle `DFRobot/pxt-motor`
    (`main.ts`) ; dans microbit, le pilote généré, exécuté avec un faux bus I²C, écrit
    les mêmes registres que cette bibliothèque. Jamais exécuté sur une vraie carte. Si
@@ -447,7 +447,7 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
    des pas à pas — la bibliothèque obtient l'angle par une durée (1 s par tour pour
    le 28BYJ-48), ce qui paraît très rapide pour ce moteur et doit être mesuré.
 12. **La carte Motor:bit V1.6** (oct. 2026, readme §47), reprise de
-   `blockly_ts_microbit` (commit 6363b5e). Brochage repris de la documentation
+   `easybloc_ts_microbit` (commit 6363b5e). Brochage repris de la documentation
    ELECFREAKS et du paquet MakeCode pxt-motorbit (M1 : P1 vitesse, P8 sens ; M2 : P2
    vitesse, P12 sens), jamais exécuté sur une vraie carte. Carte du montage dessinée
    d'après le dessin coté du wiki ELECFREAKS. Si une carte est disponible : vérifier
@@ -498,9 +498,9 @@ Rien de tout cela n'est douteux, mais rien n'est confirmé non plus.
 Donner ces trois fichiers comme point de départ :
 
 ```
-C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain\ETAT_DU_PROJET.md
-C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain\readme.txt
-C:\Users\jreyn\OneDrive\Documents\claude\blockly_ts_adacraft_vilain\PROMPT_RECREATION.md
+C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_adacraft_vilain\ETAT_DU_PROJET.md
+C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_adacraft_vilain\readme.txt
+C:\Users\jreyn\OneDrive\Documents\claude\easybloc_ts_adacraft_vilain\PROMPT_RECREATION.md
 ```
 
 Puis préciser ce qu'on veut faire. Le code lui-même est commenté en français, en

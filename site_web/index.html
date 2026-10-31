@@ -14,7 +14,7 @@
       var ed = new URLSearchParams(location.search).get('editeur');
       if (ed !== '1' && ed !== '2') return;
       document.documentElement.dataset.editeur = ed;
-      var COMMUNES = ['themeApp', 'contrasteApp', 'saisonApp', 'blockly_ts_config_admin', 'tuto-accueil-masque',
+      var COMMUNES = ['themeApp', 'contrasteApp', 'saisonApp', 'easybloc_ts_config_admin', 'blockly_ts_config_admin', 'tuto-accueil-masque',
                       'console_hauteur_v1', 'ia_onglets_teachable_v1', 'code_enseignant_v1'];
       var prefixe = 'multi' + ed + ':', S = Storage.prototype, lire = S.getItem, ecrire = S.setItem, effacer = S.removeItem;
       var cle = function (k) { k = String(k); return COMMUNES.indexOf(k) >= 0 ? k : prefixe + k; };

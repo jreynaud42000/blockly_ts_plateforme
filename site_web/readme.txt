@@ -1290,7 +1290,7 @@ Aide (menu : Visite guidee, IA, Console, clic droit), tout a droite ; son menu s
   conserves, Envoyer apres Capture et IA apres Code.
 
 ---------------------------------------------------------
-24. BANDEAU IDENTIQUE A LA VERSION ARDUINO R4 (copie d'essai blockly_ts_adacraft_vilain)
+24. BANDEAU IDENTIQUE A LA VERSION ARDUINO R4 (copie d'essai easybloc_ts_adacraft_vilain)
 ---------------------------------------------------------
 Le bandeau du haut reprend l'apparence de la version Arduino R4 (modele fourni par le collegue) : memes boutons,
 memes menus, meme ordre, memes couleurs. Seul l'habillage change (index.html + bandeau.js, nouveau) : les id et les
@@ -1584,7 +1584,7 @@ Limite : un poste partage par plusieurs classes garde le travail de chacun separ
 poste peut ouvrir la meme seance avec un autre prenom : la confiance reste de mise (pas d'authentification).
 
 43. MODE CLASSE : LA SEANCE SERVIE PAR LE PC DU PROFESSEUR (solution 2, oct. 2026)
-Dossier : blockly_ts_mode_classe (copie Git du projet blockly_ts_adacraft_vilain, qui reste sans mode classe).
+Dossier : easybloc_ts_mode_classe (copie Git du projet easybloc_ts_adacraft_vilain, qui reste sans mode classe).
 Le PC du professeur fait tourner l'application (lancer_projet.bat, ou l'exe) et sert la seance aux postes de la salle :
 plus de fichier a deposer sur l'ENT, les travaux arrivent tout seuls. Fichiers : classe.py (serveur), app.py (branchement),
 seances.js (fenetres). La solution 1 (fichiers par l'ENT) reste disponible a l'identique.
@@ -1595,7 +1595,7 @@ PROFESSEUR (sur son PC) — Fichier > Espace enseignant > Mode classe
   au tableau) et un QR code de l'adresse (tablettes).
 - Suivi en direct (toutes les 3 s) : connecte (vert) ou non, groupe, eleves, exercice en cours, etat de chaque exercice,
   reussis, note (evaluation), rendu definitif et son heure. Un clic sur une case ouvre le programme de l'eleve.
-- Les travaux sont enregistres sur le PC dans Documents\MicrobitBlockly\travaux\<date>_<classe>_<titre>\ : un fichier
+- Les travaux sont enregistres sur le PC dans Documents\MicrobitEasybloc\travaux\<date>_<classe>_<titre>\ : un fichier
   .rendu.json par groupe (meme format que la solution 1 : « Ramasser les travaux » sait les relire), toujours le plus recent.
   Boutons : ouvrir ce dossier, export CSV (une ligne par eleve), imprimer, arreter le mode classe.
 - Tant que le mode classe est actif, l'exe ne s'arrete pas tout seul quand la page du professeur se ferme.
@@ -1619,7 +1619,7 @@ SECURITE ET RESEAU
 A verifier en classe : le pare-feu et le reseau de l'etablissement, et la charge avec 30 postes reels.
 
 44. PLATEFORME EN LIGNE AVEC COMPTES (solution 3, oct. 2026)
-Dossier : blockly_ts_plateforme (copie Git de blockly_ts_mode_classe : les solutions 1 et 2 restent disponibles).
+Dossier : easybloc_ts_plateforme (copie Git de easybloc_ts_mode_classe : les solutions 1 et 2 restent disponibles).
 Les eleves se connectent avec un compte, depuis la classe ou la maison ; le travail est enregistre en ligne.
 Fichiers : plateforme/serveur.py (serveur, Python standard + SQLite), plateforme.js (fenetres), plateforme/LISEZMOI.md
 (essai, utilisation, installation), plateforme/RGPD.md (modeles : registre, information des familles, liste de controle),
@@ -1690,7 +1690,7 @@ complete, comme avant. L'ecran LCD du montage reprend les couleurs de celui de l
 La carte Grove est dessinee d'apres les photos du fabricant (72 x 72 mm, echancrure, ports, pastilles, prise micro
 USB, voyant PWR, connecteur plat) ; les noms des fils (GND, 3V3, SDA, SCL...) imprimes au-dessus des ports sont omis,
 trop petits a cette echelle, et le nom des ports est place au-dessus d'eux pour ne pas etre cache par les cables. Repris de
-blockly_ts_microbit. Avec des blocs DFR0548, la micro:bit est dessinee sur la DFR0548 (voir la section 46).
+easybloc_ts_microbit. Avec des blocs DFR0548, la micro:bit est dessinee sur la DFR0548 (voir la section 46).
 Choix de la carte (oct. 2026) : en tete du montage, "Carte d'extension" propose Grove Shield v2.0 ou BitMaker V2
 (boutons radio, choix memorise dans le navigateur, Grove par defaut).
 BitMaker V2 (Seeed, 57 x 70 mm), dessinee d'apres la photo de dessus du fabricant : 3 ports Grove a gauche (P8 :
@@ -1726,7 +1726,7 @@ position cumulee depuis la derniere reinitialisation en tours + degres (ex. "1 t
 Vue montage : des qu'un bloc DFR0548 est pose, la micro:bit est enfichee dans la DFR0548 (choix de la carte remplace
 par "Carte DFR0548 : choisie car le programme utilise ses blocs"), dessinee d'apres le schema "Board Overview" du
 wiki DFRobot (bornier de 8 vis M1 a M4 en bas, servos S1 a S8, broches et IIC a droite).
-Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte. Pas de reconstruction des blocs a l'import
+Repris de easybloc_ts_microbit (oct. 2026). Pas verifie sur une vraie carte. Pas de reconstruction des blocs a l'import
 d'un .py (ils deviennent des blocs "code").
 
 47. CARTE MOTEURS ELECFREAKS MOTOR:BIT V1.6 (oct. 2026)
@@ -1745,7 +1745,7 @@ buzzer, broches et alimentation a droite) ; moteurs branches par 2 fils, modules
 I2C sur P19 / P20. Un module sur P1, P2, P8 ou P12 affiche "P8 : moteur M1" (par exemple), un module sur P0
 "P0 : buzzer de la carte". Les menus de broches des blocs Grove ne proposent pas P3 a P7, P9 a P11, P19 et P20 : ces
 broches de la carte servent aux blocs Entrees/Sorties.
-Repris de blockly_ts_microbit (oct. 2026). Pas verifie sur une vraie carte (sens des moteurs, rapport cyclique a
+Repris de easybloc_ts_microbit (oct. 2026). Pas verifie sur une vraie carte (sens des moteurs, rapport cyclique a
 vitesse 255).
 Categorie "Cartes d'extension" (oct. 2026, choix de l'utilisateur) : les anciennes categories "Carte moteurs DFR0548"
 et "Carte moteurs Motor:bit" sont reunies dans une seule categorie, apres Servos, qui s'ouvre sur une sous-categorie par

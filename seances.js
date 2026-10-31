@@ -22,7 +22,7 @@
 // MODE CLASSE (solution 2, classe.py) : le PC de l'enseignant sert la seance aux eleves de la salle.
 //   - Enseignant (sur son PC, Espace enseignant > Mode classe) : demarre la diffusion d'une seance ; l'application
 //     affiche l'adresse a ouvrir (http://<adresse du PC>:8000), un code de 5 caracteres et un QR code, puis suit les
-//     eleves en direct (connectes, exercices, rendus) ; les travaux arrivent dans Documents\MicrobitBlockly\travaux.
+//     eleves en direct (connectes, exercices, rendus) ; les travaux arrivent dans Documents\MicrobitEasybloc\travaux.
 //   - Eleve (sur un autre poste de la salle) : « Rejoindre la seance de la classe » (propose tout seul a l'ouverture),
 //     code, groupe, prenom(s) ; son travail est envoye au PC de l'enseignant toutes les 20 secondes, et
 //     « Rendre mon travail » l'envoie comme rendu definitif (fichier telecharge si le reseau ne repond pas).

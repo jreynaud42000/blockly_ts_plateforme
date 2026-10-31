@@ -24,7 +24,7 @@ PORT = 8000
 # Numero de version : a tenir identique dans version_info.txt (proprietes de
 # l'exe), app.spec (nom du fichier) et le texte de #copyright-toolbar (index.html).
 VERSION = "V2.0E"
-NOM_APPLICATION = "MicrobitBlockly"
+NOM_APPLICATION = "MicrobitEasybloc"
 TITRE_BOITE = "Programmation Micro:bit V2"
 
 # Vrai pour l'exe PyInstaller (sans console) ; faux pour `python app.py`.

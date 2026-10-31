@@ -2,7 +2,7 @@
 
 > À donner tel quel à un assistant de programmation, avec le dossier du projet, pour **recréer, maintenir ou faire
 > évoluer** la partie intelligence artificielle. Il complète `PROMPT_RECREATION.md` (§27) et `readme.txt` (§32).
-> État décrit : octobre 2026, version V2.0E de la copie `blockly_ts_adacraft_vilain` (après l'ajout des sons
+> État décrit : octobre 2026, version V2.0E de la copie `easybloc_ts_adacraft_vilain` (après l'ajout des sons
 > immédiats, des vignettes et de la reconstruction des blocs IA).
 
 ---
